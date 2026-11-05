@@ -135,7 +135,8 @@ def page(title: str, desc: str, active: str, body: str, machine: str | None = No
     )
 
 
-HOME_BODY = """<section class="mt-10 border-t-0 pt-0 space-y-3">
+HOME_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">ai (愛) means love</h1><p class="max-w-[62ch] text-[17px] mx-auto">New here? <a href="#manifesto" class="text-accent underline">Read the manifesto</a> first — four short points that explain the whole idea. Then pick a guide: the <a href="/code" class="text-accent underline">coding guide</a>, the <a href="/ui" class="text-accent underline">UI guide</a>, or <a href="/board" class="text-accent underline">the skill board</a> for your agent.</p></header>
+<section id="manifesto" class="mt-10 border-t-0 pt-0 space-y-3">
 <h2 class="font-display text-[22px] mb-3">Manifesto, in your words</h2>
 <ol class="text-left space-y-3.5 list-decimal pl-6">
 <li><strong>Build for the reader that matters.</strong> The reader is an agent, not a person. Short modules, explicit I/O, JSON-first data, tables over prose.</li>
@@ -150,6 +151,15 @@ HOME_BODY = """<section class="mt-10 border-t-0 pt-0 space-y-3">
 <div class="space-y-2"><h3 class="text-[19px] font-bold">The old way — built for humans</h3><p>Code was written so humans could read and manage it. One big framework did everything: Django, Rails, Laravel. One way of doing things, one manual to read. Any programmer could open any file and understand it. That made human teams easy to run and fast to start.</p></div>
 <div class="space-y-2"><h3 class="text-[19px] font-bold">The new way — built for agents</h3><p>AI writes most of the code now. The AI holds the whole project in its context — every file, every package, every rule — and does the heavy lifting. The engineer is the driver: they point, the AI builds. Solutions can use many small packages and look complex to a human reader, and that is fine, because no human needs to read it. The AI manages all of it through skills, like the ones on our board, and the context it carries. Humans judge only the result: the tests pass, the screen looks right.</p></div>
 </div>
+</section>
+<section class="mt-10 border-t-2 border-solid border-ink pt-5 space-y-3">
+<h2 class="font-display text-[22px] mb-3">For your agent — humans can skip this</h2>
+<p>Three machine-readable copies of this site. Each is plain data an agent can fetch in one request:</p>
+<ul class="text-left space-y-2 list-disc pl-5">
+<li><a href="/llms.txt" class="text-accent underline">llms.txt</a> — a short summary of this site, written for AI models.</li>
+<li><a href="/board.json" class="text-accent underline">skills JSON</a> — every skill as data, ready for an agent to fetch and install.</li>
+<li><a href="/api/stats" class="text-accent underline">stats</a> — how many times agents have called our endpoints. Goes up on every request.</li>
+</ul>
 </section>"""
 
 UI_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">UI guide</h1><p class="max-w-[62ch] text-[17px] mx-auto">Goal: an agent builds a screen in one pass; a human confirms it in one glance. Mobile-first always — 360px first, scale up — unless the task genuinely needs a full monitor. Semantic HTML, tokens not prose, every state visible as text.</p></header>

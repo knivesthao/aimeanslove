@@ -81,7 +81,7 @@ export default {
     if (p === "/api" || p === "/keys") return Response.redirect(new URL("/board", url).toString(), 302);
     if (p === "/" || p === "/ui" || p === "/code" || p === "/board") {
       hit(p);
-      return html(shell(p, `<h1>ai (愛) means love</h1><p>Machine builds for machines. Humans verify: tests pass + UI looks right.</p><p>Full interactive site runs from this repo (<code>npm run dev</code>). Machine endpoints are open, no key:</p><pre>GET /api/skills?fields=id,prompt\nGET /api/skill/code-secure?fields=prompt,checks\nGET /api/stats\nGET /llms.txt</pre><p><a href="/llms.txt">llms.txt</a> · <a href="/board.json">skills JSON</a> · <a href="/api/stats">stats</a></p>`));
+      return html(shell(p, `<h1>ai (愛) means love</h1><p>New here? <a href="/#manifesto">Read the manifesto</a> first — four short points that explain the whole idea.</p><p>Machine builds for machines. Humans verify: tests pass + UI looks right.</p><p>Full interactive site runs from this repo (<code>./run.sh dev</code>). Machine endpoints are open, no key:</p><pre>GET /api/skills?fields=id,prompt\nGET /api/skill/code-secure?fields=prompt,checks\nGET /api/stats\nGET /llms.txt</pre><p>For your agent (humans can skip): <a href="/llms.txt">llms.txt</a> is a summary of this site written for AI models · <a href="/board.json">skills JSON</a> is every skill as data, ready to fetch and install · <a href="/api/stats">stats</a> counts how many times agents have called our endpoints.</p>`));
     }
     hit("404");
     return html(shell("missing", `<h1>Nothing here.</h1><p><a href="/">Back</a></p>`), 404);
