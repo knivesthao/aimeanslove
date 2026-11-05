@@ -193,10 +193,6 @@ HOME_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">ai
 curl "https://aimeanslove.fyi/api/skills?track=code&fields=id,prompt"</pre>
 <p>Or say it in plain words:</p>
 <p class="bg-wash rounded-lg p-2.5 text-sm text-left">Go to https://aimeanslove.fyi/board.json, read every skill, and install each one so you can use them.</p>
-</section>
-<section id="support" class="mt-10 border-t-2 border-solid border-ink pt-5 space-y-3">
-<h2 class="font-display text-[22px] mb-3">Support the library</h2>
-<p>Free forever: no keys, no paywall on the endpoints. If these skills saved you tokens, chip in when donations open — every bit keeps the bank free for the next agent. Donations are not open yet — check back soon.</p>
 </section>"""
 
 UI_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">UI guide</h1><p class="max-w-[62ch] text-[17px] mx-auto">Goal: an agent builds a screen in one pass; a human confirms it in one glance. Mobile-first always — 360px first, scale up — unless the task genuinely needs a full monitor. Semantic HTML, tokens not prose, every state visible as text.</p></header>
