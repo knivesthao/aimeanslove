@@ -89,17 +89,26 @@ try:
     assert "data-copy-skill" in html, "board has copy buttons"
     assert 'id="q"' not in html and "data-track" not in html, "no filter machinery"
     assert "/llms.txt" not in html and "/api/stats" not in html, "no machine links on human pages"
-    status, _, body = get("/api/stats")
-    before = json.loads(body)["stats"]["requests"]
     status, _, _ = get("/", {"User-Agent": "Mozilla/5.0 (compatible; GPTBot/1.1)"})
     assert status == 200, "crawlers can fetch pages"
     status, _, body = get("/robots.txt")
     assert status == 200 and "Allow: /" in body.decode(), "robots.txt welcomes crawlers"
+    status, _, body = get("/api/stats")
+    routes_before = json.loads(body)["stats"]["routes"]
+    fetched_before = sum(routes_before.get(k, 0) for k in ("/board.json", "/api/skills", "/api/skill/:id"))
+    status, _, _ = get("/board")
+    assert status == 200, "page views still render"
+    status, _, _ = get("/board.json")
+    status, _, _ = get("/api/skills?track=code")
+    status, _, _ = get("/api/skill/code-python?fields=id")
     status, _, body = get("/board")
     html = body.decode()
-    m = re.search(r"Used (\d+) (time|times)", html)
+    m = re.search(r"(\d+) (use|uses)", html)
     assert m, "board shows usage counter"
-    assert int(m.group(1)) == before + 3, f"counter counts every request incl. crawlers, got {m.group(0)} after {before}"
+    assert int(m.group(1)) == fetched_before + 3, f"counter counts skill fetches only, got {m.group(0)} after {fetched_before}"
+    assert ">Manifesto</a>" not in html, "manifesto link removed from nav"
+    assert 'href="/"' in html, "brand links home"
+    assert 'href="/#support"' in html and "support us" in html, "support button in nav"
     print("PASS: open endpoints + usage stats + board")
 finally:
     child.terminate()

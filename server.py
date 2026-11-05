@@ -91,7 +91,7 @@ def etagged(request: Request, obj: dict) -> Response:
     return JSONResponse(content=obj, headers={"etag": tag, "cache-control": "public, max-age=60"})
 
 
-NAV_LINKS = [("/", "Manifesto"), ("/code", "Coding guide"), ("/ui", "UI guide"), ("/board", "Board")]
+NAV_LINKS = [("/code", "Coding guide"), ("/ui", "UI guide"), ("/board", "Board")]
 
 
 def nav_link(href: str, label: str, active: str) -> str:
@@ -100,15 +100,26 @@ def nav_link(href: str, label: str, active: str) -> str:
     return '<a href="' + href + '"' + current + ' class="' + cls + '">' + label + "</a>"
 
 
+def library_uses() -> int:
+    routes = STATS["routes"]
+    return routes.get("/board.json", 0) + routes.get("/api/skills", 0) + routes.get("/api/skill/:id", 0)
+
+
 def nav(active: str) -> str:
     links = "".join(nav_link(href, label, active) for href, label in NAV_LINKS)
+    uses = library_uses()
+    badge = f"{uses} {'use' if uses == 1 else 'uses'}"
     return (
         '<nav class="topnav sticky top-0 z-10 bg-paper border-b border-solid border-line">'
-        '<div class="max-w-[1060px] mx-auto px-4 py-3 flex flex-wrap items-center justify-center gap-x-7 gap-y-2.5 text-center">'
-        '<span class="font-mono font-bold flex flex-1 items-center justify-center gap-2 text-ink">'
-        '<span class="inline-block w-2.5 h-2.5 bg-accent rounded-full"></span>ai (愛) means love</span>'
+        '<div class="max-w-[1060px] mx-auto px-4 pt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-2.5 md:gap-x-7 text-center">'
+        '<a href="/" class="font-mono font-bold text-lg md:text-xl flex flex-1 items-center justify-center gap-2 text-ink no-underline">'
+        '<span class="inline-block w-2.5 h-2.5 bg-accent rounded-full"></span>ai (愛) means love</a>'
         '<button id="menubtn" type="button" aria-label="Menu" aria-expanded="false" class="md:hidden cursor-pointer border border-solid border-line bg-white rounded-md px-3 py-1.5 text-xl leading-none text-ink">☰</button>'
         '<span class="links hidden w-full flex-col gap-3 py-1.5 md:flex md:w-auto md:flex-row md:gap-[18px]">' + links + "</span>"
+        "</div>"
+        '<div class="flex items-center justify-center gap-3 px-4 pb-3">'
+        f'<a href="/#agent" class="font-mono text-xs bg-accent text-white rounded-full px-2.5 py-0.5 no-underline">{badge}</a>'
+        '<a href="/#support" class="font-mono text-xs border border-solid border-accent text-accent rounded-full px-2.5 py-0.5 no-underline">support us</a>'
         "</div></nav>"
     )
 
@@ -151,6 +162,18 @@ HOME_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">ai
 <div class="space-y-2"><h3 class="text-[19px] font-bold">The old way — built for humans</h3><p>Code was written so humans could read and manage it. One big framework did everything: Django, Rails, Laravel. One way of doing things, one manual to read. Any programmer could open any file and understand it. That made human teams easy to run and fast to start.</p></div>
 <div class="space-y-2"><h3 class="text-[19px] font-bold">The new way — built for agents</h3><p>AI writes most of the code now. The AI holds the whole project in its context — every file, every package, every rule — and does the heavy lifting. The engineer is the driver: they point, the AI builds. Solutions can use many small packages and look complex to a human reader, and that is fine, because no human needs to read it. The AI manages all of it through skills, like the ones on our board, and the context it carries. Humans judge only the result: the tests pass, the screen looks right.</p></div>
 </div>
+</section>
+<section id="agent" class="mt-10 border-t-2 border-solid border-ink pt-5 space-y-3">
+<h2 class="font-display text-[22px] mb-3">Give this to your agent</h2>
+<p>Paste the lines below into any agent session (Muse, Claude, or any coding agent). They fetch the skills straight into the agent — no key, no signup, the endpoints are open:</p>
+<pre class="bg-ink text-white rounded-lg p-3.5 text-sm overflow-auto text-left">curl https://aimeanslove.fyi/board.json
+curl "https://aimeanslove.fyi/api/skills?track=code&fields=id,prompt"</pre>
+<p>Or say it in plain words:</p>
+<p class="bg-wash rounded-lg p-2.5 text-sm text-left">Go to https://aimeanslove.fyi/board.json, read every skill, and install each one so you can use them.</p>
+</section>
+<section id="support" class="mt-10 border-t-2 border-solid border-ink pt-5 space-y-3">
+<h2 class="font-display text-[22px] mb-3">Support the library</h2>
+<p>Free forever: no keys, no paywall on the endpoints. If these skills saved you tokens, chip in when donations open — every bit keeps the bank free for the next agent. Donations are not open yet — check back soon.</p>
 </section>"""
 
 UI_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">UI guide</h1><p class="max-w-[62ch] text-[17px] mx-auto">Goal: an agent builds a screen in one pass; a human confirms it in one glance. Mobile-first always — 360px first, scale up — unless the task genuinely needs a full monitor. Semantic HTML, tokens not prose, every state visible as text.</p></header>
@@ -234,11 +257,11 @@ BOARD_CARDS = "".join(
     for s in SKILLS
 )
 
-BOARD_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">Skill board</h1><p><span class="font-mono text-sm bg-accent text-white rounded-full px-3 py-1">Used {USES}</span></p><p class="max-w-[62ch] mx-auto">Why skills? Every project re-decides the same things — language, validation, layout, proof — and each decision costs tokens every time it is remade. A skill decides once: fetch it, install it, and every session after starts from the answer instead of the question. These fourteen are the full loop: the Python and mobile frameworks that set the foundation, token efficiency and security that keep builds cheap and safe, UI rules that keep human screens legible to agents, and tests plus visual checks as the only verdicts that matter.</p>
+BOARD_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">Skill board</h1><p class="max-w-[62ch] mx-auto">Why skills? Every project re-decides the same things — language, validation, layout, proof — and each decision costs tokens every time it is remade. A skill decides once: fetch it, install it, and every session after starts from the answer instead of the question. These fourteen are the full loop: the Python and mobile frameworks that set the foundation, token efficiency and security that keep builds cheap and safe, UI rules that keep human screens legible to agents, and tests plus visual checks as the only verdicts that matter.</p>
 <p>Copy a prompt into any agent session. The token badge on each card is from a test we ran on ourselves — our own payloads, counted — and the whole bank is about 2.5k tokens.</p></header>
 <section class="grid gap-3">""" + BOARD_CARDS + "</section>"""
 
-MISSING_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">Nothing here.</h1><p><a href="/" class="text-accent underline">Back to the manifesto</a> · <a href="/board" class="text-accent underline">Board</a></p></header>"""
+MISSING_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">Nothing here.</h1><p><a href="/" class="text-accent underline">Back home</a> · <a href="/board" class="text-accent underline">Board</a></p></header>"""
 
 
 def llms() -> str:
@@ -283,16 +306,10 @@ def code_guide() -> str:
     return page("Coding guide", "Write Python because agents generate it fastest; lean on FastAPI, SQLModel, and Typer as guardrails.", "/code", CODE_BODY)
 
 
-def library_uses() -> int:
-    return STATS["requests"]
-
-
 @app.get("/board", response_class=HTMLResponse)
 def board() -> str:
     hit("/board")
-    uses = library_uses()
-    body = BOARD_BODY.replace("{USES}", f"{uses} {'time' if uses == 1 else 'times'}")
-    return page("Skill board", "Every skill as a copyable prompt. Paste one into any agent session.", "/board", body)
+    return page("Skill board", "Every skill as a copyable prompt. Paste one into any agent session.", "/board", BOARD_BODY)
 
 
 @app.get("/api", include_in_schema=False)
