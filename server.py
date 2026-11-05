@@ -46,7 +46,12 @@ tailwind.config = {
     }
   } }
 };
-</script>"""
+</script>
+<style>
+.topnav .links{display:none}
+.topnav .links.open{display:flex;position:absolute;top:100%;left:0;right:0;flex-direction:column;gap:12px;padding:12px 16px;background:#ffffff;border-bottom:1px solid #e2ddd7;text-align:center}
+@media(min-width:768px){.topnav .links{display:flex;position:static;flex-direction:row;gap:18px;background:none;border:0;padding-top:6px;padding-bottom:6px}}
+</style>"""
 
 # Usage tracking: every request counted, API counts persisted to usage.json.
 STATS_FILE = Path(os.environ.get("USAGE_FILE", str(ROOT / "usage.json")))
@@ -114,7 +119,7 @@ def nav(active: str) -> str:
         '<a href="/" class="font-mono font-bold text-lg md:text-xl flex flex-1 items-center justify-center gap-2 text-ink no-underline">'
         '<span class="inline-block w-2.5 h-2.5 bg-accent rounded-full"></span>ai (愛) means love</a>'
         '<button id="menubtn" type="button" aria-label="Menu" aria-expanded="false" class="md:hidden cursor-pointer border border-solid border-line bg-white rounded-md px-3 py-1.5 text-xl leading-none text-ink">☰</button>'
-        '<span class="links hidden absolute top-full left-0 right-0 flex-col gap-3 px-4 py-3 bg-paper border-b border-solid border-line md:static md:flex md:w-auto md:flex-row md:gap-[18px] md:border-0 md:p-0 md:py-1.5">' + links + "</span>"
+        '<span class="links">' + links + "</span>"
         "</div></nav>"
     )
 

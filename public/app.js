@@ -6,9 +6,8 @@ document.addEventListener("click", (e) => {
   const m = e.target.closest("#menubtn");
   if (m) {
     const links = document.querySelector(".topnav .links");
-    links.classList.toggle("hidden");
-    links.classList.toggle("flex");
-    m.setAttribute("aria-expanded", links.classList.contains("flex") ? "true" : "false");
+    links.classList.toggle("open");
+    m.setAttribute("aria-expanded", links.classList.contains("open") ? "true" : "false");
     return;
   }
   const o = e.target.closest("[data-open-support]");
