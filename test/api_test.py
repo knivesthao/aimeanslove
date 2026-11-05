@@ -79,8 +79,12 @@ try:
     shell = json.loads(body)["skill"]
     assert "aria-label" in shell["prompt"] and "icon-only" in shell["prompt"], "ui-shell allows human UI + metadata"
     assert "360px" in shell["prompt"] and "360px" in shell["checks"][0], "ui-shell is mobile-first"
+    assert "Lucide" in shell["prompt"], "ui-shell names Lucide, no hand SVG"
     assert any("aria-label" in c for c in shell["checks"]), "metadata check present"
     assert any("data-action" in c for c in shell["checks"]), "data-action check present"
+    status, _, body = get("/api/skill/verify-visual?fields=prompt")
+    visual = json.loads(body)["skill"]
+    assert "shots/" in visual["prompt"], "verify-visual saves screenshots to shots/"
 
     status, _, body = get("/board")
     assert status == 200, f"board renders, got {status}"
@@ -103,12 +107,17 @@ try:
     status, _, _ = get("/api/skill/code-python?fields=id")
     status, _, body = get("/board")
     html = body.decode()
-    m = re.search(r"(\d+) (use|uses)", html)
-    assert m, "board shows usage counter"
+    m = re.search(r'href="/#agent"[^>]*>\s*(\d+)', html)
+    assert m, "board shows usage counter badge"
     assert int(m.group(1)) == fetched_before + 3, f"counter counts skill fetches only, got {m.group(0)} after {fetched_before}"
     assert ">Manifesto</a>" not in html, "manifesto link removed from nav"
     assert 'href="/"' in html, "brand links home"
-    assert 'href="/#support"' in html and "support us" in html, "support button in nav"
+    assert "data-open-support" in html and "support us" in html, "support button opens dialog"
+    status, _, body = get("/")
+    home = body.decode()
+    assert status == 200 and 'id="support-dialog"' in home, "dialog on every page"
+    assert 'data-lucide="download"' in home, "badge uses Lucide icon"
+    assert "createIcons" in home and "lucide@1.69.0" in home, "Lucide pinned and initialized"
     print("PASS: open endpoints + usage stats + board")
 finally:
     child.terminate()

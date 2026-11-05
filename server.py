@@ -34,6 +34,7 @@ SKILLS: list[Skill] = [Skill.model_validate(s) for s in json.loads((ROOT / "skil
 CLIENT = (ROOT / "public" / "app.js").read_text(encoding="utf-8")
 
 TAILWIND_HEAD = """<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@1.69.0/dist/umd/lucide.min.js"></script>
 <script>
 tailwind.config = {
   theme: { extend: {
@@ -107,21 +108,35 @@ def library_uses() -> int:
 
 def nav(active: str) -> str:
     links = "".join(nav_link(href, label, active) for href, label in NAV_LINKS)
-    uses = library_uses()
-    badge = f"{uses} {'use' if uses == 1 else 'uses'}"
     return (
         '<nav class="topnav sticky top-0 z-10 bg-paper border-b border-solid border-line">'
-        '<div class="max-w-[1060px] mx-auto px-4 pt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-2.5 md:gap-x-7 text-center">'
+        '<div class="max-w-[1060px] mx-auto px-4 py-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-2.5 md:gap-x-7 text-center">'
         '<a href="/" class="font-mono font-bold text-lg md:text-xl flex flex-1 items-center justify-center gap-2 text-ink no-underline">'
         '<span class="inline-block w-2.5 h-2.5 bg-accent rounded-full"></span>ai (愛) means love</a>'
         '<button id="menubtn" type="button" aria-label="Menu" aria-expanded="false" class="md:hidden cursor-pointer border border-solid border-line bg-white rounded-md px-3 py-1.5 text-xl leading-none text-ink">☰</button>'
         '<span class="links hidden w-full flex-col gap-3 py-1.5 md:flex md:w-auto md:flex-row md:gap-[18px]">' + links + "</span>"
-        "</div>"
-        '<div class="flex items-center justify-center gap-3 px-4 pb-3">'
-        f'<a href="/#agent" class="font-mono text-xs bg-accent text-white rounded-full px-2.5 py-0.5 no-underline">{badge}</a>'
-        '<a href="/#support" class="font-mono text-xs border border-solid border-accent text-accent rounded-full px-2.5 py-0.5 no-underline">support us</a>'
         "</div></nav>"
     )
+
+
+DOWNLOAD_ICON = '<i data-lucide="download" width="12" height="12" class="inline align-middle"></i>'
+
+
+def float_pills() -> str:
+    uses = library_uses()
+    return (
+        '<div class="mx-auto w-full max-w-[1060px] px-4 pt-3">'
+        f'<a href="/#agent" class="font-mono text-xs bg-accent text-white rounded-full px-2.5 py-0.5 no-underline whitespace-nowrap">{uses} {DOWNLOAD_ICON}</a>'
+        '<a href="/#support" data-open-support class="font-mono text-xs border border-solid border-accent text-accent rounded-full px-2.5 py-0.5 no-underline">support us</a>'
+        "</div>"
+    )
+
+
+SUPPORT_DIALOG = """<dialog id="support-dialog" class="rounded-[10px] border border-solid border-line bg-white p-[18px] text-left text-ink max-w-[420px] backdrop:bg-ink/60">
+<p class="font-display text-[22px] mb-3">Support the library</p>
+<p class="m-0">Free forever: no keys, no paywall on the endpoints. If these skills saved you tokens, chip in when donations open — every bit keeps the bank free for the next agent. Donations are not open yet — check back soon.</p>
+<div class="mt-3 text-right"><button type="button" data-close-support class="cursor-pointer border border-solid border-line bg-white rounded-md px-3 py-1.5">Close</button></div>
+</dialog>"""
 
 
 FOOTER = (
@@ -141,8 +156,8 @@ def page(title: str, desc: str, active: str, body: str, machine: str | None = No
         '<meta name="description" content="' + desc + '">\n'
         + TAILWIND_HEAD
         + "</head>\n"
-        '<body class="m-0 text-ink bg-paper font-sans">' + nav(active) + '\n<main class="max-w-[1060px] mx-auto px-7 pt-9 pb-[60px] text-left">' + body + "</main>\n"
-        + FOOTER + "\n<script>" + CLIENT + "</script>\n" + tag + "</body></html>"
+        '<body class="m-0 text-ink bg-paper font-sans">' + nav(active) + float_pills() + '\n<main class="max-w-[1060px] mx-auto px-7 pt-9 pb-[60px] text-left">' + body + "</main>\n"
+        + FOOTER + SUPPORT_DIALOG + "\n<script>" + CLIENT + "</script>\n" + tag + "</body></html>"
     )
 
 
@@ -181,6 +196,7 @@ UI_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">UI g
 <div class="border border-solid border-line rounded-[10px] p-[18px] bg-white"><h2 class="font-display text-[22px] mb-3">1 · Structure</h2><ul class="text-left space-y-2 list-disc pl-5">
 <li>Semantic landmarks: <code class="font-mono text-[13px]">&lt;header&gt; &lt;main&gt; &lt;footer&gt;</code>, real <code class="font-mono text-[13px]">&lt;button&gt;</code>/<code class="font-mono text-[13px]">&lt;a&gt;</code>/<code class="font-mono text-[13px]">&lt;input&gt;</code> with visible labels. No div-buttons.</li>
 <li>Icon-only controls welcome — but every control exposes metadata: a real element, a label or <code class="font-mono text-[13px]">aria-label</code>, and a <code class="font-mono text-[13px]">data-action</code>. Humans get the pixels; agents read the metadata.</li>
+<li>Icons come from Lucide, never hand-written. Write <code class="font-mono text-[13px]">&lt;i data-lucide="name"&gt;</code> plus one <code class="font-mono text-[13px]">lucide.createIcons()</code> call — the agent picks names from the set, nobody draws pixels or pastes SVG paths by hand. Drawing icons burns tokens and time for a worse result: Lucide is already trained into the model, so the agent knows every name, and already familiar to users, so people recognize each icon on sight.</li>
 <li>Tailwind utilities for layout. System font stack.</li></ul></div>
 <div class="border border-solid border-line rounded-[10px] p-[18px] bg-white"><h2 class="font-display text-[22px] mb-3">2 · Styling tokens + Tailwind</h2><ul class="text-left space-y-2 list-disc pl-5">
 <li>Tailwind utilities for layout and spacing, on top of three color tokens (<code class="font-mono text-[13px]">--ink --paper --accent</code>) and a <code class="font-mono text-[13px]">4/8/16/32</code> scale. Preflight stays on as the consistent baseline — every margin, bullet, and underline is stated explicitly, never inherited from a browser default.</li>
@@ -189,7 +205,8 @@ UI_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">UI g
 <div class="border border-solid border-line rounded-[10px] p-[18px] bg-white"><h2 class="font-display text-[22px] mb-3">3 · Behavior</h2><ul class="text-left space-y-2 list-disc pl-5">
 <li>Every mutation exposes <code class="font-mono text-[13px]">idle → working → done | error</code> as text, never color alone.</li>
 <li>Confirm destructive actions inline. Honor <code class="font-mono text-[13px]">prefers-reduced-motion</code>.</li>
-<li>Seed demo data: no lorem, no empty lists. Each screen lists 3 things to eyeball.</li></ul></div>
+<li>Seed demo data: no lorem, no empty lists. Each screen lists 3 things to eyeball.</li>
+<li>Verification screenshots live in the project's <code class="font-mono text-[13px]">shots/</code> folder (gitignored), named for what they show — never <code class="font-mono text-[13px]">/tmp</code>, so they don't pile up where nobody looks.</li></ul></div>
 </section>
 <section class="mt-4 bg-wash border border-solid border-line rounded-[10px] p-[18px] space-y-3"><h2 class="font-display text-[22px] mb-3">Client state — for hands, not data</h2>
 <p>Typing, dragging, and drawing are faster than any round trip, so they live in the browser: a small isolated interactive region — called an "island" — holds the work-in-progress. Alpine.js (a tiny JavaScript helper loaded from the web, not part of FastAPI) or focused vanilla JavaScript runs it. Alpine wins over React, Vue, or Lit here for two reasons: it needs no install and no build step — one script tag — and its instructions live as attributes in the same HTML the agent already reads, so there is no second language or file to context-switch into. But the server still owns the shared truth. The rule: never keep the same fact in both places without an expiry — sync back on natural pauses (debounced save), and the server re-checks everything it receives, because browser state is never trusted.</p>
