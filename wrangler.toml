@@ -4,7 +4,7 @@ compatibility_date = "2025-10-01"
 account_id = "1205420961752ebcfaca756ce61482c0"
 
 routes = [
-  { pattern = "aimeanslove.fyi/*", zone_name = "aimeanslove.fyi", custom_domain = true }
+  { pattern = "aimeanslove.fyi", zone_name = "aimeanslove.fyi", custom_domain = true }
 ]
 
 [vars]
