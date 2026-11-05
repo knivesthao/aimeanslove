@@ -151,15 +151,6 @@ HOME_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">ai
 <div class="space-y-2"><h3 class="text-[19px] font-bold">The old way — built for humans</h3><p>Code was written so humans could read and manage it. One big framework did everything: Django, Rails, Laravel. One way of doing things, one manual to read. Any programmer could open any file and understand it. That made human teams easy to run and fast to start.</p></div>
 <div class="space-y-2"><h3 class="text-[19px] font-bold">The new way — built for agents</h3><p>AI writes most of the code now. The AI holds the whole project in its context — every file, every package, every rule — and does the heavy lifting. The engineer is the driver: they point, the AI builds. Solutions can use many small packages and look complex to a human reader, and that is fine, because no human needs to read it. The AI manages all of it through skills, like the ones on our board, and the context it carries. Humans judge only the result: the tests pass, the screen looks right.</p></div>
 </div>
-</section>
-<section class="mt-10 border-t-2 border-solid border-ink pt-5 space-y-3">
-<h2 class="font-display text-[22px] mb-3">For your agent — humans can skip this</h2>
-<p>Three machine-readable copies of this site. Each is plain data an agent can fetch in one request:</p>
-<ul class="text-left space-y-2 list-disc pl-5">
-<li><a href="/llms.txt" class="text-accent underline">llms.txt</a> — a short summary of this site, written for AI models.</li>
-<li><a href="/board.json" class="text-accent underline">skills JSON</a> — every skill as data, ready for an agent to fetch and install.</li>
-<li><a href="/api/stats" class="text-accent underline">stats</a> — how many times agents have called our endpoints. Goes up on every request.</li>
-</ul>
 </section>"""
 
 UI_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">UI guide</h1><p class="max-w-[62ch] text-[17px] mx-auto">Goal: an agent builds a screen in one pass; a human confirms it in one glance. Mobile-first always — 360px first, scale up — unless the task genuinely needs a full monitor. Semantic HTML, tokens not prose, every state visible as text.</p></header>
@@ -244,7 +235,7 @@ BOARD_CARDS = "".join(
 )
 
 BOARD_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">Skill board</h1><p class="max-w-[62ch] mx-auto">Why skills? Every project re-decides the same things — language, validation, layout, proof — and each decision costs tokens every time it is remade. A skill decides once: fetch it, install it, and every session after starts from the answer instead of the question. These fourteen are the full loop: the Python and mobile frameworks that set the foundation, token efficiency and security that keep builds cheap and safe, UI rules that keep human screens legible to agents, and tests plus visual checks as the only verdicts that matter.</p>
-<p>Copy a prompt into any agent session. The token badge on each card is from a test we ran on ourselves — our own payloads, counted — and the whole bank is about 2.5k tokens. Full bank as <a href="/board.json" class="text-accent underline">JSON</a>.</p></header>
+<p>Copy a prompt into any agent session. The token badge on each card is from a test we ran on ourselves — our own payloads, counted — and the whole bank is about 2.5k tokens. Our library has been used {USES}.</p></header>
 <section class="grid gap-3">""" + BOARD_CARDS + "</section>"""
 
 MISSING_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">Nothing here.</h1><p><a href="/" class="text-accent underline">Back to the manifesto</a> · <a href="/board" class="text-accent underline">Board</a></p></header>"""
@@ -292,10 +283,17 @@ def code_guide() -> str:
     return page("Coding guide", "Write Python because agents generate it fastest; lean on FastAPI, SQLModel, and Typer as guardrails.", "/code", CODE_BODY)
 
 
+def library_uses() -> int:
+    routes = STATS["routes"]
+    return routes.get("/board.json", 0) + routes.get("/api/skills", 0) + routes.get("/api/skill/:id", 0)
+
+
 @app.get("/board", response_class=HTMLResponse)
 def board() -> str:
     hit("/board")
-    return page("Skill board", "Every skill as a copyable prompt. Paste one into any agent session.", "/board", BOARD_BODY)
+    uses = library_uses()
+    body = BOARD_BODY.replace("{USES}", f"{uses} {'time' if uses == 1 else 'times'}")
+    return page("Skill board", "Every skill as a copyable prompt. Paste one into any agent session.", "/board", body)
 
 
 @app.get("/api", include_in_schema=False)

@@ -1,6 +1,7 @@
 """Open endpoints + usage tracking. Run: .venv/bin/python test/api_test.py"""
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -87,6 +88,16 @@ try:
     assert "ui-details" in html and "Collapsible card stacks" in html, "board lists skills"
     assert "data-copy-skill" in html, "board has copy buttons"
     assert 'id="q"' not in html and "data-track" not in html, "no filter machinery"
+    assert "/llms.txt" not in html and "/api/stats" not in html, "no machine links on human pages"
+    status, _, body = get("/board.json")
+    assert status == 200
+    status, _, body = get("/api/skills")
+    assert status == 200
+    status, _, body = get("/board")
+    html = body.decode()
+    m = re.search(r"Our library has been used (\d+) (time|times)\.", html)
+    assert m, "board shows usage counter"
+    assert int(m.group(1)) >= 2, f"counter reflects bank fetches, got {m.group(0)}"
     print("PASS: open endpoints + usage stats + board")
 finally:
     child.terminate()
