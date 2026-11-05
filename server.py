@@ -314,6 +314,13 @@ def llms() -> str:
 app = FastAPI(title="ai (愛) means love")
 
 
+@app.middleware("http")
+async def no_store(request: Request, call_next):
+    resp = await call_next(request)
+    resp.headers["Cache-Control"] = "no-store"
+    return resp
+
+
 @app.get("/", response_class=HTMLResponse)
 def index() -> str:
     hit("/")
