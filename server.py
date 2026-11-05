@@ -209,6 +209,7 @@ UI_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">UI g
 <div class="border border-solid border-line rounded-[10px] p-[18px] bg-white"><h2 class="font-display text-[22px] mb-3">2 · Styling tokens + Tailwind</h2><ul class="text-left space-y-2 list-disc pl-5">
 <li>Tailwind utilities for layout and spacing, on top of three color tokens (<code class="font-mono text-[13px]">--ink --paper --accent</code>) and a <code class="font-mono text-[13px]">4/8/16/32</code> scale. Preflight stays on as the consistent baseline — every margin, bullet, and underline is stated explicitly, never inherited from a browser default.</li>
 <li>Two neutrals + one accent. 1px solid lines. Radii: 6px / 10px. Utilities handle the how, tokens handle the what.</li>
+<li>Interactive components come from Flowbite, never hand-built. Flowbite is made for Tailwind and mobile-first, and loads from one CDN script with no build step. Use its data attributes (for example <code class="font-mono text-[13px]">data-dropdown-toggle</code> for the mobile menu) — we lost real time rebuilding a menu by hand and the library version worked the first time.</li>
 <li>No gradients, no glass blur, no gray-on-gray body text. Contrast ≥ 4.5:1.</li></ul></div>
 <div class="border border-solid border-line rounded-[10px] p-[18px] bg-white"><h2 class="font-display text-[22px] mb-3">3 · Behavior</h2><ul class="text-left space-y-2 list-disc pl-5">
 <li>Every mutation exposes <code class="font-mono text-[13px]">idle → working → done | error</code> as text, never color alone.</li>

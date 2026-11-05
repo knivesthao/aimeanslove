@@ -118,6 +118,8 @@ try:
     status, _, body = get("/")
     home = body.decode()
     assert status == 200 and 'id="support-dialog"' in home, "dialog on every page"
+    status, _, body = get("/ui")
+    assert status == 200 and "Flowbite" in body.decode(), "guide names Flowbite for components"
     assert 'data-lucide="download"' in home, "badge uses Lucide icon"
     assert "createIcons" in home and "lucide@1.69.0" in home, "Lucide pinned and initialized"
     print("PASS: open endpoints + usage stats + board")
