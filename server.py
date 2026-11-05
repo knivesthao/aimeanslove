@@ -135,7 +135,7 @@ def float_pills() -> str:
     return (
         '<div class="mx-auto w-full max-w-[1060px] px-4 pt-3">'
         f'<a href="/#agent" class="font-mono text-xs bg-accent text-white rounded-full px-2.5 py-0.5 no-underline whitespace-nowrap">{uses} {DOWNLOAD_ICON}</a>'
-        '<a href="/#support" data-open-support class="font-mono text-xs border border-solid border-accent text-accent rounded-full px-2.5 py-0.5 no-underline">support us</a>'
+        '<a href="/#support" data-open-support class="font-mono text-xs border border-solid border-accent text-accent rounded-full px-2.5 py-0.5 no-underline ml-2">support us</a>'
         "</div>"
     )
 
