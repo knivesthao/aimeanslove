@@ -95,7 +95,7 @@ try:
     assert status == 200
     status, _, body = get("/board")
     html = body.decode()
-    m = re.search(r"Our library has been used (\d+) (time|times)\.", html)
+    m = re.search(r"Used (\d+) (time|times)", html)
     assert m, "board shows usage counter"
     assert int(m.group(1)) >= 2, f"counter reflects bank fetches, got {m.group(0)}"
     print("PASS: open endpoints + usage stats + board")
