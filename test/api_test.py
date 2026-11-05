@@ -85,6 +85,7 @@ try:
     status, _, body = get("/api/skill/verify-visual?fields=prompt")
     visual = json.loads(body)["skill"]
     assert "shots/" in visual["prompt"], "verify-visual saves screenshots to shots/"
+    assert "headless" in visual["prompt"], "verify-visual never trusts headless shots alone"
 
     status, _, body = get("/board")
     assert status == 200, f"board renders, got {status}"
@@ -120,6 +121,8 @@ try:
     assert status == 200 and 'id="support-dialog"' in home, "dialog on every page"
     status, _, body = get("/ui")
     assert status == 200 and "Flowbite" in body.decode(), "guide names Flowbite for components"
+    status, _, body = get("/code")
+    assert status == 200 and "Framework first" in body.decode(), "guide states framework-first rule"
     assert 'data-lucide="download"' in home, "badge uses Lucide icon"
     assert "createIcons" in home and "lucide@1.69.0" in home, "Lucide pinned and initialized"
     print("PASS: open endpoints + usage stats + board")
