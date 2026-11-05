@@ -49,6 +49,10 @@ export default {
   async fetch(req) {
     const url = new URL(req.url);
     const p = url.pathname;
+    if (p === "/robots.txt") {
+      hit(p);
+      return new Response("User-agent: *\nAllow: /\n", { headers: { "content-type": "text/plain" } });
+    }
     if (p === "/llms.txt") {
       hit(p);
       return new Response(["# ai (愛) means love", "Manifesto: machine builds for machines; humans verify via tests + visual check.", "", "## Machine endpoints (open, no key — free forever)", "- GET /api/skills[?track=&fields=]", "- GET /api/skill/:id[?fields=] (ETag → 304)", "- GET /api/stats (usage counts)", "", ...SKILLS.map((s) => `- skill ${s.id} [${s.track}] ${s.tokens}: ${s.title}`)].join("\n"), { headers: { "content-type": "text/plain" } });

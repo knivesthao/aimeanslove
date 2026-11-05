@@ -284,8 +284,7 @@ def code_guide() -> str:
 
 
 def library_uses() -> int:
-    routes = STATS["routes"]
-    return routes.get("/board.json", 0) + routes.get("/api/skills", 0) + routes.get("/api/skill/:id", 0)
+    return STATS["requests"]
 
 
 @app.get("/board", response_class=HTMLResponse)
@@ -307,6 +306,12 @@ def old_api(request: Request) -> RedirectResponse:
 def llms_txt() -> str:
     hit("/llms.txt")
     return llms()
+
+
+@app.get("/robots.txt", response_class=PlainTextResponse)
+def robots() -> str:
+    hit("/robots.txt")
+    return "User-agent: *\nAllow: /\n"
 
 
 @app.get("/board.json")

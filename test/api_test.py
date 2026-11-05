@@ -89,15 +89,17 @@ try:
     assert "data-copy-skill" in html, "board has copy buttons"
     assert 'id="q"' not in html and "data-track" not in html, "no filter machinery"
     assert "/llms.txt" not in html and "/api/stats" not in html, "no machine links on human pages"
-    status, _, body = get("/board.json")
-    assert status == 200
-    status, _, body = get("/api/skills")
-    assert status == 200
+    status, _, body = get("/api/stats")
+    before = json.loads(body)["stats"]["requests"]
+    status, _, _ = get("/", {"User-Agent": "Mozilla/5.0 (compatible; GPTBot/1.1)"})
+    assert status == 200, "crawlers can fetch pages"
+    status, _, body = get("/robots.txt")
+    assert status == 200 and "Allow: /" in body.decode(), "robots.txt welcomes crawlers"
     status, _, body = get("/board")
     html = body.decode()
     m = re.search(r"Used (\d+) (time|times)", html)
     assert m, "board shows usage counter"
-    assert int(m.group(1)) >= 2, f"counter reflects bank fetches, got {m.group(0)}"
+    assert int(m.group(1)) == before + 3, f"counter counts every request incl. crawlers, got {m.group(0)} after {before}"
     print("PASS: open endpoints + usage stats + board")
 finally:
     child.terminate()
