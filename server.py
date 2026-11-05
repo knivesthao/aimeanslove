@@ -114,7 +114,7 @@ def nav(active: str) -> str:
         '<a href="/" class="font-mono font-bold text-lg md:text-xl flex flex-1 items-center justify-center gap-2 text-ink no-underline">'
         '<span class="inline-block w-2.5 h-2.5 bg-accent rounded-full"></span>ai (愛) means love</a>'
         '<button id="menubtn" type="button" aria-label="Menu" aria-expanded="false" class="md:hidden cursor-pointer border border-solid border-line bg-white rounded-md px-3 py-1.5 text-xl leading-none text-ink">☰</button>'
-        '<span class="links hidden w-full flex-col gap-3 py-1.5 md:flex md:w-auto md:flex-row md:gap-[18px]">' + links + "</span>"
+        '<span class="links hidden absolute top-full left-0 right-0 flex-col gap-3 px-4 py-3 bg-paper border-b border-solid border-line md:static md:flex md:w-auto md:flex-row md:gap-[18px] md:border-0 md:p-0 md:py-1.5">' + links + "</span>"
         "</div></nav>"
     )
 
@@ -196,7 +196,7 @@ UI_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">UI g
 <div class="border border-solid border-line rounded-[10px] p-[18px] bg-white"><h2 class="font-display text-[22px] mb-3">1 · Structure</h2><ul class="text-left space-y-2 list-disc pl-5">
 <li>Semantic landmarks: <code class="font-mono text-[13px]">&lt;header&gt; &lt;main&gt; &lt;footer&gt;</code>, real <code class="font-mono text-[13px]">&lt;button&gt;</code>/<code class="font-mono text-[13px]">&lt;a&gt;</code>/<code class="font-mono text-[13px]">&lt;input&gt;</code> with visible labels. No div-buttons.</li>
 <li>Icon-only controls welcome — but every control exposes metadata: a real element, a label or <code class="font-mono text-[13px]">aria-label</code>, and a <code class="font-mono text-[13px]">data-action</code>. Humans get the pixels; agents read the metadata.</li>
-<li>Icons come from Lucide, never hand-written. Write <code class="font-mono text-[13px]">&lt;i data-lucide="name"&gt;</code> plus one <code class="font-mono text-[13px]">lucide.createIcons()</code> call — the agent picks names from the set, nobody draws pixels or pastes SVG paths by hand. Drawing icons burns tokens and time for a worse result: Lucide is already trained into the model, so the agent knows every name, and already familiar to users, so people recognize each icon on sight.</li>
+<li>Icons come from Lucide — the best set for agents — never hand-written. Write <code class="font-mono text-[13px]">&lt;i data-lucide="name"&gt;</code> plus one <code class="font-mono text-[13px]">lucide.createIcons()</code> call — the agent picks names from the set, nobody draws pixels or pastes SVG paths by hand. Drawing icons burns tokens and time for a worse result: Lucide is already trained into the model, so the agent knows every name, and already familiar to users, so people recognize each icon on sight.</li>
 <li>Tailwind utilities for layout. System font stack.</li></ul></div>
 <div class="border border-solid border-line rounded-[10px] p-[18px] bg-white"><h2 class="font-display text-[22px] mb-3">2 · Styling tokens + Tailwind</h2><ul class="text-left space-y-2 list-disc pl-5">
 <li>Tailwind utilities for layout and spacing, on top of three color tokens (<code class="font-mono text-[13px]">--ink --paper --accent</code>) and a <code class="font-mono text-[13px]">4/8/16/32</code> scale. Preflight stays on as the consistent baseline — every margin, bullet, and underline is stated explicitly, never inherited from a browser default.</li>

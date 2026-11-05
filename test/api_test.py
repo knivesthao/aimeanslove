@@ -113,6 +113,7 @@ try:
     assert ">Manifesto</a>" not in html, "manifesto link removed from nav"
     assert 'href="/"' in html, "brand links home"
     assert "data-open-support" in html and "support us" in html, "support button opens dialog"
+    assert "absolute top-full" in html, "open menu overlays instead of stretching header"
     status, _, body = get("/")
     home = body.decode()
     assert status == 200 and 'id="support-dialog"' in home, "dialog on every page"
