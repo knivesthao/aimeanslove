@@ -113,7 +113,8 @@ try:
     assert ">Manifesto</a>" not in html, "manifesto link removed from nav"
     assert 'href="/"' in html, "brand links home"
     assert "data-open-support" in html and "support us" in html, "support button opens dialog"
-    assert ".topnav .links.open" in html, "menu overlay is dependency-free CSS, not CDN classes"
+    assert 'data-dropdown-toggle="mobile-menu"' in html, "menu opens via Flowbite dropdown"
+    assert "flowbite@2.5.2" in html, "Flowbite pinned"
     status, _, body = get("/")
     home = body.decode()
     assert status == 200 and 'id="support-dialog"' in home, "dialog on every page"

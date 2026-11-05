@@ -35,6 +35,8 @@ CLIENT = (ROOT / "public" / "app.js").read_text(encoding="utf-8")
 
 TAILWIND_HEAD = """<script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/lucide@1.69.0/dist/umd/lucide.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js"></script>
 <script>
 tailwind.config = {
   theme: { extend: {
@@ -47,11 +49,7 @@ tailwind.config = {
   } }
 };
 </script>
-<style>
-.topnav .links{display:none}
-.topnav .links.open{display:flex;position:absolute;top:100%;left:0;right:0;flex-direction:column;gap:12px;padding:12px 16px;background:#ffffff;border-bottom:1px solid #e2ddd7;text-align:center}
-@media(min-width:768px){.topnav .links{display:flex;position:static;flex-direction:row;gap:18px;background:none;border:0;padding-top:6px;padding-bottom:6px}}
-</style>"""
+"""
 
 # Usage tracking: every request counted, API counts persisted to usage.json.
 STATS_FILE = Path(os.environ.get("USAGE_FILE", str(ROOT / "usage.json")))
@@ -113,13 +111,18 @@ def library_uses() -> int:
 
 def nav(active: str) -> str:
     links = "".join(nav_link(href, label, active) for href, label in NAV_LINKS)
+    items = "".join(
+        '<li><a href="' + href + '" class="block px-5 py-2 text-ink no-underline">' + label + "</a></li>"
+        for href, label in NAV_LINKS
+    )
     return (
         '<nav class="topnav sticky top-0 z-10 bg-paper border-b border-solid border-line">'
         '<div class="max-w-[1060px] mx-auto px-4 py-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-2.5 md:gap-x-7 text-center">'
         '<a href="/" class="font-mono font-bold text-lg md:text-xl flex flex-1 items-center justify-center gap-2 text-ink no-underline">'
         '<span class="inline-block w-2.5 h-2.5 bg-accent rounded-full"></span>ai (愛) means love</a>'
-        '<button id="menubtn" type="button" aria-label="Menu" aria-expanded="false" class="md:hidden cursor-pointer border border-solid border-line bg-white rounded-md px-3 py-1.5 text-xl leading-none text-ink">☰</button>'
-        '<span class="links">' + links + "</span>"
+        '<button id="menubtn" type="button" data-dropdown-toggle="mobile-menu" data-dropdown-placement="bottom-end" aria-label="Menu" aria-expanded="false" aria-controls="mobile-menu" class="md:hidden cursor-pointer border border-solid border-line bg-white rounded-md px-3 py-1.5 text-xl leading-none text-ink">☰</button>'
+        '<span class="hidden md:flex md:w-auto md:flex-row md:gap-[18px]">' + links + "</span>"
+        '<div id="mobile-menu" class="z-10 hidden bg-white divide-y divide-line rounded-lg border border-solid border-line"><ul class="py-2 text-center" aria-label="Menu">' + items + "</ul></div>"
         "</div></nav>"
     )
 
