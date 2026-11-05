@@ -1,0 +1,10 @@
+{
+  "name": "aimeanslove",
+  "version": "0.2.0",
+  "description": "ai (愛) means love dev tooling: guides + skill API so AI agents build faster with fewer tokens. Python/FastAPI server, deploys free on Cloudflare Workers (see src/worker.js).",
+  "scripts": {
+    "dev": ".venv/bin/python server.py",
+    "start": ".venv/bin/python server.py",
+    "test": ".venv/bin/python test/api_test.py"
+  }
+}

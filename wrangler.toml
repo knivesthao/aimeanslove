@@ -1,0 +1,10 @@
+name = "aimeanslove"
+main = "src/worker.js"
+compatibility_date = "2025-10-01"
+
+[vars]
+APP_NAME = "aimeanslove"
+
+# Free-tier friendly: no paid bindings required.
+# Optional: `npx wrangler deploy` ships this Worker + static HTML inline.
+# To serve ./public as assets on Pages instead, connect this repo to Cloudflare Pages.
