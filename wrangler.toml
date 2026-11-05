@@ -1,6 +1,7 @@
 name = "aimeanslove"
 main = "src/worker.js"
 compatibility_date = "2025-10-01"
+account_id = "1205420961752ebcfaca756ce61482c0"
 
 [vars]
 APP_NAME = "aimeanslove"
