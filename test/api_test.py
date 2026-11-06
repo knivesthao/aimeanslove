@@ -79,6 +79,9 @@ try:
     status, _, body = get("/api/skills?fields=id,why")
     bank = json.loads(body)["skills"]
     assert len(bank) == 25 and all(s.get("why") for s in bank), "every skill explains why"
+    status, _, body = get("/api/skill/code-index?fields=prompt")
+    index_map = json.loads(body)["skill"]["prompt"]
+    assert all(s["id"] in index_map for s in bank if s["id"] != "code-index"), "index maps every skill"
     status, _, body = get("/")
     assert status == 200 and 'id="menubtn"' in body.decode(), "mobile hamburger present"
     status, _, _ = get("/skills.json")
