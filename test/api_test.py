@@ -292,6 +292,8 @@ try:
     assert "verdict layer" in body.decode(), "data guide frames old way versus new way"
     assert "ui-charts" in ui_map, "area index routes charts"
     assert "data-model" in area_maps["data-index"], "area index routes data representation"
+    status, _, body = get("/api/skill/data-model?fields=prompt")
+    assert "the change plus the id" in json.loads(body)["skill"]["prompt"], "data respects the systems it lands in"
     for m in re.finditer(r'<a href="(http[^"]*)"', body.decode()):
         assert 'target="_blank" rel="noopener"' in body.decode()[m.start():m.start()+400], f"data external link opens new tab: {m.group(1)}"
     status, _, body = get("/ops")
