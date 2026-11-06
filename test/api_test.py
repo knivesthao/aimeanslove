@@ -201,6 +201,7 @@ try:
     assert "data-copy-skill" in html, "page has copy buttons"
     assert html.count("data-trim=") == 87, "every card trimmable"
     assert "data-pack" in html and "copy install pack" in html, "trim pack builder present"
+    assert "How a task runs" in html and "never the same skill twice" in html, "page explains the task flow"
     assert 'id="q"' not in html and "data-track" not in html, "no filter machinery"
     assert 'href="/about"' in html, "about linked from header and footer"
     assert "min-h-screen" in html and "flex-1" in html, "flex shell pins footer to the bottom"
