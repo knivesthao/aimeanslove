@@ -91,7 +91,7 @@ try:
     status, _, body = get("/api/skill/ui-widgets?fields=prompt")
     widgets_map = json.loads(body)["skill"]["prompt"]
     area_maps = {}
-    for area in ("saas-index", "data-index", "ops-index", "sec-index"):
+    for area in ("app-index", "data-index", "ops-index", "sec-index"):
         status, _, body = get(f"/api/skill/{area}?fields=prompt")
         area_maps[area] = json.loads(body)["skill"]["prompt"]
     assert "ui-index" in index_map, "bank index points at the area index"
@@ -99,7 +99,7 @@ try:
     assert all(a in index_map for a in area_maps), "bank index points at the four area indexes"
     assert all(
         s["id"] in index_map or s["id"] in ui_map or s["id"] in widgets_map or any(s["id"] in m for m in area_maps.values())
-        for s in bank if s["id"] not in ("code-index", "ui-index", "ui-widgets", "saas-index", "data-index", "ops-index", "sec-index")
+        for s in bank if s["id"] not in ("code-index", "ui-index", "ui-widgets", "app-index", "data-index", "ops-index", "sec-index")
     ), "every skill reachable by walking the index tree"
     assert "house rule beats the skill" in index_map, "stack skills defer to existing codebases"
     assert "regulated data" in index_map, "bank index routes regulated data to sec-index"
@@ -115,7 +115,7 @@ try:
     status, _, body = get("/api/skills?fields=id,prompt")
     bank_ids = [s["id"] for s in json.loads(body)["skills"]]
     prompts = {s["id"]: s["prompt"] for s in json.loads(body)["skills"]}
-    index_ids = {"code-index", "ui-index", "saas-index", "data-index", "ops-index", "sec-index"}
+    index_ids = {"code-index", "ui-index", "app-index", "data-index", "ops-index", "sec-index"}
     refs = {i: [j for j in bank_ids if j != i and re.search(r"(?<![a-z0-9-])" + re.escape(j) + r"(?![a-z0-9-])", prompts[i])] for i in bank_ids}
     for k, v in refs.items():
         if k not in index_ids:

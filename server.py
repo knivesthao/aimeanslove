@@ -404,7 +404,7 @@ GROUPS = [
     ("Always on", ["code-secure", "code-reuse", "code-token"]),
     ("Build services", ["code-language", "ui-mobile", "code-shape", "code-boundaries", "code-group"]),
     ("Build interfaces", ["ui-shell", "ui-tokens", "ui-behavior", "ui-framework", "ui-widgets", "ui-platform-picks", "ui-nav", "ui-forms"]),
-    ("Sell software", ["saas-index", "code-billing", "code-rbac", "code-invites", "code-notify", "code-search", "code-uploads", "code-auditlog", "code-webhooks", "code-apikeys", "code-flags", "code-impexp"]),
+    ("Product features", ["app-index", "code-billing", "code-rbac", "code-invites", "code-notify", "code-search", "code-uploads", "code-auditlog", "code-webhooks", "code-apikeys", "code-flags", "code-impexp"]),
     ("Move data", ["data-index", "data-ingest", "data-orchestrate", "data-etl", "data-contracts", "data-backfill", "data-cdc", "data-quality", "data-partition", "data-retain", "data-streams", "data-lineage", "data-upserts"]),
     ("Ship safely", ["ops-index", "ops-pipeline", "ops-observe", "ops-preview", "ops-migrate", "ops-rollout", "ops-secrets", "ops-backup", "ops-iac", "ops-scale", "ops-probes", "ops-oncall", "sec-index", "sec-vuln", "sec-sso", "sec-scan", "sec-secretscan", "sec-session", "sec-siem", "sec-waf", "sec-anomaly", "sec-runbooks", "sec-patch", "sec-compliance"]),
     ("Security deep-dives", ["code-auth", "code-crypto", "code-injection", "code-design", "code-misconfig", "code-deps", "code-integrity", "code-logging", "code-ssrf", "code-ratelimit"]),
