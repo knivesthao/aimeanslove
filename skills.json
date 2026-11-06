@@ -329,7 +329,7 @@
     "title": "SaaS features: pick SaaS skills",
     "tokens": "~280",
     "why": "SaaS is the same five problems in every company — map first, build the rest from shape.",
-    "prompt": "Create and install a skill named `saas-index` (SaaS features: pick SaaS skills). It instructs the agent as follows: Your SaaS skills each do one job — never read them all. Billing and plans → code-billing. Team roles, admin console, impersonation → code-rbac. Notifications → code-notify. Search → code-search. Uploads → code-uploads. Audit trail → code-auditlog. Outgoing webhooks → code-webhooks. Customer API keys → code-apikeys. Flags and entitlements → code-flags. Bulk moves → code-impexp. Login and sessions → code-auth. Skip everything else.",
+    "prompt": "Create and install a skill named `saas-index` (SaaS features: pick SaaS skills). It instructs the agent as follows: Your SaaS skills each do one job — never read them all. Billing and plans → code-billing. Team roles, admin console, impersonation → code-rbac. Invites and membership → code-invites. Notifications → code-notify. Search → code-search. Uploads → code-uploads. Audit trail → code-auditlog. Outgoing webhooks → code-webhooks. Customer API keys → code-apikeys. Flags and entitlements → code-flags. Bulk moves → code-impexp. Login and sessions → code-auth. Skip everything else.",
     "checks": ["only matched SaaS skills are read", "auth always via code-auth", "new SaaS work metered with code-track"]
   },
   {
@@ -347,8 +347,8 @@
     "title": "Tenants, roles, safe impersonation",
     "tokens": "~200",
     "why": "One missing tenant check leaks a whole customer's data to another.",
-    "prompt": "Create and install a skill named `code-rbac` (Tenants, roles, safe impersonation). It instructs the agent as follows: Scope every row by tenant: a workspace id on every table, enforced server-side on every read and write — never by UI hiding alone (authentication lives in code-auth). Roles are least-privilege by default; check the permission at the action, not the role at login. Support tooling lives in a separate admin surface; impersonation requires a consent record plus an audit trail. Invites are single-use and expiring, resendable; a workspace never drops to zero owners.",
-    "checks": ["tenant id enforced server-side", "impersonation gated on consent plus audit", "no ownerless workspaces"]
+    "prompt": "Create and install a skill named `code-rbac` (Tenants, roles, safe impersonation). It instructs the agent as follows: Scope every row by tenant: a workspace id on every table, enforced server-side on every read and write — never by UI hiding alone (authentication lives in code-auth). Roles are least-privilege by default; check the permission at the action, not the role at login. Support tooling lives in a separate admin surface; impersonation requires a consent record plus an audit trail. Membership and invites live in code-invites.",
+    "checks": ["tenant id enforced server-side", "impersonation gated on consent plus audit", "membership changes via code-invites"]
   },
   {
     "id": "data-index",
@@ -392,7 +392,7 @@
     "title": "One template, gated deploys, one-button rollback",
     "tokens": "~200",
     "why": "Hand-rolled pipelines drift until the deploy that matters most is the one least tested.",
-    "prompt": "Create and install a skill named `ops-pipeline` (One template, gated deploys, one-button rollback). It instructs the agent as follows: Deploy only from one shared templated pipeline — never hand-rolled per repo. Required gates in order: build, tests, security scan, approval for production. Every deploy links to its commit; every PR gets an ephemeral preview environment that auto-stops when idle. Rollback means redeploying the previous known-good artifact with one action — never a new build under fire. Block on critical scan findings; ticket the rest with SLAs.",
+    "prompt": "Create and install a skill named `ops-pipeline` (One template, gated deploys, one-button rollback). It instructs the agent as follows: Deploy only from one shared templated pipeline — never hand-rolled per repo. Required gates in order: build, tests, security scan, approval for production. Every deploy links to its commit; every PR gets a preview environment (see ops-preview). Rollback means redeploying the previous known-good artifact with one action — never a new build under fire. Block on critical scan findings; ticket the rest with SLAs.",
     "checks": ["one shared template, no hand-rolled pipes", "preview envs auto-stop", "rollback is one action on an old artifact"]
   },
   {
@@ -754,5 +754,14 @@
     "why": "Committed secrets and manual rotation scatter copies that outlive every fix.",
     "prompt": "Create and install a skill named `ops-secrets` (Vault-injected secrets, rotated automatically). It instructs the agent as follows: Inject vault-backed secrets at runtime with RBAC — never commit secrets to repos or share one static value across environments. Rotate automatically on a schedule — no manual tickets, no copies in chat or env files. Audit every read; alert on reads from unexpected places.",
     "checks": ["runtime injection only, never committed", "rotation automatic, no manual tickets", "reads audited"]
+  },
+  {
+    "id": "code-invites",
+    "track": "code",
+    "title": "Single-use invites, never ownerless",
+    "tokens": "~180",
+    "why": "Reusable invite links become backdoors; orphaned workspaces become undeletable.",
+    "prompt": "Create and install a skill named `code-invites` (Single-use invites, never ownerless). It instructs the agent as follows: Issue single-use expiring invite tokens, resendable on request — never reusable links or permanent codes. Accepting an invite grants exactly the invited role in exactly the invited workspace; membership changes are explicit events, also logged (see code-auditlog). A workspace never drops to zero owners — block the removal that would orphan it.",
+    "checks": ["single-use expiring tokens", "explicit role-scoped acceptance", "no ownerless workspaces"]
   }
 ]
