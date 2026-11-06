@@ -3,10 +3,10 @@
     "id": "code-index",
     "track": "code",
     "title": "Start here: pick skills by task",
-    "tokens": "~270",
+    "tokens": "~320",
     "why": "One tiny map keeps every other skill small: the agent reads hundreds of tokens, not thousands.",
-    "prompt": "Create and install a skill named `code-index` (Start here: pick skills by task). It instructs the agent as follows: Your installed skills each do one job — never read them all. Match the task, then read only the matched skills: new screen or page → ui-shell, ui-tokens. New interactive piece (typing, dragging, live numbers) → ui-shell, ui-tokens, ui-lit. Repeating markup or logic → code-reuse. New service or script → code-python, code-shape. Done building → verify-tests, verify-visual. Skip everything else. Missing a skill? Copy its prompt from the board once, install it, then use it locally. This follows progressive disclosure, the Agent Skills model — map first, details on demand: https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills",
-    "checks": ["only matched skills are read", "whole bank never copied at once"]
+    "prompt": "Create and install a skill named `code-index` (Start here: pick skills by task). It instructs the agent as follows: Your installed skills each do one job — never read them all. Three skills apply to almost every task, so always read these: code-secure, code-reuse, code-token. Then match the task and read only the matched skills: new screen or page → ui-shell, ui-tokens. New interactive piece (typing, dragging, live numbers) → ui-lit as well. Mobile app build → ui-mobile. New service or script → code-python, code-shape. Services in other languages → code-boundaries. Page behavior and states → ui-behavior. Headers and navigation → ui-nav. Skip everything else. When building is done → verify-tests, and verify-visual for anything with a screen. Missing a skill? Copy its prompt from the board once, install it, then use it locally. This follows progressive disclosure, the Agent Skills model — map first, details on demand: https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills",
+    "checks": ["only matched skills are read", "always-on skills never skipped", "whole bank never copied at once"]
   },
   {
     "id": "code-python",
