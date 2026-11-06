@@ -114,9 +114,11 @@ try:
     assert "code-injection" in json.loads(body)["skill"]["prompt"], "WAF rules reference injection payloads"
     status, _, body = get("/api/skill/code-plan?fields=prompt")
     plan = json.loads(body)["skill"]["prompt"]
-    assert "skip the file" in plan, "short plans stay inline"
+    assert "inline if five steps or fewer" in plan, "short plans stay inline"
     assert "execute all unblocked steps together" in plan, "independents run in parallel"
     assert "in one batched request" in plan and "execution fetches nothing" in plan, "skills fetched once up front"
+    assert "Three or more" in plan, "plan states its explicit skill-count trigger"
+    assert "Three or more skills → code-plan first" in index_map, "bank index routes by skill count"
     status, _, body = get("/api/skills?fields=id,prompt")
     bank_ids = [s["id"] for s in json.loads(body)["skills"]]
     prompts = {s["id"]: s["prompt"] for s in json.loads(body)["skills"]}
