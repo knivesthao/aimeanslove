@@ -188,6 +188,7 @@ try:
     assert status == 200 and "Flowbite" in body.decode(), "guide names Flowbite for components"
     status, _, body = get("/code")
     assert status == 200 and "Framework first" in body.decode(), "guide states framework-first rule"
+    assert 'target="_blank" rel="noopener"' in body.decode(), "external links open a new tab"
     status, _, body = get("/api/skill/ui-framework?fields=prompt")
     lit = json.loads(body)["skill"]
     assert "Flowbite" in lit["prompt"] and "React" in lit["prompt"], "ui-framework keeps Flowbite pieces, rules out heavy frameworks"
