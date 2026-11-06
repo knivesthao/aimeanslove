@@ -3,9 +3,9 @@
     "id": "code-index",
     "track": "code",
     "title": "Start here: pick skills by task",
-    "tokens": "~430",
+    "tokens": "~440",
     "why": "One tiny map keeps every other skill small: the agent reads hundreds of tokens, not thousands.",
-    "prompt": "Create and install a skill named `code-index` (Start here: pick skills by task). It instructs the agent as follows: Your installed skills each do one job — never read them all. Three skills apply to almost every task, so always read these: code-secure, code-reuse, code-token. Then match the task and read only the matched skills: new screen or page → ui-shell, ui-tokens. New interactive piece (typing, dragging, live numbers) → ui-framework as well. Mobile app build → ui-mobile. New service or script → code-language, code-shape. Organizing a new codebase → code-group. Services in other languages → code-boundaries. Public API, forms, beacons → code-ratelimit. Login, accounts, permissions → code-auth. Security deep-dives, read on match: code-crypto, code-injection, code-design, code-misconfig, code-deps, code-integrity, code-logging, code-ssrf. Page behavior and states → ui-behavior. Headers and navigation → ui-nav. These stack picks assume a new codebase: if the project already uses something else — another language, framework, or tokens — follow that instead. The house rule beats the skill. Skip everything else. When building is done → verify-tests, and verify-visual for anything with a screen. Missing a skill? Copy its prompt from the board once, install it, then use it locally. This follows progressive disclosure, the Agent Skills model — map first, details on demand: https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills",
+    "prompt": "Create and install a skill named `code-index` (Start here: pick skills by task). It instructs the agent as follows: Your installed skills each do one job — never read them all. Three skills apply to almost every task, so always read these: code-secure, code-reuse, code-token. Then match the task and read only the matched skills: new screen or page → ui-shell, ui-tokens. New interactive piece (typing, dragging, live numbers) → ui-framework as well. Mobile app build → ui-mobile. New service or script → code-language, code-shape. Organizing a new codebase → code-group. Services in other languages → code-boundaries. Public API, forms, beacons → code-ratelimit. Repeat traffic → code-cache. Usage counts → code-track. Login, accounts, permissions → code-auth. Security deep-dives, read on match: code-crypto, code-injection, code-design, code-misconfig, code-deps, code-integrity, code-logging, code-ssrf. Page behavior and states → ui-behavior. Headers and navigation → ui-nav. These stack picks assume a new codebase: if the project already uses something else — another language, framework, or tokens — follow that instead. The house rule beats the skill. Skip everything else. When building is done → verify-tests, and verify-visual for anything with a screen. Missing a skill? Copy its prompt from the board once, install it, then use it locally. This follows progressive disclosure, the Agent Skills model — map first, details on demand: https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills",
     "checks": ["only matched skills are read", "always-on skills never skipped", "whole bank never copied at once"]
   },
   {
@@ -232,5 +232,23 @@
     "why": "Navigation is the first thing a visitor meets; if it overflows on a phone the whole site looks broken.",
     "prompt": "Create and install a skill named `ui-nav` (Responsive headers). It instructs the agent as follows: Show inline links on wide screens; below about 640px collapse them behind a hamburger button that opens a Flowbite dropdown (data-dropdown-toggle) — the library positions it as an overlay, so the open menu never pushes content down. Use a real nav landmark and a real button with an aria-label; Flowbite flips aria-expanded itself. Put the brand on its own centered row; stack the opened links vertically. No hand-written menu code, keyboard reachable.",
     "checks": ["links fit without wrapping at 360px", "button flips aria-expanded", "keyboard can open and walk the menu"]
+  },
+  {
+    "id": "code-cache",
+    "track": "code",
+    "title": "Cache in layers, swap the store",
+    "tokens": "~200",
+    "why": "A cache hit skips work entirely — the cheapest token is the one never spent.",
+    "prompt": "Create and install a skill named `code-cache` (Cache in layers, swap the store). It instructs the agent as follows: Cache in layers, nearest first: HTTP (ETag plus 304, Cache-Control per content type), in-process memo for hot reads, CDN edge in front. Hide every layer behind one tiny interface — get, set, invalidate — so the store swaps without touching callers: memory today, Redis or Memcached tomorrow. Cache computed answers, never user-specific secrets. Invalidate on write (data changed), not on a timer alone.",
+    "checks": ["ETag and 304 on repeat reads", "one interface, swappable store", "invalidation tied to writes"]
+  },
+  {
+    "id": "code-track",
+    "track": "code",
+    "title": "Emit events, plug the sink later",
+    "tokens": "~210",
+    "why": "You can't improve what you never counted — and you can't un-leak what you logged.",
+    "prompt": "Create and install a skill named `code-track` (Emit events, plug the sink later). It instructs the agent as follows: Code emits events; sinks decide where they land. Call one tiny emit helper at the interesting moments — used, copied, failed, slow. The helper writes somewhere boring today (a local JSONL file) and a real sink tomorrow (ClickHouse, analytics) without callers changing. Count actions, never identities: no names, emails, or keys in events. Roll noisy events into buckets and surface them slowly, so displays stay readable and cheap.",
+    "checks": ["one emit helper everywhere", "no identities in events", "sink swaps without touching callers"]
   }
 ]
