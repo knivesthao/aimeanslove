@@ -105,6 +105,7 @@ try:
     assert "data-copy-skill" in html, "board has copy buttons"
     assert 'id="q"' not in html and "data-track" not in html, "no filter machinery"
     assert 'href="/about"' in html, "about linked from header and footer"
+    assert "min-h-screen" in html and "flex-1" in html, "flex shell pins footer to the bottom"
     assert "humans verify" not in html, "old footer tagline is gone"
     status, _, body = get("/about")
     assert status == 200 and "About me" in body.decode(), "about page renders"
