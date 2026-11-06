@@ -142,6 +142,7 @@ try:
     status, _, body = get("/api/skill/ops-observe?fields=prompt")
     assert "trigger event" in json.loads(body)["skill"]["prompt"], "alerts double as machine triggers"
     assert "MCP" in json.loads(body)["skill"]["prompt"], "observe prefers queryable signals over dashboards"
+    assert "only witness to its own health" in json.loads(body)["skill"]["prompt"], "observe keeps an independent check"
     status, _, body = get("/api/skill/ops-coordinate?fields=prompt")
     coord = json.loads(body)["skill"]["prompt"]
     assert "claim a task" in coord, "coordination runs on a shared plan ledger"
@@ -149,6 +150,7 @@ try:
     status, _, body = get("/ops")
     ops = body.decode()
     assert "modelcontextprotocol.io" in ops, "ops page backlinks the MCP source"
+    assert "Don&#x27;t trust the system" in ops or "Don't trust the system" in ops, "ops page states the verify principle"
     assert "ops-coordinate" in ops, "ops page names the coordination skill"
     status, _, body = get("/api/skill/ops-pipeline?fields=prompt")
     assert "trigger events" in json.loads(body)["skill"]["prompt"], "deploys broadcast machine triggers"
