@@ -78,7 +78,7 @@ try:
     assert os.path.exists(USAGE_FILE), "counts persisted"
     status, _, body = get("/api/skills?fields=id,why")
     bank = json.loads(body)["skills"]
-    assert len(bank) == 25 and all(s.get("why") for s in bank), "every skill explains why"
+    assert len(bank) == 26 and all(s.get("why") for s in bank), "every skill explains why"
     status, _, body = get("/api/skills?fields=id,prompt")
     for s in json.loads(body)["skills"]:
         local = ROOT / ".agents" / "skills" / s["id"] / "SKILL.md"
@@ -114,7 +114,7 @@ try:
     assert "code-index" in html and "progressive disclosure" in html, "index skill maps tasks to skills"
     assert "code-ssrf" in html and "code-crypto" in html, "OWASP set renders on board"
     assert all(g in html for g in ("Start here", "Always on", "Security deep-dives", "Verify")), "board groups skills"
-    assert html.count("data-copy-skill=") == 25, "every skill renders exactly once"
+    assert html.count("data-copy-skill=") == 26, "every skill renders exactly once"
     assert "data-copy-skill" in html, "board has copy buttons"
     assert 'id="q"' not in html and "data-track" not in html, "no filter machinery"
     assert 'href="/about"' in html, "about linked from header and footer"
@@ -198,6 +198,15 @@ try:
     assert "lit@3.3.3" in board and 'type="module"' in board, "Lit island pinned and wired"
     assert 'data-lucide="download"' in home, "badge uses Lucide icon"
     assert "createIcons" in home and "lucide@1.69.0" in home, "Lucide pinned and initialized"
+    limited = 0
+    retry_after = False
+    for _ in range(150):
+        status, headers, _ = get("/api/fields")
+        if status == 429:
+            limited += 1
+            retry_after = retry_after or any(k.lower() == "retry-after" for k in headers)
+    assert limited >= 1, "hammering the API trips the limiter"
+    assert retry_after, "429 carries Retry-After"
     print("PASS: open endpoints + usage stats + board")
 finally:
     child.terminate()
