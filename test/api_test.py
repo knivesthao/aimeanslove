@@ -149,6 +149,28 @@ try:
     m = re.search(r'href="/#agent"[^>]*>\s*(\d+)', html)
     assert m, "board shows usage counter badge"
     assert int(m.group(1)) == fetched_before + 3, f"counter counts skill fetches only, got {m.group(0)} after {fetched_before}"
+    badge_before = int(m.group(1))
+    status, _, _ = post("/api/copy?skill=code-secure", {})
+    assert status == 204, f"copy beacon accepted, got {status}"
+    status, _, _ = post("/api/copy?skill=code-index", {})
+    assert status == 204
+    status, _, _ = post("/api/copy?skill=nope", {})
+    assert status == 404, "unknown skill copy rejected"
+    status, _, body = get("/board")
+    m = re.search(r'href="/#agent"[^>]*>\s*(\d+)', body.decode())
+    assert m and int(m.group(1)) == badge_before, "copies sit pending, badge waits for rollup"
+    status, _, body = get("/api/stats")
+    stats = json.loads(body)["stats"]
+    assert stats["pending_copies"] == 2 and stats["copies_applied"] == 0, "copies bucketed, nothing applied yet"
+    sys.path.insert(0, str(ROOT))
+    import server as srv
+    srv.STATS_FILE = Path("/tmp/mf-test-rollup.json")
+    srv.STATS["pending_copies"] = 2
+    srv.STATS["copies_applied"] = 0
+    srv.STATS["last_rollup"] = "2000-01-01T00:00:00+00:00"
+    srv.rollup_copies()
+    assert srv.STATS["pending_copies"] == 0 and srv.STATS["copies_applied"] == 2, "rollup absorbs pending copies"
+    assert srv.STATS["last_rollup"] > "2000-01-01", "rollup stamps its time"
     assert ">Manifesto</a>" not in html, "manifesto link removed from nav"
     assert 'href="/"' in html, "brand links home"
     assert "data-open-support" in html and "support us" in html, "support button opens dialog"

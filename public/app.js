@@ -36,6 +36,7 @@ document.addEventListener("click", (e) => {
   if (s) {
     const p = s.closest(".skill")?.querySelector(".prompt")?.textContent ?? "";
     navigator.clipboard?.writeText(p);
+    navigator.sendBeacon?.("/api/copy?skill=" + encodeURIComponent(s.dataset.copySkill ?? ""));
     s.textContent = "copied";
     setTimeout(() => (s.textContent = "copy prompt"), 1200);
   }

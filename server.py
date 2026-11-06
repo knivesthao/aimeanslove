@@ -53,19 +53,49 @@ tailwind.config = {
 """
 
 # Usage tracking: every request counted, API counts persisted to usage.json.
+# Copy-prompt clicks land in a pending bucket; the public counter absorbs them
+# at most once per rollup window (daily in prod), so the badge moves slowly.
+ROLLUP_SECONDS = int(os.environ.get("COPY_ROLLUP_SECONDS", "86400"))
 STATS_FILE = Path(os.environ.get("USAGE_FILE", str(ROOT / "usage.json")))
-STATS: dict = {"started": datetime.now(timezone.utc).isoformat(), "requests": 0, "routes": {}, "skills": {}}
+STATS: dict = {
+    "started": datetime.now(timezone.utc).isoformat(),
+    "requests": 0,
+    "routes": {},
+    "skills": {},
+    "copies_applied": 0,
+    "pending_copies": 0,
+    "last_rollup": datetime.now(timezone.utc).isoformat(),
+}
 try:
     prev = json.loads(STATS_FILE.read_text(encoding="utf-8"))
     if isinstance(prev.get("requests"), int):
         STATS["requests"] = prev["requests"]
         STATS["routes"] = prev.get("routes", {})
         STATS["skills"] = prev.get("skills", {})
+        STATS["copies_applied"] = prev.get("copies_applied", 0)
+        STATS["pending_copies"] = prev.get("pending_copies", 0)
+        STATS["last_rollup"] = prev.get("last_rollup", STATS["last_rollup"])
 except (OSError, ValueError):
     pass
 
 
+def rollup_copies() -> None:
+    try:
+        last = datetime.fromisoformat(STATS["last_rollup"])
+    except (ValueError, TypeError):
+        last = datetime.now(timezone.utc)
+    if (datetime.now(timezone.utc) - last).total_seconds() >= ROLLUP_SECONDS and STATS["pending_copies"] > 0:
+        STATS["copies_applied"] += STATS["pending_copies"]
+        STATS["pending_copies"] = 0
+        STATS["last_rollup"] = datetime.now(timezone.utc).isoformat()
+        try:
+            STATS_FILE.write_text(json.dumps(STATS), encoding="utf-8")
+        except OSError:
+            pass
+
+
 def hit(route: str, skill: str | None = None) -> None:
+    rollup_copies()
     STATS["requests"] += 1
     STATS["routes"][route] = STATS["routes"].get(route, 0) + 1
     if skill:
@@ -106,8 +136,9 @@ def nav_link(href: str, label: str, active: str) -> str:
 
 
 def library_uses() -> int:
+    rollup_copies()
     routes = STATS["routes"]
-    return routes.get("/board.json", 0) + routes.get("/api/skills", 0) + routes.get("/api/skill/:id", 0)
+    return routes.get("/board.json", 0) + routes.get("/api/skills", 0) + routes.get("/api/skill/:id", 0) + STATS.get("copies_applied", 0)
 
 
 def nav(active: str) -> str:
@@ -575,6 +606,20 @@ def api_fields(request: Request) -> Response:
 def api_stats(request: Request) -> Response:
     hit("/api/stats")
     return etagged(request, {"ok": True, "stats": STATS})
+
+
+@app.post("/api/copy")
+def api_copy(request: Request) -> Response:
+    hit("/api/copy")
+    sid = request.query_params.get("skill", "")
+    if sid not in BY_ID:
+        return JSONResponse({"ok": False, "error": "unknown skill"}, status_code=404)
+    STATS["pending_copies"] += 1
+    try:
+        STATS_FILE.write_text(json.dumps(STATS), encoding="utf-8")
+    except OSError:
+        pass
+    return Response(status_code=204)
 
 
 @app.exception_handler(404)
