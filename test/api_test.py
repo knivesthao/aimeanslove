@@ -101,7 +101,7 @@ try:
     status, _, body = get("/board")
     assert status == 200, f"board renders, got {status}"
     html = body.decode()
-    assert "ui-details" in html and "Collapsible card stacks" in html, "board lists skills"
+    assert "code-reuse" in html and "Reuse before you build" in html, "board lists skills"
     assert "data-copy-skill" in html, "board has copy buttons"
     assert 'id="q"' not in html and "data-track" not in html, "no filter machinery"
     assert 'href="/about"' in html, "about linked from header and footer"

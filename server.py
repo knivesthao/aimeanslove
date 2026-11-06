@@ -276,14 +276,33 @@ fetch("/api/skill/ui-tokens?fields=prompt")
 fetch("/api/skill/ui-behavior?fields=prompt")</pre>
 </section>"""
 
-CODE_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">Coding guide</h1><p>This guide backs you up while you build. Two rules cover nearly everything: <strong>write Python, because agents generate it fastest</strong> — and <strong>lean on guardrail frameworks, because they make whole classes of mistakes unwritable</strong>. Everything below is support, not ceremony.</p></header>
+def details_card(title: str, inner: str, is_open: bool = False, anchor: str | None = None) -> str:
+    """One shared collapsible card. Reuse this; never hand-write another."""
+    attrs = ""
+    if anchor:
+        attrs += ' id="' + anchor + '"'
+    if is_open:
+        attrs += " open"
+    return (
+        '<details class="border border-solid border-line rounded-[10px] p-[18px] bg-white text-left space-y-2"' + attrs + ">"
+        '<summary class="cursor-pointer list-none flex items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">'
+        '<h2 class="font-display text-[22px] text-left">' + title + "</h2>"
+        '<span aria-hidden="true" class="open:rotate-180 transition-transform text-accent text-xl leading-none shrink-0">\u25be</span></summary>'
+        + inner + "</details>"
+    )
+
+
+CODE_BODY = ("""<header class="space-y-2"><h1 class="font-display text-[38px]">Coding guide</h1><p>This guide backs you up while you build. Two rules cover nearly everything: <strong>write Python, because agents generate it fastest</strong> — and <strong>lean on guardrail frameworks, because they make whole classes of mistakes unwritable</strong>. Everything below is support, not ceremony.</p></header>
 <section class="grid gap-2 my-4">
-<details class="border border-solid border-line rounded-[10px] p-[18px] bg-white text-left space-y-2" open><summary class="cursor-pointer list-none flex items-center justify-between gap-3 [&::-webkit-details-marker]:hidden"><h2 class="font-display text-[22px] text-left">1 · Python first</h2><span aria-hidden="true" class="open:rotate-180 transition-transform text-accent text-xl leading-none shrink-0">▾</span></summary><ul class="text-left space-y-2 list-disc pl-5">
+"""
+    + details_card("1 · Python first", """<ul class="text-left space-y-2 list-disc pl-5">
 <li><strong>AI writes Python best.</strong> AI models have read more Python than any other language, so they make fewer mistakes in it. Python also uses few special symbols, so the same idea costs fewer tokens.</li>
 <li><strong>Type hints do real work.</strong> A type hint says what shape your data is, like <code class="font-mono text-[13px]">name: str</code>. The tools below read these hints and check your code for you, for free.</li>
 <li><strong>One language for everything.</strong> Use Python for the server, for small scripts, and for command line tools. One language means less switching between tools and no extra code just to connect things.</li>
-<li><strong>Python is the default, not the law.</strong> A few jobs need other tools — see <a href="#limits" class="text-accent underline">4 · Limits</a>. Everywhere else, Python.</li></ul></details>
-<details class="border border-solid border-line rounded-[10px] p-[18px] bg-white text-left space-y-2"><summary class="cursor-pointer list-none flex items-center justify-between gap-3 [&::-webkit-details-marker]:hidden"><h2 class="font-display text-[22px] text-left">2 · Guardrails</h2><span aria-hidden="true" class="open:rotate-180 transition-transform text-accent text-xl leading-none shrink-0">▾</span></summary><ul class="text-left space-y-2 list-disc pl-5">
+<li><strong>Python is the default, not the law.</strong> A few jobs need other tools — see <a href="#limits" class="text-accent underline">4 · Limits</a>. Everywhere else, Python.</li></ul>""",
+        is_open=True,
+    ) + "\n"
+    + details_card("2 · Guardrails", """<ul class="text-left space-y-2 list-disc pl-5">
 <li><strong>FastAPI + Pydantic — not Flask or Django.</strong> You describe your data one time, in one class. The framework then checks all input, sends clear errors, and writes the API documentation by itself. Flask leaves all that checking to you, written by hand. Django brings a whole big system the agent must learn. FastAPI needs only your data class.</li>
 <li><strong>SQLModel — not two copies.</strong> One class describes both your database table and your API data. The old way needs two matching copies, and bugs hide when they disagree. With one copy, disagreement is impossible.</li>
 <li><strong>Typer — not argparse.</strong> Write a normal Python function and add one line on top of it. That is your whole command line tool. Argparse makes you describe every option by hand; Typer reads your function and does it for you.</li>
@@ -294,20 +313,26 @@ CODE_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">Co
 <li><strong>Lit — for pieces you build yourself, not pieces you borrow.</strong> Most builds today are apps. If yours is — an editor, a dashboard, a drawing tool — skip the HTML-first ladder and start with Lit islands or Lit throughout, over a CDN import map with no build step. Same FastAPI server behind them either way. Know what Lit is not: it gives you the machinery to build components, but ships zero ready-made ones — no menu, no dialog, no dropdown. Keep Flowbite for ready-made pieces; never rebuild one in Lit just to own it. If a Lit island itself needs ready-made pieces, use WebAwesome (Shoelace) over CDN — same no-build pattern, not a second design system to invent. And never React or Angular: they need a build step, ship heavy JavaScript, and cost tokens on every read — the opposite of this stack.</li>
 <li><strong>Tailwind — not hand-written CSS.</strong> Never write stylesheets by hand. Hand-written CSS costs tokens twice: once to write, and again for every agent that must read it. Style with Tailwind utilities on top of three color tokens; keep preflight off so base styles survive. Styling is the framework's job, not yours.</li>
 <li><strong>Capacitor — not React Native, Flutter, or native code.</strong> Those are whole new languages and systems the agent must learn, and native apps need Swift or Kotlin. Capacitor takes the mobile web page you already built and wraps it for both app stores, and ready-made plugins cover the common phone features (camera, location, push messages, files). The caveat: if you need a phone feature with no ready-made plugin, you write one small bridge piece — not a whole native app. A few things still need real native code: games and heavy graphics, home-screen widgets and Live Activities, watch apps, music apps where sound delay matters, and brand-new phone features with no plugin yet. Typical business and content apps never touch these.</li>
-<li><strong>Framework first, hand-written last.</strong> If the stack already solves it — layout, icons, menus, validation — use the stack's piece, never your own version. We lost days rebuilding a mobile menu by hand; the library version worked the first time. Hand-write only what no framework covers, like a single HTTP header.</li></ul></details>
-<details class="border border-solid border-line rounded-[10px] p-[18px] bg-white text-left space-y-2" id="shape-proof" open><summary class="cursor-pointer list-none flex items-center justify-between gap-3 [&::-webkit-details-marker]:hidden"><h2 class="font-display text-[22px] text-left">3 · Shape &amp; proof</h2><span aria-hidden="true" class="open:rotate-180 transition-transform text-accent text-xl leading-none shrink-0">▾</span></summary><ul class="text-left space-y-2 list-disc pl-5">
+<li><strong>Framework first, hand-written last.</strong> If the stack already solves it — layout, icons, menus, validation — use the stack's piece, never your own version. We lost days rebuilding a mobile menu by hand; the library version worked the first time. Hand-write only what no framework covers, like a single HTTP header.</li></ul>""") + "\n"
+    + details_card("3 · Shape &amp; proof", """<ul class="text-left space-y-2 list-disc pl-5">
 <li><strong>Small, flat modules.</strong> Keep each file small: one job, under 150 lines. A small file fits in the AI's memory at one time. Write flat code: check for problems first and exit early, so the reader follows one straight path. When something goes wrong, send a clear error answer — never a crash report.</li>
 <li><strong>Check input at the door.</strong> When data comes in, check three things: is it the right type, the right size, and on the allowed list? Say no to files that are too big before you open them. Keep passwords and keys in environment variables, never in code or logs — code and logs get copied and shared, and secrets would leak.</li>
-<li><strong>Tests are the review.</strong> No person reads your code to judge it. Instead, write one small test for each thing your code does, then run the tests. Green means it works. Red means it is broken. That is the whole review.</li></ul></details>
-<details class="border border-solid border-line rounded-[10px] p-[18px] bg-white text-left space-y-2" id="limits"><summary class="cursor-pointer list-none flex items-center justify-between gap-3 [&::-webkit-details-marker]:hidden"><h2 class="font-display text-[22px] text-left">4 · Limits</h2><span aria-hidden="true" class="open:rotate-180 transition-transform text-accent text-xl leading-none shrink-0">▾</span></summary><ul class="text-left space-y-2 list-disc pl-5">
+<li><strong>Tests are the review.</strong> No person reads your code to judge it. Instead, write one small test for each thing your code does, then run the tests. Green means it works. Red means it is broken. That is the whole review.</li></ul>""",
+        is_open=True,
+        anchor="shape-proof",
+    ) + "\n"
+    + details_card("4 · Limits", """<ul class="text-left space-y-2 list-disc pl-5">
 <li><strong>Heavy math (video, AI number-crunching).</strong> Python uses one core per process. Let other tools do the math, or run more servers — Python gives the orders.</li>
 <li><strong>Answers needed in single-digit milliseconds</strong> (trading, live bidding, game server ticks). Use Go or Rust.</li>
 <li><strong>Over 100,000 live connections at once</strong> (huge chat, live tracking). Erlang and Elixir were built for exactly this.</li>
 <li><strong>Functions that sleep most of the time and must wake instantly</strong> (spiky serverless). Python wakes slowly; Go and Rust wake fast.</li>
 <li><strong>Tiny computers with no operating system.</strong> Use C or Rust.</li>
-<li><strong>Apps that must work fully offline with heavy local logic.</strong> That needs real code on the device, not pieces from a server.</li></ul></details>
-</section>
+<li><strong>Apps that must work fully offline with heavy local logic.</strong> That needs real code on the device, not pieces from a server.</li></ul>""",
+        anchor="limits",
+    ) + "\n"
+    + """</section>
 """
+)
 
 BOARD_CARDS = "".join(
     '<article class="skill border border-solid border-line rounded-[10px] p-4 grid gap-2 text-left"><header class="flex gap-2.5 items-baseline justify-center flex-wrap"><span class="font-mono text-xs bg-ink text-white px-2 py-0.5 rounded-full">' + html.escape(s.id) + "</span><strong>"
