@@ -281,6 +281,7 @@ try:
     status, _, body = get("/code")
     assert status == 200 and "Framework first" in body.decode(), "guide states framework-first rule"
     assert "docs.python.org" in body.decode(), "guide backs Python with the language reference"
+    assert "one declaration replaces three" in body.decode() and "one contract, not one per language" in body.decode(), "guide states why each guardrail was chosen"
     assert "preflight stays on" in body.decode(), "guide states preflight-on baseline"
     assert 'target="_blank" rel="noopener"' in body.decode(), "external links open a new tab"
     status, _, body = get("/api/skill/ui-framework?fields=prompt")
