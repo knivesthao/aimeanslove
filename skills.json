@@ -3,9 +3,9 @@
     "id": "code-index",
     "track": "code",
     "title": "Start here: task first, stack second",
-    "tokens": "~540",
+    "tokens": "~570",
     "why": "One tiny map keeps every other skill small: the agent reads hundreds of tokens, not thousands.",
-    "prompt": "Create and install a skill named `code-index` (Start here: pick skills by task). It instructs the agent as follows: Your installed skills each do one job — never read them all. Work in two passes. Pass 1 — task first. Three skills apply to almost every task, so always read these: code-secure, code-reuse, code-token. Then match the task and read only the matched skills: Interface, screen, or component work → ui-index. New service or script → code-language, code-shape. Organizing a new codebase → code-group. Services in other languages → code-boundaries. Public API, forms, beacons → code-ratelimit. Repeat traffic → code-cache. Usage counts → code-track. Slow endpoint or heavy page → code-perf. Traffic spikes, shedding features → code-fallback. Login, accounts, permissions → code-auth. Security deep-dives, read on match: code-crypto, code-injection, code-design, code-misconfig, code-deps, code-integrity, code-logging, code-ssrf. Pass 2 — stack specifics. After the task match, apply the stack the codebase already uses: language → code-language (Python first on new code; if the project already uses another language, skip this skill or overwrite it with that stack). Interface framework → ui-index (house default Lit via ui-framework; widget libraries per framework live in ui-platform-picks). Styling → ui-tokens (unless the project already has a design system — then skip it). Mobile platform → ui-mobile (Capacitor shell unless native is technically required). Service-to-service → code-boundaries (same-language HTTP, other languages gRPC, events validated). These stack picks assume a new codebase: if the project already uses something else — another language, framework, tokens, or platform — follow that instead. The house rule beats the skill. Skip everything else. When building is done → verify-tests, and verify-visual for anything with a screen. Long or multi-skill task → code-plan first. Missing a skill? Copy its prompt from the skills page once, install it, then use it locally. This follows progressive disclosure — map first, details on demand.",
+    "prompt": "Create and install a skill named `code-index` (Start here: pick skills by task). It instructs the agent as follows: Your installed skills each do one job — never read them all. Work in two passes. Pass 1 — task first. Three skills apply to almost every task, so always read these: code-secure, code-reuse, code-token. Then match the task and read only the matched skills: Interface, screen, or component work → ui-index. New service or script → code-language, code-shape. Organizing a new codebase → code-group. Services in other languages → code-boundaries. Public API, forms, beacons → code-ratelimit. Repeat traffic → code-cache. Usage counts → code-track. Slow endpoint or heavy page → code-perf. Traffic spikes, shedding features → code-fallback. Login, accounts, permissions → code-auth. SaaS billing, roles, admin → saas-index. Landing data and scheduling pipelines → data-index. Build-test-deploy gates and paging → ops-index. Vuln deadlines and enterprise login → sec-index. Security deep-dives, read on match: code-crypto, code-injection, code-design, code-misconfig, code-deps, code-integrity, code-logging, code-ssrf. Pass 2 — stack specifics. After the task match, apply the stack the codebase already uses: language → code-language (Python first on new code; if the project already uses another language, skip this skill or overwrite it with that stack). Interface framework → ui-index (house default Lit via ui-framework; widget libraries per framework live in ui-platform-picks). Styling → ui-tokens (unless the project already has a design system — then skip it). Mobile platform → ui-mobile (Capacitor shell unless native is technically required). Service-to-service → code-boundaries (same-language HTTP, other languages gRPC, events validated). These stack picks assume a new codebase: if the project already uses something else — another language, framework, tokens, or platform — follow that instead. The house rule beats the skill. Skip everything else. When building is done → verify-tests, and verify-visual for anything with a screen. Long or multi-skill task → code-plan first. Missing a skill? Copy its prompt from the skills page once, install it, then use it locally. This follows progressive disclosure — map first, details on demand.",
     "checks": ["only matched skills are read", "always-on skills never skipped", "whole bank never copied at once"]
   },
   {
@@ -322,5 +322,113 @@
     "why": "A written plan turns a context-blowing marathon into small steps that each fit in context.",
     "prompt": "Create and install a skill named `code-plan` (Long tasks: plan file first). It instructs the agent as follows: When a task needs several skills or more steps than fit comfortably in one pass, stop and write the plan down first: one markdown file with numbered steps, each step naming the skill it uses and its exact done-state. Then execute the file top to bottom, checking steps off, re-reading only the skill each step names. If a step fails, fix the step — never rewrite the plan mid-flight without saying why. Delete the plan file when done so it can't rot into documentation.",
     "checks": ["plan file written before executing", "each step names its skill and done-state", "plan deleted after landing"]
+  },
+  {
+    "id": "saas-index",
+    "track": "code",
+    "title": "SaaS features: pick SaaS skills",
+    "tokens": "~190",
+    "why": "SaaS is the same five problems in every company — map first, build the rest from shape.",
+    "prompt": "Create and install a skill named `saas-index` (SaaS features: pick SaaS skills). It instructs the agent as follows: Your SaaS skills each do one job — never read them all. Billing and plans → code-billing. Team roles, admin console, impersonation → code-rbac. Login and sessions → code-auth. Anything else (notifications, search, uploads, webhooks, keys, flags, exports) → build it from code-shape plus code-reuse, and meter it with code-track. Skip everything else.",
+    "checks": ["only matched SaaS skills are read", "auth always via code-auth", "new SaaS work metered with code-track"]
+  },
+  {
+    "id": "code-billing",
+    "track": "code",
+    "title": "Bill from plans, never hardcode",
+    "tokens": "~210",
+    "why": "Billing bugs refund money or lock out paying users — both fail loudly and publicly.",
+    "prompt": "Create and install a skill named `code-billing` (Bill from plans, never hardcode). It instructs the agent as follows: Bill from plan versions, never hardcoded amounts: every charge resolves price from the plan in effect when the metered event landed. Checkout sessions are idempotent — one customer plus plan plus idempotency key maps to one subscription. Fulfill and entitle only on signed provider webhooks, verified before trusting, with retry-safe handlers that converge on replay. Failed payments enter dunning (remind, retry, grace) before any cancel. Metered usage flows from code-track events, not from scattered counters. Prorate upgrades and downgrades at the switch, never at month end.",
+    "checks": ["no hardcoded prices", "entitlement only on verified webhooks", "dunning before cancel"]
+  },
+  {
+    "id": "code-rbac",
+    "track": "code",
+    "title": "Tenants, roles, safe impersonation",
+    "tokens": "~200",
+    "why": "One missing tenant check leaks a whole customer's data to another.",
+    "prompt": "Create and install a skill named `code-rbac` (Tenants, roles, safe impersonation). It instructs the agent as follows: Scope every row by tenant: a workspace id on every table, enforced server-side on every read and write — never by UI hiding alone (authentication lives in code-auth). Roles are least-privilege by default; check the permission at the action, not the role at login. Support tooling lives in a separate admin surface; impersonation requires a consent record plus an audit trail. Invites are single-use and expiring, resendable; a workspace never drops to zero owners.",
+    "checks": ["tenant id enforced server-side", "impersonation gated on consent plus audit", "no ownerless workspaces"]
+  },
+  {
+    "id": "data-index",
+    "track": "code",
+    "title": "Data work: pick data skills",
+    "tokens": "~190",
+    "why": "Pipelines fail in the same three places — landing, ordering, replay — map first.",
+    "prompt": "Create and install a skill named `data-index` (Data work: pick data skills). It instructs the agent as follows: Your data skills each do one job — never read them all. Landing events exactly once → data-ingest. Ordering tasks with retries and stall alerts → data-orchestrate. Anything else (contracts, backfill, CDC, quality gates, partitioning, retention, lineage) → build it from code-shape plus code-track, and bank the pattern when it repeats a third time. Skip everything else.",
+    "checks": ["only matched data skills are read", "repeat patterns banked, not pasted"]
+  },
+  {
+    "id": "data-ingest",
+    "track": "code",
+    "title": "Land every event exactly once",
+    "tokens": "~200",
+    "why": "Without dedup keys every retry double-counts — revenue, usage, and analytics all inflate.",
+    "prompt": "Create and install a skill named `data-ingest` (Land every event exactly once). It instructs the agent as follows: Land every event exactly once: producers attach an idempotency key and retry freely; consumers dedup on that key before writing, so replays converge instead of double-counting. Validate against the schema first — reject unknown fields loudly, never silently drop. Poison events go to a dead-letter queue after N tries and page nobody; the stream never blocks on one bad record. Keep the dedup store bounded with a TTL past the retry window.",
+    "checks": ["retries converge, never double-count", "poison in DLQ, stream never blocks", "dedup store TTL-bounded"]
+  },
+  {
+    "id": "data-orchestrate",
+    "track": "code",
+    "title": "Pipelines as DAGs with stall SLAs",
+    "tokens": "~180",
+    "why": "Chained cron fails silently at 3am — explicit deps with stall alerts fail loudly instead.",
+    "prompt": "Create and install a skill named `data-orchestrate` (Pipelines as DAGs with stall SLAs). It instructs the agent as follows: Model every pipeline as a DAG with explicit dependencies — never chained cron that fails silently. Each task retries with backoff and declares its own stall SLA; breach pages, success stays quiet. Tasks must be idempotent so reruns converge. The scheduler owns ordering, retries, and alerts; the task owns one transform.",
+    "checks": ["deps explicit, no chained cron", "stall SLAs page, success quiet", "tasks idempotent"]
+  },
+  {
+    "id": "ops-index",
+    "track": "code",
+    "title": "Ops work: pick ops skills",
+    "tokens": "~190",
+    "why": "Deploys and pages follow the same gates everywhere — map first, improvise never.",
+    "prompt": "Create and install a skill named `ops-index` (Ops work: pick ops skills). It instructs the agent as follows: Your ops skills each do one job — never read them all. Build-test-deploy gates → ops-pipeline. Logs, metrics, traces, and who gets paged → ops-observe. Anything else (migrations, rollouts, secrets, backups, IaC, autoscaling, probes, on-call) → build it from code-shape plus code-fallback and prove it with verify-tests, and bank the pattern when it repeats a third time. Skip everything else.",
+    "checks": ["only matched ops skills are read", "unproven ops work never ships"]
+  },
+  {
+    "id": "ops-pipeline",
+    "track": "code",
+    "title": "One template, gated deploys, one-button rollback",
+    "tokens": "~200",
+    "why": "Hand-rolled pipelines drift until the deploy that matters most is the one least tested.",
+    "prompt": "Create and install a skill named `ops-pipeline` (One template, gated deploys, one-button rollback). It instructs the agent as follows: Deploy only from one shared templated pipeline — never hand-rolled per repo. Required gates in order: build, tests, security scan, approval for production. Every deploy links to its commit; every PR gets an ephemeral preview environment that auto-stops when idle. Rollback means redeploying the previous known-good artifact with one action — never a new build under fire. Block on critical scan findings; ticket the rest with SLAs.",
+    "checks": ["one shared template, no hand-rolled pipes", "preview envs auto-stop", "rollback is one action on an old artifact"]
+  },
+  {
+    "id": "ops-observe",
+    "track": "code",
+    "title": "One id, actionable pages only",
+    "tokens": "~190",
+    "why": "Unactionable pages train the team to ignore the pager — then the real outage pages nobody.",
+    "prompt": "Create and install a skill named `ops-observe` (One id, actionable pages only). It instructs the agent as follows: Unify logs, metrics, and traces behind one request id so any alert opens the full story. Alert only on user-facing symptoms with a runbook link — every page must be actionable, or it becomes noise the team ignores. Dashboards are for debugging, not for watching; nothing pages that a dashboard could have shown quietly. Name the rotation that owns each alert; unowned alerts rot.",
+    "checks": ["one id across logs, metrics, traces", "every page actionable with runbook", "every alert has an owner"]
+  },
+  {
+    "id": "sec-index",
+    "track": "code",
+    "title": "Security ops: pick sec skills",
+    "tokens": "~200",
+    "why": "Vulns without owners sit for months — map first, scan-and-sit never.",
+    "prompt": "Create and install a skill named `sec-index` (Security ops: pick sec skills). It instructs the agent as follows: Your security-ops skills each do one job — never read them all. Known vulnerabilities with owners and deadlines → sec-vuln. Enterprise login, MFA, and break-glass → sec-sso. App login basics → code-auth. Anything else (image scans, secret scans, session hardening, SIEM, rotation, WAF, anomaly detection, runbooks, patching, compliance evidence) → build it from code-secure plus code-logging, and bank the pattern when it repeats a third time. Skip everything else.",
+    "checks": ["only matched sec skills are read", "app basics stay in code-auth"]
+  },
+  {
+    "id": "sec-vuln",
+    "track": "code",
+    "title": "Every finding owned with a deadline",
+    "tokens": "~190",
+    "why": "Scan-and-sit is the failure mode — findings without owners and SLAs age into breaches.",
+    "prompt": "Create and install a skill named `sec-vuln` (Every finding owned with a deadline). It instructs the agent as follows: Scan continuously and rank by exploitability, not by count: every finding gets an owner and a deadline scaled to reachability. Block the build on critical findings in CI and fail closed when the scanner errors — fail-open ships the vuln. Rescan to close; a finding without a retest stays open. Track mean-time-to-remediate per severity; scan-and-sit is the failure mode.",
+    "checks": ["every finding owned with a deadline", "CI fails closed on scanner errors", "closure requires retest"]
+  },
+  {
+    "id": "sec-sso",
+    "track": "code",
+    "title": "One IdP, expiring exceptions",
+    "tokens": "~190",
+    "why": "Permanent break-glass exceptions and legacy logins are the doors attackers walk through.",
+    "prompt": "Create and install a skill named `sec-sso` (One IdP, expiring exceptions). It instructs the agent as follows: Route every login through one identity provider — workforce and enterprise customers alike (app basics live in code-auth). Require phishing-resistant MFA; expire legacy password-only logins and break-glass exceptions with a date, never permanently. Provision just-in-time on first login from verified domains; deprovision automatically on IdP removal. Every exception carries an owner, an expiry, and an audit trail.",
+    "checks": ["one IdP, no permanent exceptions", "JIT provision, auto deprovision", "exceptions owned, expiring, audited"]
   }
 ]
