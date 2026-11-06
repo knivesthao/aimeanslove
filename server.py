@@ -205,7 +205,7 @@ def page(title: str, desc: str, active: str, body: str, machine: str | None = No
     )
 
 
-HOME_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">ai (愛) means love</h1><p class="max-w-[62ch] text-[17px]">New here? <a href="#manifesto" class="text-accent underline">Read the manifesto</a> first — four short points that explain the whole idea. Then pick a guide: the <a href="/code" class="text-accent underline">coding guide</a>, the <a href="/ui" class="text-accent underline">UI guide</a>, or <a href="/board" class="text-accent underline">the skill board</a> for your agent.</p></header>
+HOME_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">ai (愛) means love</h1><p class="text-[17px]">New here? <a href="#manifesto" class="text-accent underline">Read the manifesto</a> first — four short points that explain the whole idea. Then pick a guide: the <a href="/code" class="text-accent underline">coding guide</a>, the <a href="/ui" class="text-accent underline">UI guide</a>, or <a href="/board" class="text-accent underline">the skill board</a> for your agent.</p></header>
 <section id="manifesto" class="mt-10 border-t-0 pt-0 space-y-3">
 <h2 class="font-display text-[22px] mb-3">Manifesto, in your words</h2>
 <ol class="text-left space-y-3.5 list-decimal pl-6">
@@ -231,14 +231,15 @@ curl "https://aimeanslove.fyi/api/skills?track=code&fields=id,prompt"</pre>
 <p class="bg-wash rounded-lg p-2.5 text-sm text-left">Go to https://aimeanslove.fyi/board.json, read every skill, and install each one so you can use them.</p>
 </section>"""
 
-UI_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">UI guide</h1><p class="max-w-[62ch] text-[17px]">Goal: an agent builds a screen in one pass; a human confirms it in one glance. Mobile-first always — 360px first, scale up — unless the task genuinely needs a full monitor. Semantic HTML, tokens not prose, every state visible as text.</p></header>
+UI_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">UI guide</h1><p class="text-[17px]">Goal: an agent builds a screen in one pass; a human confirms it in one glance. Mobile-first always — 360px first, scale up — unless the task genuinely needs a full monitor. Semantic HTML, tokens not prose, every state visible as text.</p></header>
 <section class="grid gap-4 my-6 md:grid-cols-3">
 <div class="border border-solid border-line rounded-[10px] p-[18px] bg-white"><h2 class="font-display text-[22px] mb-3">1 · Structure</h2><ul class="text-left space-y-2 list-disc pl-5">
 <li>Semantic landmarks: <code class="font-mono text-[13px]">&lt;header&gt; &lt;main&gt; &lt;footer&gt;</code>, real <code class="font-mono text-[13px]">&lt;button&gt;</code>/<code class="font-mono text-[13px]">&lt;a&gt;</code>/<code class="font-mono text-[13px]">&lt;input&gt;</code> with visible labels. No div-buttons.</li>
 <li>Icon-only controls welcome — but every control exposes metadata: a real element, a label or <code class="font-mono text-[13px]">aria-label</code>, and a <code class="font-mono text-[13px]">data-action</code>. Humans get the pixels; agents read the metadata.</li>
 <li>Icons come from Lucide — the best set for agents — never hand-written. Write <code class="font-mono text-[13px]">&lt;i data-lucide="name"&gt;</code> plus one <code class="font-mono text-[13px]">lucide.createIcons()</code> call — the agent picks names from the set, nobody draws pixels or pastes SVG paths by hand. Drawing icons burns tokens and time for a worse result: Lucide is already trained into the model, so the agent knows every name, and already familiar to users, so people recognize each icon on sight.</li>
 <li>Tailwind utilities for layout. System font stack.</li>
-<li>Flexbox for page and component layout — one direction at a time, same pattern on every page, so agents learn it once. The shell is a flex column: <code class="font-mono text-[13px]">body.flex.flex-col.min-h-screen</code>, content <code class="font-mono text-[13px]">main.flex-1</code> grows, footer sits last. Short pages get whitespace in the content area, never a floating footer — the footer is always stuck to the bottom.</li></ul></div>
+<li>Flexbox for page and component layout — one direction at a time, same pattern on every page, so agents learn it once. The shell is a flex column: <code class="font-mono text-[13px]">body.flex.flex-col.min-h-screen</code>, content <code class="font-mono text-[13px]">main.flex-1</code> grows, footer sits last. Short pages get whitespace in the content area, never a floating footer — the footer is always stuck to the bottom.</li>
+<li>One content width per page. Every block — intro, cards, sections — spans the same width, so nothing looks narrower than its neighbor. Only break this when the engineer decides it on purpose, for example a form that should stay small on desktop.</li></ul></div>
 <div class="border border-solid border-line rounded-[10px] p-[18px] bg-white"><h2 class="font-display text-[22px] mb-3">2 · Styling tokens + Tailwind</h2><ul class="text-left space-y-2 list-disc pl-5">
 <li>Tailwind utilities for layout and spacing, on top of three color tokens (<code class="font-mono text-[13px]">--ink --paper --accent</code>) and a <code class="font-mono text-[13px]">4/8/16/32</code> scale. Preflight stays on as the consistent baseline — every margin, bullet, and underline is stated explicitly, never inherited from a browser default.</li>
 <li>Two neutrals + one accent. 1px solid lines. Radii: 6px / 10px. Utilities handle the how, tokens handle the what.</li>
@@ -275,7 +276,7 @@ fetch("/api/skill/ui-tokens?fields=prompt")
 fetch("/api/skill/ui-behavior?fields=prompt")</pre>
 </section>"""
 
-CODE_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">Coding guide</h1><p class="max-w-[62ch]">This guide backs you up while you build. Two rules cover nearly everything: <strong>write Python, because agents generate it fastest</strong> — and <strong>lean on guardrail frameworks, because they make whole classes of mistakes unwritable</strong>. Everything below is support, not ceremony.</p></header>
+CODE_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">Coding guide</h1><p>This guide backs you up while you build. Two rules cover nearly everything: <strong>write Python, because agents generate it fastest</strong> — and <strong>lean on guardrail frameworks, because they make whole classes of mistakes unwritable</strong>. Everything below is support, not ceremony.</p></header>
 <section class="grid gap-2 my-4">
 <details class="border border-solid border-line rounded-[10px] p-[18px] bg-white text-left space-y-2" open><summary class="cursor-pointer list-none flex items-center justify-between gap-3 [&::-webkit-details-marker]:hidden"><h2 class="font-display text-[22px] text-left">1 · Python first</h2><span aria-hidden="true" class="open:rotate-180 transition-transform text-accent text-xl leading-none shrink-0">▾</span></summary><ul class="text-left space-y-2 list-disc pl-5">
 <li><strong>AI writes Python best.</strong> AI models have read more Python than any other language, so they make fewer mistakes in it. Python also uses few special symbols, so the same idea costs fewer tokens.</li>
@@ -318,14 +319,14 @@ BOARD_CARDS = "".join(
     for s in SKILLS
 )
 
-BOARD_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">Skill board</h1><p class="max-w-[62ch]">Why skills? Every project re-decides the same things — language, validation, layout, proof — and each decision costs tokens every time it is remade. A skill decides once: fetch it, install it, and every session after starts from the answer instead of the question. These fourteen are the full loop: the Python and mobile frameworks that set the foundation, token efficiency and security that keep builds cheap and safe, UI rules that keep human screens legible to agents, and tests plus visual checks as the only verdicts that matter.</p>
+BOARD_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">Skill board</h1><p>Why skills? Every project re-decides the same things — language, validation, layout, proof — and each decision costs tokens every time it is remade. A skill decides once: fetch it, install it, and every session after starts from the answer instead of the question. These fourteen are the full loop: the Python and mobile frameworks that set the foundation, token efficiency and security that keep builds cheap and safe, UI rules that keep human screens legible to agents, and tests plus visual checks as the only verdicts that matter.</p>
 <p>Copy a prompt into any agent session. The token badge on each card is from a test we ran on ourselves — our own payloads, counted — and the whole bank is about 2.5k tokens.</p></header>
 <section class="grid gap-3">""" + BOARD_CARDS + "</section>"""
 
 MISSING_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">Nothing here.</h1><p><a href="/" class="text-accent underline">Back home</a> · <a href="/board" class="text-accent underline">Board</a></p></header>"""
 
 ABOUT_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">About me</h1>
-<p class="max-w-[62ch]">Hi, I'm Thao. I live in Southeast Asia and I build things for the web.</p></header>
+<p>Hi, I'm Thao. I live in Southeast Asia and I build things for the web.</p></header>
 <section class="mt-4 bg-white border border-solid border-line rounded-[10px] p-[18px] space-y-3">
 <p class="m-0">I started ai (&#24859;) means love for one simple reason: the old way of writing code was for humans to read. Now agents write most of the code, so code should be easy for agents to read instead. Humans only need to judge two things — do the tests pass, and does it look right.</p>
 <p class="m-0">Everything here is free and open. If a skill saves your agent tokens, use it. If something breaks or you have an idea, reach me through the <a href="/#contact" data-open-contact class="text-accent underline">contact us</a> button — I read every message.</p>
