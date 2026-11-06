@@ -79,6 +79,11 @@ try:
     status, _, body = get("/api/skills?fields=id,why")
     bank = json.loads(body)["skills"]
     assert len(bank) == 25 and all(s.get("why") for s in bank), "every skill explains why"
+    status, _, body = get("/api/skills?fields=id,prompt")
+    for s in json.loads(body)["skills"]:
+        local = ROOT / ".agents" / "skills" / s["id"] / "SKILL.md"
+        assert local.exists(), f"bank skill {s['id']} installed locally"
+        assert s["prompt"] in local.read_text(encoding="utf-8"), f"local {s['id']} matches bank"
     status, _, body = get("/api/skill/code-index?fields=prompt")
     index_map = json.loads(body)["skill"]["prompt"]
     assert all(s["id"] in index_map for s in bank if s["id"] != "code-index"), "index maps every skill"
