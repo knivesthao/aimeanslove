@@ -112,6 +112,30 @@ try:
     assert "OWASP" in area_maps["sec-index"], "sec index points at OWASP deep-dives"
     status, _, body = get("/api/skill/sec-waf?fields=prompt")
     assert "code-injection" in json.loads(body)["skill"]["prompt"], "WAF rules reference injection payloads"
+    status, _, body = get("/api/skills?fields=id,prompt")
+    bank_ids = [s["id"] for s in json.loads(body)["skills"]]
+    prompts = {s["id"]: s["prompt"] for s in json.loads(body)["skills"]}
+    index_ids = {"code-index", "ui-index", "saas-index", "data-index", "ops-index", "sec-index"}
+    refs = {i: [j for j in bank_ids if j != i and re.search(r"(?<![a-z0-9-])" + re.escape(j) + r"(?![a-z0-9-])", prompts[i])] for i in bank_ids}
+    for k, v in refs.items():
+        if k not in index_ids:
+            assert not (set(v) & index_ids), f"{k} points back at an index — references flow downward only"
+    color = {}
+    def visit(u, stack):
+        color[u] = 1
+        stack.append(u)
+        for w in refs[u]:
+            if w in index_ids:
+                continue
+            if color.get(w) == 1:
+                raise AssertionError("reference loop: " + " -> ".join(stack + [w]))
+            if w not in color:
+                visit(w, stack)
+        stack.pop()
+        color[u] = 2
+    for i in bank_ids:
+        if i not in color and i not in index_ids:
+            visit(i, [])
     status, _, body = get("/")
     assert status == 200 and 'id="menubtn"' in body.decode(), "mobile hamburger present"
     status, _, _ = get("/skills.json")
