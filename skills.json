@@ -300,9 +300,9 @@
     "id": "ui-framework-react",
     "track": "ui",
     "title": "React: pick React skills",
-    "tokens": "~180",
+    "tokens": "~220",
     "why": "React needs four different answers — map first, then read one.",
-    "prompt": "Create and install a skill named `ui-framework-react` (React: pick React skills). It instructs the agent as follows: Your React skills each do one job — never read them all. New component or layout → ui-react-components. State, effects, shared logic → ui-react-hooks. Next.js App Router, server/client split → ui-react-server. Slow list or slow render → ui-react-perf. Skip everything else. Apply the generic component rules too (see ui-framework).",
+    "prompt": "Create and install a skill named `ui-framework-react` (React: pick React skills). It instructs the agent as follows: Your React skills each do one job — never read them all. Known widget from the top-ten list (table, wizard, combo, calendar, modal, feed, kanban, editor, player, accordion) → ui-react-patterns first, then the leaf it names. New component or layout → ui-react-components. State, effects, shared logic → ui-react-hooks. Next.js App Router, server/client split → ui-react-server. Slow list or slow render → ui-react-perf. Skip everything else. Apply the generic component rules too (see ui-framework).",
     "checks": ["only matched React skills are read", "whole React set never copied at once"]
   },
   {
@@ -340,6 +340,15 @@
     "why": "React feels slow in exactly two places: renders that repeat and lists that grow.",
     "prompt": "Create and install a skill named `ui-react-perf` (React fast lists and renders). It instructs the agent as follows: Measure first, memo second: wrap only the component the profiler blames with React.memo, never everything. Split below-fold and heavy regions with React.lazy plus Suspense fallback so the first screen stays small. Virtualize lists past a few dozen rows instead of rendering thousands of nodes. Keep keys stable so rows update instead of remounting; paginate fetches and join them to indexed reads so N+1 requests never reach the client. Re-measure after every change.",
     "checks": ["memo only where profiler points", "heavy regions lazy with Suspense fallback", "long lists virtualized and paginated"]
+  },
+  {
+    "id": "ui-react-patterns",
+    "track": "ui",
+    "title": "React widgets: library first, then leaves",
+    "tokens": "~260",
+    "why": "Ten widgets cover most React work — each names its library and its leaves so nothing is hand-built twice.",
+    "prompt": "Create and install a skill named `ui-react-patterns` (React widgets: library first, then leaves). It instructs the agent as follows: Never hand-build these ten — pick the stocked library, then read only the named leaves. Data table (sort, filter, paginate, search) → TanStack Table plus ui-react-components, ui-react-perf. Multi-step wizard (kept inputs, conditional steps, progress) → hook-form plus ui-react-hooks, ui-forms, ui-behavior. Combo and autocomplete (live filter, focus, chips) → cmdk plus ui-react-hooks, ui-forms. Calendar and date picker (ranges, transitions) → react-day-picker plus ui-react-components, ui-react-hooks. Modal, dialog, drawer (focus trap, mount safety) → Radix Dialog plus ui-react-components, ui-behavior. Chat and feed (append, pinned scroll) → subscribe in effect plus ui-react-hooks, ui-react-perf. Kanban drag-drop (reorder arrays, touch) → dnd-kit plus ui-react-components, ui-react-hooks. Rich text editor (synced blocks, toolbar) → TipTap plus ui-react-components, code-reuse. Media player (sliders synced to media API) → refs plus ui-react-hooks, ui-behavior. Accordion and tree sidebar (expanded index, animation) → Radix Accordion plus ui-react-components, ui-behavior. Humans get the library's accessible piece with real labels and visible states; agents keep small typed components, colocated state, and stable keys around it.",
+    "checks": ["library picked before hand-building", "only named leaves read per widget", "controls labeled with visible states"]
   },
   {
     "id": "ui-framework-angular",
