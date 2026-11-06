@@ -291,9 +291,9 @@
     "id": "ui-index",
     "track": "ui",
     "title": "Interface work: pick interface skills",
-    "tokens": "~220",
+    "tokens": "~230",
     "why": "One small map per area beats one giant map for everything.",
-    "prompt": "Create and install a skill named `ui-index` (Interface work: pick interface skills). It instructs the agent as follows: Your interface skills each do one job — never read them all. New screen or page → ui-shell, ui-tokens, ui-seo. New interactive piece (typing, dragging, live numbers) → ui-framework as well. React → ui-framework-react (index, then one leaf) as well. Angular → ui-framework-angular as well. Mobile app build → ui-mobile. Form inputs, dropdowns, menus → ui-forms. Page behavior and states → ui-behavior. Headers and navigation → ui-nav. Skip everything else. New codebase only: the house stack wins (see the bank map).",
+    "prompt": "Create and install a skill named `ui-index` (Interface work: pick interface skills). It instructs the agent as follows: Your interface skills each do one job — never read them all. New screen or page → ui-shell, ui-tokens, ui-seo. New interactive piece (typing, dragging, live numbers) → ui-framework as well. React → ui-framework-react (index, then one leaf) as well. Angular → ui-framework-angular as well. Vue or Nuxt → ui-framework-vue as well. Mobile app build → ui-mobile. Form inputs, dropdowns, menus → ui-forms. Page behavior and states → ui-behavior. Headers and navigation → ui-nav. Skip everything else. New codebase only: the house stack wins (see the bank map).",
     "checks": ["only matched skills are read", "whole area never copied at once"]
   },
   {
@@ -349,6 +349,15 @@
     "why": "Each widget pins the one shape agents get wrong — everything the model already knows is left out.",
     "prompt": "Create and install a skill named `ui-react-patterns` (React widgets: library first, pinned shape). It instructs the agent as follows: Never hand-build these ten — pick the stocked library, build the pinned shape, and read only the named leaves. Data table → TanStack Table plus ui-react-components, ui-react-perf: page on the server where one exists, otherwise paginate client-side; render only the visible window. Multi-step wizard → hook-form plus ui-react-hooks, ui-forms, ui-behavior: one state object at the wizard root, validate each step on exit. Combo and autocomplete → cmdk plus ui-react-hooks, ui-forms: debounce typing, abort the stale fetch. Calendar and date picker → react-day-picker plus ui-react-components, ui-react-hooks: derive highlights from two boundary dates, never per-cell state. Modal, dialog, drawer → Radix Dialog plus ui-react-components, ui-behavior: trap focus inside, return it on close, unmount when shut. Chat and feed → subscribe in effect plus ui-react-hooks, ui-react-perf: append with functional updates, pin scroll with a ref, unsubscribe on unmount. Kanban drag-drop → dnd-kit plus ui-react-components, ui-react-hooks: columns hold card-id arrays, reorder by index splice, never mutate in place. Rich text editor → TipTap plus ui-react-components, code-reuse: leave the editor uncontrolled, sync content on change only, never mirror keystrokes in React state. Media player → refs plus ui-react-hooks, ui-behavior: drive sliders through refs, never setState per frame. Accordion and tree sidebar → Radix Accordion plus ui-react-components, ui-behavior: one expanded id in state, never a boolean per item. Humans get the library's accessible piece with real labels and visible states.",
     "checks": ["library picked before hand-building", "widget built in the pinned shape", "only named leaves read per widget", "controls labeled with visible states"]
+  },
+  {
+    "id": "ui-framework-vue",
+    "track": "ui",
+    "title": "Vue and Nuxt: explicit over magic",
+    "tokens": "~240",
+    "why": "Vue rewards magic that hides state from readers — this skill pins the explicit subset agents parse cheaply.",
+    "prompt": "Create and install a skill named `ui-framework-vue` (Vue and Nuxt: explicit over magic). It instructs the agent as follows: Standalone Vue (Vite, no Nuxt)? Build client-only and skip every Nuxt clause below. Write Composition API in script setup with typed props and emits; prefer explicit computed and watch over deep reactivity magic. Pull shared logic into composables with plain names (useCart, useFetch) so the next agent finds it. Nuxt only: fetch on the server by default with useAsyncData or useFetch, server/api routes own the backend, static regions stay server-rendered islands where the setup allows, browser-only pieces sit inside ClientOnly. Keep ready-made accessible pieces from a stocked library instead of hand-built dropdowns and dialogs. Humans get labeled controls with visible states; agents get explicit typed code with no hidden magic.",
+    "checks": ["standalone Vue skips Nuxt clauses", "composables named for findability", "no hand-built copy of stocked pieces", "controls labeled with visible states"]
   },
   {
     "id": "ui-framework-angular",
