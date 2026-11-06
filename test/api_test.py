@@ -78,7 +78,7 @@ try:
     assert os.path.exists(USAGE_FILE), "counts persisted"
     status, _, body = get("/api/skills?fields=id,why")
     bank = json.loads(body)["skills"]
-    assert len(bank) == 90 and all(s.get("why") for s in bank), "every skill explains why"
+    assert len(bank) == 91 and all(s.get("why") for s in bank), "every skill explains why"
     status, _, body = get("/api/skills?fields=id,prompt")
     for s in json.loads(body)["skills"]:
         local = ROOT / ".agents" / "skills" / s["id"] / "SKILL.md"
@@ -197,9 +197,9 @@ try:
     assert "code-index" in html and "progressive disclosure" in html, "index skill maps tasks to skills"
     assert "code-ssrf" in html and "code-crypto" in html, "OWASP set renders on page"
     assert all(g in html for g in ("Start here", "Always on", "Security deep-dives", "Verify", "Run well")), "skills page groups skills"
-    assert html.count("data-copy-skill=") == 90, "every skill renders exactly once"
+    assert html.count("data-copy-skill=") == 91, "every skill renders exactly once"
     assert "data-copy-skill" in html, "page has copy buttons"
-    assert html.count("data-trim=") == 90, "every card trimmable"
+    assert html.count("data-trim=") == 91, "every card trimmable"
     assert "data-pack" in html and "copy install pack" in html, "trim pack builder present"
     assert "install only what matches" in html, "page pitches install-matched, not the playbook"
     assert 'id="q"' not in html and "data-track" not in html, "no filter machinery"
@@ -290,6 +290,7 @@ try:
     assert status == 200 and "exactly once" in body.decode(), "data guide teaches idempotent landing"
     assert "dead-letter" in body.decode(), "data guide names the poison path"
     assert "verdict layer" in body.decode(), "data guide frames old way versus new way"
+    assert "adult in the room" in body.decode(), "data guide keeps the database as arbiter"
     assert "ui-charts" in ui_map, "area index routes charts"
     assert "data-model" in area_maps["data-index"], "area index routes data representation"
     status, _, body = get("/api/skill/data-model?fields=prompt")
