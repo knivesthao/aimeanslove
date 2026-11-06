@@ -5,7 +5,7 @@
     "title": "Start here: task first, stack second",
     "tokens": "~540",
     "why": "One tiny map keeps every other skill small: the agent reads hundreds of tokens, not thousands.",
-    "prompt": "Create and install a skill named `code-index` (Start here: pick skills by task). It instructs the agent as follows: Your installed skills each do one job — never read them all. Work in two passes. Pass 1 — task first. Three skills apply to almost every task, so always read these: code-secure, code-reuse, code-token. Then match the task and read only the matched skills: Interface, screen, or component work → ui-index. New service or script → code-language, code-shape. Organizing a new codebase → code-group. Services in other languages → code-boundaries. Public API, forms, beacons → code-ratelimit. Repeat traffic → code-cache. Usage counts → code-track. Slow endpoint or heavy page → code-perf. Traffic spikes, shedding features → code-fallback. Login, accounts, permissions → code-auth. Security deep-dives, read on match: code-crypto, code-injection, code-design, code-misconfig, code-deps, code-integrity, code-logging, code-ssrf. Pass 2 — stack specifics. After the task match, apply the stack the codebase already uses: language → code-language (Python first on new code; if the project already uses another language, skip this skill or overwrite it with that stack). Interface framework → ui-index (house default Lit via ui-framework; React → ui-framework-react index; Angular → ui-framework-angular). Styling → ui-tokens (unless the project already has a design system — then skip it). Mobile platform → ui-mobile (Capacitor shell unless native is technically required). Service-to-service → code-boundaries (same-language HTTP, other languages gRPC, events validated). These stack picks assume a new codebase: if the project already uses something else — another language, framework, tokens, or platform — follow that instead. The house rule beats the skill. Skip everything else. When building is done → verify-tests, and verify-visual for anything with a screen. Long or multi-skill task → code-plan first. Missing a skill? Copy its prompt from the skills page once, install it, then use it locally. This follows progressive disclosure — map first, details on demand.",
+    "prompt": "Create and install a skill named `code-index` (Start here: pick skills by task). It instructs the agent as follows: Your installed skills each do one job — never read them all. Work in two passes. Pass 1 — task first. Three skills apply to almost every task, so always read these: code-secure, code-reuse, code-token. Then match the task and read only the matched skills: Interface, screen, or component work → ui-index. New service or script → code-language, code-shape. Organizing a new codebase → code-group. Services in other languages → code-boundaries. Public API, forms, beacons → code-ratelimit. Repeat traffic → code-cache. Usage counts → code-track. Slow endpoint or heavy page → code-perf. Traffic spikes, shedding features → code-fallback. Login, accounts, permissions → code-auth. Security deep-dives, read on match: code-crypto, code-injection, code-design, code-misconfig, code-deps, code-integrity, code-logging, code-ssrf. Pass 2 — stack specifics. After the task match, apply the stack the codebase already uses: language → code-language (Python first on new code; if the project already uses another language, skip this skill or overwrite it with that stack). Interface framework → ui-index (house default Lit via ui-framework; widget libraries per framework live in ui-platform-picks). Styling → ui-tokens (unless the project already has a design system — then skip it). Mobile platform → ui-mobile (Capacitor shell unless native is technically required). Service-to-service → code-boundaries (same-language HTTP, other languages gRPC, events validated). These stack picks assume a new codebase: if the project already uses something else — another language, framework, tokens, or platform — follow that instead. The house rule beats the skill. Skip everything else. When building is done → verify-tests, and verify-visual for anything with a screen. Long or multi-skill task → code-plan first. Missing a skill? Copy its prompt from the skills page once, install it, then use it locally. This follows progressive disclosure — map first, details on demand.",
     "checks": ["only matched skills are read", "always-on skills never skipped", "whole bank never copied at once"]
   },
   {
@@ -293,80 +293,26 @@
     "title": "Interface work: pick interface skills",
     "tokens": "~230",
     "why": "One small map per area beats one giant map for everything.",
-    "prompt": "Create and install a skill named `ui-index` (Interface work: pick interface skills). It instructs the agent as follows: Your interface skills each do one job — never read them all. New screen or page → ui-shell, ui-tokens, ui-seo. New interactive piece (typing, dragging, live numbers) → ui-framework as well. React → ui-framework-react (index, then one leaf) as well. Angular → ui-framework-angular as well. Vue or Nuxt → ui-framework-vue as well. Mobile app build → ui-mobile. Form inputs, dropdowns, menus → ui-forms. Page behavior and states → ui-behavior. Headers and navigation → ui-nav. Skip everything else. New codebase only: the house stack wins (see the bank map).",
+    "prompt": "Create and install a skill named `ui-index` (Interface work: pick interface skills). It instructs the agent as follows: Your interface skills each do one job — never read them all. New screen or page → ui-shell, ui-tokens, ui-seo. New interactive piece (typing, dragging, live numbers) → ui-framework as well. Known widget (table, wizard, combo, calendar, modal, feed, kanban, editor, player, accordion) → ui-widgets, plus ui-platform-picks for library names and setup gates. Mobile app build → ui-mobile. Form inputs, dropdowns, menus → ui-forms. Page behavior and states → ui-behavior. Headers and navigation → ui-nav. Skip everything else. New codebase only: the house stack wins (see the bank map).",
     "checks": ["only matched skills are read", "whole area never copied at once"]
   },
   {
-    "id": "ui-framework-react",
+    "id": "ui-widgets",
     "track": "ui",
-    "title": "React: pick React skills",
-    "tokens": "~220",
-    "why": "React needs four different answers — map first, then read one.",
-    "prompt": "Create and install a skill named `ui-framework-react` (React: pick React skills). It instructs the agent as follows: Your React skills each do one job — never read them all. Known widget from the top-ten list (table, wizard, combo, calendar, modal, feed, kanban, editor, player, accordion) → ui-react-patterns first, then the leaf it names. New component or layout → ui-react-components. State, effects, shared logic → ui-react-hooks. Next.js App Router → ui-react-server (standalone React skips it). Slow list or slow render → ui-react-perf. Skip everything else. Apply the generic component rules too (see ui-framework).",
-    "checks": ["only matched React skills are read", "whole React set never copied at once"]
-  },
-  {
-    "id": "ui-react-components",
-    "track": "ui",
-    "title": "React components that stay small",
-    "tokens": "~120",
-    "why": "Two concrete thresholds — drill depth and lift distance — that stop prop soup.",
-    "prompt": "Create and install a skill named `ui-react-components` (React components that stay small). It instructs the agent as follows: Build small components with typed props; compose with children and slots instead of drilling props past two layers. State lives with the UI that uses it; lift only what two siblings truly share.",
-    "checks": ["props drilled at most two layers deep", "shared state lifted, the rest colocated"]
-  },
-  {
-    "id": "ui-react-hooks",
-    "track": "ui",
-    "title": "React hooks without tangles",
-    "tokens": "~140",
-    "why": "Effects with cleanup, memo only on proof, and custom hooks named so the next agent finds them.",
-    "prompt": "Create and install a skill named `ui-react-hooks` (React hooks without tangles). It instructs the agent as follows: Keep effects small and few: fetch or subscribe in the effect, clean up in its return. Reach for useMemo and useCallback only after a measured slowdown, not by default. Pull repeated state plus effects into one custom hook with a plain name (useCart, useFetch) so the next agent finds it.",
-    "checks": ["effects small with cleanup", "shared logic in named custom hooks", "no memo by default, measure first"]
-  },
-  {
-    "id": "ui-react-server",
-    "track": "ui",
-    "title": "React server-first with Next.js",
-    "tokens": "~210",
-    "why": "Server components move fetching off the phone — one directive decides where code runs.",
-    "prompt": "Create and install a skill named `ui-react-server` (React server-first with Next.js). It instructs the agent as follows: Standalone React (Vite, CRA, no App Router)? Stop — skip this skill and read ui-react-components plus ui-react-hooks instead. Next.js App Router only: fetch and render on the server by default — async server components own the data, props carry only serializable results to the client. Mark only interactive files with 'use client' — typing, dragging, live state — and keep server secrets out of them. Give each route loading.tsx and error.tsx so waiting and failure are designed states, not blank screens.",
-    "checks": ["standalone setups skip this skill", "data fetched on the server where allowed", "'use client' only where interactive", "loading and error states designed"]
-  },
-  {
-    "id": "ui-react-perf",
-    "track": "ui",
-    "title": "React fast lists and renders",
-    "tokens": "~120",
-    "why": "Two thresholds — memo only the blamed component, virtualize past a few dozen rows.",
-    "prompt": "Create and install a skill named `ui-react-perf` (React fast lists and renders). It instructs the agent as follows: Wrap only the component the profiler blames with React.memo, never everything. Split below-fold and heavy regions with React.lazy plus Suspense fallback. Virtualize lists past a few dozen rows. Paginate fetches so N+1 requests never reach the client.",
-    "checks": ["memo only where profiler points", "heavy regions lazy with Suspense fallback", "long lists virtualized and paginated"]
-  },
-  {
-    "id": "ui-react-patterns",
-    "track": "ui",
-    "title": "React widgets: library first, pinned shape",
-    "tokens": "~410",
-    "why": "Each widget pins the one shape agents get wrong — everything the model already knows is left out.",
-    "prompt": "Create and install a skill named `ui-react-patterns` (React widgets: library first, pinned shape). It instructs the agent as follows: Never hand-build these ten — pick the stocked library, build the pinned shape, and read only the named leaves. Data table → TanStack Table plus ui-react-components, ui-react-perf: page on the server where one exists, otherwise paginate client-side; render only the visible window. Multi-step wizard → hook-form plus ui-react-hooks, ui-forms, ui-behavior: one state object at the wizard root, validate each step on exit. Combo and autocomplete → cmdk plus ui-react-hooks, ui-forms: debounce typing, abort the stale fetch. Calendar and date picker → react-day-picker plus ui-react-components, ui-react-hooks: derive highlights from two boundary dates, never per-cell state. Modal, dialog, drawer → Radix Dialog plus ui-react-components, ui-behavior: trap focus inside, return it on close, unmount when shut. Chat and feed → subscribe in effect plus ui-react-hooks, ui-react-perf: append with functional updates, pin scroll with a ref, unsubscribe on unmount. Kanban drag-drop → dnd-kit plus ui-react-components, ui-react-hooks: columns hold card-id arrays, reorder by index splice, never mutate in place. Rich text editor → TipTap plus ui-react-components, code-reuse: leave the editor uncontrolled, sync content on change only, never mirror keystrokes in React state. Media player → refs plus ui-react-hooks, ui-behavior: drive sliders through refs, never setState per frame. Accordion and tree sidebar → Radix Accordion plus ui-react-components, ui-behavior: one expanded id in state, never a boolean per item. Humans get the library's accessible piece with real labels and visible states.",
+    "title": "Common widgets: library first, pinned shape",
+    "tokens": "~380",
+    "why": "Ten widgets cover most interface work in any framework — each pins the shape agents get wrong.",
+    "prompt": "Create and install a skill named `ui-widgets` (Common widgets: library first, pinned shape). It instructs the agent as follows: Never hand-build these ten — pick your ecosystem's stocked library (names per framework live in ui-platform-picks), build the pinned shape, and read only the named leaves. Data table → code-perf, code-reuse: page on the server where one exists, otherwise paginate client-side; render only the visible window. Multi-step wizard → ui-forms, ui-behavior: one state object at the wizard root, validate each step on exit. Combo and autocomplete → ui-forms, ui-behavior: debounce typing, abort the stale fetch. Calendar and date picker → ui-behavior, code-reuse: derive highlights from two boundary dates, never per-cell state. Modal, dialog, drawer → ui-behavior, code-reuse: trap focus inside, return it on close, unmount when shut. Chat and feed → code-perf, code-reuse: append-only updates, pin scroll to the newest message, unsubscribe on unmount. Kanban drag-drop → code-reuse, ui-behavior: columns hold card-id arrays, reorder by index splice, never mutate in place. Rich text editor → code-reuse: leave the editor uncontrolled, sync content on change only, never mirror keystrokes in component state. Media player → ui-behavior, code-reuse: drive sliders through a direct element handle, never rerender per frame. Accordion and tree sidebar → ui-behavior, ui-nav: one expanded id in state, never a boolean per item. Humans get the library's accessible piece with real labels and visible states; agents keep small typed pieces, colocated state, and stable keys around it.",
     "checks": ["library picked before hand-building", "widget built in the pinned shape", "only named leaves read per widget", "controls labeled with visible states"]
   },
   {
-    "id": "ui-framework-vue",
+    "id": "ui-platform-picks",
     "track": "ui",
-    "title": "Vue and Nuxt: explicit over magic",
-    "tokens": "~240",
-    "why": "Vue rewards magic that hides state from readers — this skill pins the explicit subset agents parse cheaply.",
-    "prompt": "Create and install a skill named `ui-framework-vue` (Vue and Nuxt: explicit over magic). It instructs the agent as follows: Standalone Vue (Vite, no Nuxt)? Build client-only and skip every Nuxt clause below. Write Composition API in script setup with typed props and emits; prefer explicit computed and watch over deep reactivity magic. Pull shared logic into composables with plain names (useCart, useFetch) so the next agent finds it. Nuxt only: fetch on the server by default with useAsyncData or useFetch, server/api routes own the backend, static regions stay server-rendered islands where the setup allows, browser-only pieces sit inside ClientOnly. Keep ready-made accessible pieces from a stocked library instead of hand-built dropdowns and dialogs. Humans get labeled controls with visible states; agents get explicit typed code with no hidden magic.",
-    "checks": ["standalone Vue skips Nuxt clauses", "composables named for findability", "no hand-built copy of stocked pieces", "controls labeled with visible states"]
-  },
-  {
-    "id": "ui-framework-angular",
-    "track": "ui",
-    "title": "Angular: standalone and deferred",
-    "tokens": "~220",
-    "why": "Angular ships islands natively — @defer decides what loads when, so the initial bundle stays small.",
-    "prompt": "Create and install a skill named `ui-framework-angular` (Angular: standalone and deferred). It instructs the agent as follows: Build standalone components — no NgModules for new code — with signals for state and @if/@for in templates. Wrap below-fold and heavy regions in @defer with placeholder, loading, and error blocks and a viewport or interaction trigger: deferred code splits into its own file and loads only when needed. Use reactive forms, Angular Material or CDK for ready-made pieces, and SSR with hydration where the setup allows. Apply the generic component rules too (see ui-framework).",
-    "checks": ["standalone components, signals for state", "heavy regions deferred with fallback blocks", "ready-made pieces over hand-built"]
+    "title": "Framework library names and setup gates",
+    "tokens": "~300",
+    "why": "The right library name per framework stops hand-building; the gate stops server patterns in client-only apps.",
+    "prompt": "Create and install a skill named `ui-platform-picks` (Framework library names and setup gates). It instructs the agent as follows: Read this only to resolve a library name or a setup gate, then go back to the task skill. Stocked picks per widget — table, kanban, editor, combo, calendar, dialog, accordion, wizard forms: React → TanStack Table, dnd-kit, TipTap, cmdk, react-day-picker, Radix, Radix, React Hook Form; Vue → TanStack Vue, Vue Draggable, TipTap, Headless UI Combobox, VueDatePicker, Reka, Reka, FormKit; Angular → Material table, CDK drag-drop, TipTap, Material autocomplete, Material datepicker, Material dialog, Material tree, Reactive Forms. Feeds and players need no library: subscribe and unsubscribe cleanly, drive the native media API. Setup gates — React: Next.js App Router allows server components behind a use-client boundary; standalone Vite or CRA is client-only, skip every server clause. Vue: Nuxt fetches on the server with useAsyncData and server/api routes; standalone Vite is client-only, skip every Nuxt clause. Angular: standalone components with signals, defer heavy regions, SSR only where the setup allows. New codebase with no framework yet: the house default wins (see ui-framework).",
+    "checks": ["names resolved here, nowhere else", "standalone setups skip server clauses", "new codebases defer to the house default"]
   },
   {
     "id": "code-plan",
