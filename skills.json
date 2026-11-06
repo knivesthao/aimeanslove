@@ -3,9 +3,9 @@
     "id": "code-index",
     "track": "code",
     "title": "Start here: pick skills by task",
-    "tokens": "~330",
+    "tokens": "~380",
     "why": "One tiny map keeps every other skill small: the agent reads hundreds of tokens, not thousands.",
-    "prompt": "Create and install a skill named `code-index` (Start here: pick skills by task). It instructs the agent as follows: Your installed skills each do one job — never read them all. Three skills apply to almost every task, so always read these: code-secure, code-reuse, code-token. Then match the task and read only the matched skills: new screen or page → ui-shell, ui-tokens. New interactive piece (typing, dragging, live numbers) → ui-lit as well. Mobile app build → ui-mobile. New service or script → code-python, code-shape. Services in other languages → code-boundaries. Login, accounts, permissions → code-auth. Page behavior and states → ui-behavior. Headers and navigation → ui-nav. Skip everything else. When building is done → verify-tests, and verify-visual for anything with a screen. Missing a skill? Copy its prompt from the board once, install it, then use it locally. This follows progressive disclosure, the Agent Skills model — map first, details on demand: https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills",
+    "prompt": "Create and install a skill named `code-index` (Start here: pick skills by task). It instructs the agent as follows: Your installed skills each do one job — never read them all. Three skills apply to almost every task, so always read these: code-secure, code-reuse, code-token. Then match the task and read only the matched skills: new screen or page → ui-shell, ui-tokens. New interactive piece (typing, dragging, live numbers) → ui-lit as well. Mobile app build → ui-mobile. New service or script → code-python, code-shape. Services in other languages → code-boundaries. Login, accounts, permissions → code-auth. Security deep-dives, read on match: code-crypto, code-injection, code-design, code-misconfig, code-deps, code-integrity, code-logging, code-ssrf. Page behavior and states → ui-behavior. Headers and navigation → ui-nav. Skip everything else. When building is done → verify-tests, and verify-visual for anything with a screen. Missing a skill? Copy its prompt from the board once, install it, then use it locally. This follows progressive disclosure, the Agent Skills model — map first, details on demand: https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills",
     "checks": ["only matched skills are read", "always-on skills never skipped", "whole bank never copied at once"]
   },
   {
@@ -52,6 +52,78 @@
     "why": "Authentication is the most-broken OWASP category; one shared login path removes the whole class.",
     "prompt": "Create and install a skill named `code-auth` (Login and permissions). It instructs the agent as follows: Logins use signed cookies (built into Starlette — one secret key, no extra package). Sign in with Google uses authlib. Services talking to each other use JWTs via pyjwt. Passwords are checked with bcrypt via passlib — never write your own password check, because a wrong one fails silently and an agent will not notice. For every action, check the permission at the boundary and default to deny: never trust a role or user id sent by the client, always re-check it on the server.",
     "checks": ["sessions are signed cookies", "passwords via bcrypt only", "permission checked per action, default deny"]
+  },
+  {
+    "id": "code-crypto",
+    "track": "code",
+    "title": "No homegrown crypto",
+    "tokens": "~180",
+    "why": "Homegrown crypto fails silently; platform crypto fails loudly and rarely.",
+    "prompt": "Create and install a skill named `code-crypto` (No homegrown crypto). It instructs the agent as follows: Use vetted crypto only: TLS for data in motion, platform encryption (KMS, age, or libsodium) for data at rest — never a hand-rolled cipher. Secrets live in environment variables, never in code or logs. Passwords are hashed, not encrypted (see code-auth); API tokens are random, scoped, and expire.",
+    "checks": ["no hand-rolled ciphers", "no secret in code or logs", "tokens expire and are scoped"]
+  },
+  {
+    "id": "code-injection",
+    "track": "code",
+    "title": "Input stays data",
+    "tokens": "~160",
+    "why": "Injection is input treated as instructions; parameters keep input as data.",
+    "prompt": "Create and install a skill named `code-injection` (Input stays data). It instructs the agent as follows: Never build queries, commands, or markup by gluing strings around user input. Database reads go through the ORM (SQLModel parameterizes everything). Templates auto-escape HTML — never mark user content safe. OS commands, LDAP, and XPath get the same rule: parameters, never concatenation.",
+    "checks": ["no string-built queries or commands", "user HTML never marked safe", "ORM or parameters everywhere"]
+  },
+  {
+    "id": "code-design",
+    "track": "code",
+    "title": "Abuse story first",
+    "tokens": "~160",
+    "why": "Missing controls can't be patched in later without redesigning the feature.",
+    "prompt": "Create and install a skill named `code-design` (Abuse story first). It instructs the agent as follows: For each feature, ask how it is abused before asking how it is used: who pays for heavy use, who is hurt by bad input. Default to deny, grant least privilege, rate-limit costly endpoints, and cap upload and response sizes. A feature without an abuse story is not designed yet.",
+    "checks": ["abuse story per feature", "default deny", "costly endpoints rate-limited"]
+  },
+  {
+    "id": "code-misconfig",
+    "track": "code",
+    "title": "Safe settings shipped",
+    "tokens": "~160",
+    "why": "Most breaches walk through doors the defaults left open.",
+    "prompt": "Create and install a skill named `code-misconfig` (Safe settings shipped). It instructs the agent as follows: Ship with the safe settings on: debug and trace off in production, generic error pages that leak nothing, strict transport security and a content security policy, CORS allowlists instead of wildcards, and no default passwords or open admin pages. Review headers and flags on every deploy, not once.",
+    "checks": ["debug off in production", "security headers set", "no defaults or wildcards"]
+  },
+  {
+    "id": "code-deps",
+    "track": "code",
+    "title": "Dependencies audited",
+    "tokens": "~150",
+    "why": "Your code inherits every vulnerability in every library it imports.",
+    "prompt": "Create and install a skill named `code-deps` (Dependencies audited). It instructs the agent as follows: Pin every dependency (requirements with versions), audit on a schedule (pip audit or equal), and update promptly when a fix lands. Fewer dependencies means fewer advisories: drop what the stack already covers. Never vendor a copy you will forget to patch.",
+    "checks": ["deps pinned with versions", "audit runs on schedule", "unused deps removed"]
+  },
+  {
+    "id": "code-integrity",
+    "track": "code",
+    "title": "Verify before trust",
+    "tokens": "~160",
+    "why": "A build that can't prove what it contains can't prove what it ships.",
+    "prompt": "Create and install a skill named `code-integrity` (Verify before trust). It instructs the agent as follows: Trust nothing you didn't verify: lockfiles pin the whole tree, webhook handlers check signatures before acting, CI runs tests before deploys, and installs come from registries — never pipe a URL to a shell. If bytes changed without a commit, stop and ask.",
+    "checks": ["lockfiles committed", "webhook signatures verified", "no curl-to-shell installs"]
+  },
+  {
+    "id": "code-logging",
+    "track": "code",
+    "title": "Logs that catch break-ins",
+    "tokens": "~170",
+    "why": "You can't respond to an attack you never recorded or never noticed.",
+    "prompt": "Create and install a skill named `code-logging` (Logs that catch break-ins). It instructs the agent as follows: Log the events that catch break-ins: failed logins, validation failures, permission denials, and spikes in costly endpoints. Keep logs structured (who, what, when) and secret-free — logs get copied and shared. Watch them with an alert, not just storage: an unread log is decoration.",
+    "checks": ["auth and deny events logged", "no secrets in logs", "alerts on spikes, not just storage"]
+  },
+  {
+    "id": "code-ssrf",
+    "track": "code",
+    "title": "Server fetches allowlisted",
+    "tokens": "~170",
+    "why": "A server that fetches arbitrary URLs becomes a proxy into your own network.",
+    "prompt": "Create and install a skill named `code-ssrf` (Server fetches allowlisted). It instructs the agent as follows: Never fetch a user-supplied URL from the server without an allowlist: block internal addresses and cloud metadata (169.254.169.254), resolve and re-check the host, and cap timeouts and response sizes. Prefer webhooks and signed callbacks over server-side fetching whenever the design allows.",
+    "checks": ["user URLs allowlisted", "metadata IP blocked", "timeouts and size caps set"]
   },
   {
     "id": "code-boundaries",
