@@ -78,7 +78,7 @@ try:
     assert os.path.exists(USAGE_FILE), "counts persisted"
     status, _, body = get("/api/skills?fields=id,why")
     bank = json.loads(body)["skills"]
-    assert len(bank) == 14 and all(s.get("why") for s in bank), "every skill explains why"
+    assert len(bank) == 16 and all(s.get("why") for s in bank), "every skill explains why"
     status, _, body = get("/")
     assert status == 200 and 'id="menubtn"' in body.decode(), "mobile hamburger present"
     status, _, _ = get("/skills.json")
@@ -102,6 +102,7 @@ try:
     assert status == 200, f"board renders, got {status}"
     html = body.decode()
     assert "code-reuse" in html and "Reuse before you build" in html, "board lists skills"
+    assert "code-index" in html and "progressive disclosure" in html, "index skill maps tasks to skills"
     assert "data-copy-skill" in html, "board has copy buttons"
     assert 'id="q"' not in html and "data-track" not in html, "no filter machinery"
     assert 'href="/about"' in html, "about linked from header and footer"

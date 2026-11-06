@@ -347,8 +347,8 @@ BOARD_CARDS = "".join(
     for s in SKILLS
 )
 
-BOARD_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">Skill board</h1><p>Why skills? Every project re-decides the same things — language, validation, layout, proof — and each decision costs tokens every time it is remade. A skill decides once: fetch it, install it, and every session after starts from the answer instead of the question. These fourteen are the full loop: the Python and mobile frameworks that set the foundation, token efficiency and security that keep builds cheap and safe, UI rules that keep human screens legible to agents, and tests plus visual checks as the only verdicts that matter.</p>
-<p>Copy a prompt into any agent session. The token badge on each card is from a test we ran on ourselves — our own payloads, counted — and the whole bank is about 2.5k tokens.</p></header>
+BOARD_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">Skill board</h1><p>Why skills? Every project re-decides the same things — language, validation, layout, proof — and each decision costs tokens every time it is remade. A skill decides once: fetch it, install it, and every session after starts from the answer instead of the question. These sixteen are the full loop: the Python and mobile frameworks that set the foundation, token efficiency and security that keep builds cheap and safe, UI rules that keep human screens legible to agents, and tests plus visual checks as the only verdicts that matter.</p>
+<p>Copy a prompt into any agent session. The token badge on each card is from a test we ran on ourselves — our own payloads, counted — and the whole bank is about 3.4k tokens.</p></header>
 <section class="grid gap-3">""" + BOARD_CARDS + "</section>"""
 
 MISSING_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">Nothing here.</h1><p><a href="/" class="text-accent underline">Back home</a> · <a href="/board" class="text-accent underline">Board</a></p></header>"""

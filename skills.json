@@ -1,5 +1,14 @@
 [
   {
+    "id": "code-index",
+    "track": "code",
+    "title": "Start here: pick skills by task",
+    "tokens": "~270",
+    "why": "One tiny map keeps every other skill small: the agent reads hundreds of tokens, not thousands.",
+    "prompt": "Create and install a skill named `code-index` (Start here: pick skills by task). It instructs the agent as follows: Your installed skills each do one job — never read them all. Match the task, then read only the matched skills: new screen or page → ui-shell, ui-tokens. New interactive piece (typing, dragging, live numbers) → ui-shell, ui-tokens, ui-lit. Repeating markup or logic → code-reuse. New service or script → code-python, code-shape. Done building → verify-tests, verify-visual. Skip everything else. Missing a skill? Copy its prompt from the board once, install it, then use it locally. This follows progressive disclosure, the Agent Skills model — map first, details on demand: https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills",
+    "checks": ["only matched skills are read", "whole bank never copied at once"]
+  },
+  {
     "id": "code-python",
     "track": "code",
     "title": "Python for agent-built services",
@@ -106,6 +115,15 @@
     "why": "Every line the agent doesn't write is tokens never spent and bugs never made.",
     "prompt": "Create and install a skill named `code-reuse` (Reuse before you build). It instructs the agent as follows: Before writing anything new, look for a piece that already does the job: search the repo first, then the stack's own library — Flowbite components, Lucide icons, Lit or WebAwesome pieces, FastAPI and Pydantic helpers. Use the found piece as-is and adapt only what the task needs. When the same markup or logic appears twice, pull it into one shared helper or component where the next agent will find it — never paste a third copy. Hand-write only what no existing piece covers.",
     "checks": ["no hand-built copy of a stocked piece", "repeated markup lives in one helper", "new pieces placed where agents will find them"]
+  },
+  {
+    "id": "code-group",
+    "track": "code",
+    "title": "Group by feature, drop the layers",
+    "tokens": "~220",
+    "why": "One folder holds the whole component, so the agent reads once instead of hunting across layers.",
+    "prompt": "Create and install a skill named `code-group` (Group by feature, drop the layers). It instructs the agent as follows: Organize new code by feature, not by layer: a component's files sit together — checkout_routes.py, checkout_models.py, checkout_tests.py — named <feature>_<kind> so everything is found in one place. Keep model/view/controller separation inside the folder, not across the codebase. Put truly shared definitions (Pydantic contracts) in one shared module every feature imports. If the codebase already uses a pattern like MVC, follow that pattern instead: restructuring working code costs tokens and every move risks new errors.",
+    "checks": ["feature files sit together", "shared facts live in one module", "house pattern followed over rewrites"]
   },
   {
     "id": "ui-lit",
