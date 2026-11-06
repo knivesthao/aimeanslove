@@ -286,6 +286,18 @@ try:
     assert "one declaration replaces three" in body.decode() and "one contract, not one per language" in body.decode(), "guide states why each guardrail was chosen"
     assert "preflight stays on" in body.decode(), "guide states preflight-on baseline"
     assert 'target="_blank" rel="noopener"' in body.decode(), "external links open a new tab"
+    status, _, body = get("/data")
+    assert status == 200 and "exactly once" in body.decode(), "data guide teaches idempotent landing"
+    assert "dead-letter" in body.decode(), "data guide names the poison path"
+    for m in re.finditer(r'<a href="(http[^"]*)"', body.decode()):
+        assert 'target="_blank" rel="noopener"' in body.decode()[m.start():m.start()+400], f"data external link opens new tab: {m.group(1)}"
+    status, _, body = get("/ops")
+    assert status == 200 and "Blameless" in body.decode(), "ops guide teaches blameless reviews"
+    assert "rollback" in body.decode(), "ops guide names the rollback trigger"
+    for m in re.finditer(r'<a href="(http[^"]*)"', body.decode()):
+        assert 'target="_blank" rel="noopener"' in body.decode()[m.start():m.start()+400], f"ops external link opens new tab: {m.group(1)}"
+    status, _, body = get("/sitemap.xml")
+    assert status == 200 and "/data" in body.decode() and "/ops" in body.decode(), "sitemap lists new guides"
     status, _, body = get("/api/skill/ui-framework?fields=prompt")
     lit = json.loads(body)["skill"]
     assert "Flowbite" in lit["prompt"] and "React" in lit["prompt"], "ui-framework keeps Flowbite pieces, rules out heavy frameworks"

@@ -128,7 +128,7 @@ def etagged(request: Request, obj: dict) -> Response:
     return JSONResponse(content=obj, headers={"etag": tag, "cache-control": "public, max-age=60"})
 
 
-NAV_LINKS = [("/code", "Coding guide"), ("/ui", "UI guide"), ("/skills", "Skills"), ("/about", "About")]
+NAV_LINKS = [("/code", "Coding guide"), ("/ui", "UI guide"), ("/data", "Data guide"), ("/ops", "Ops guide"), ("/skills", "Skills"), ("/about", "About")]
 
 
 def nav_link(href: str, label: str, active: str) -> str:
@@ -238,7 +238,7 @@ def page(title: str, desc: str, active: str, body: str, machine: str | None = No
     )
 
 
-HOME_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">ai (愛) means love</h1><p class="text-[17px]">New here? <a href="#manifesto" class="text-accent underline">Read the manifesto</a> first — four short points that explain the whole idea. Then pick a guide: the <a href="/code" class="text-accent underline">coding guide</a>, the <a href="/ui" class="text-accent underline">UI guide</a>, or <a href="/skills" class="text-accent underline">skills</a> for your agent.</p></header>
+HOME_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">ai (愛) means love</h1><p class="text-[17px]">New here? <a href="#manifesto" class="text-accent underline">Read the manifesto</a> first — four short points that explain the whole idea. Then pick a guide: the <a href="/code" class="text-accent underline">coding guide</a>, the <a href="/ui" class="text-accent underline">UI guide</a>, the <a href="/data" class="text-accent underline">data guide</a>, the <a href="/ops" class="text-accent underline">ops guide</a>, or <a href="/skills" class="text-accent underline">skills</a> for your agent.</p></header>
 <section id="manifesto" class="mt-10 border-t-0 pt-0 space-y-3">
 <h2 class="font-display text-[22px] mb-3">Manifesto, in your words</h2>
 <ol class="text-left space-y-3.5 list-decimal pl-6">
@@ -382,6 +382,59 @@ CODE_BODY = ("""<header class="space-y-2"><h1 class="font-display text-[38px]">C
 """
 )
 
+DATA_BODY = ("""<header class="space-y-2"><h1 class="font-display text-[38px]">Data guide</h1><p class="text-[17px]">Data an agent can trust. Every dataset reproducible from its inputs; every event counted exactly once. Humans judge the dashboard numbers, never the pipeline code.</p></header>
+<section class="grid gap-2 my-4">
+"""
+    + details_card("1 · Land once", """<ul class="text-left space-y-2 list-disc pl-5">
+<li><strong>Every event lands exactly once.</strong> Producers attach an idempotency key and retry freely; consumers dedup on that key before writing, so replays converge instead of double-counting (<a href="https://kafka.apache.org/documentation/" target="_blank" rel="noopener" class="text-accent underline">Kafka's exactly-once semantics</a> work the same way: retries are safe only when the consumer dedupes). Retries without dedup keys inflate everything downstream — revenue, usage, analytics. See the <code class="font-mono text-[13px]">data-ingest</code> skill.</li>
+<li><strong>Schema first, poison last.</strong> Validate against the schema on arrival and reject unknown fields loudly — never silently drop. Poison events go to a dead-letter queue after N tries and page nobody; the stream never blocks on one bad record, and the dedup store stays bounded with a TTL past the retry window.</li></ul>""",
+        is_open=True,
+    ) + "\n"
+    + details_card("2 · Move in order", """<ul class="text-left space-y-2 list-disc pl-5">
+<li><strong>Pipelines are DAGs, not cron chains.</strong> Model every pipeline with explicit dependencies, per-task retries with backoff, and a stall SLA that pages when breached — success stays quiet. Chained cron fails silently at 3am; explicit deps fail loudly with an owner. See the <code class="font-mono text-[13px]">data-orchestrate</code> skill.</li>
+<li><strong>Batch work reloads by partition.</strong> Transforms live in tested code, and rerunning a date range converges instead of duplicating. Backfills touch bounded partitions, throttled below production priority — never full-table reruns that overload sources or double-write. See the <code class="font-mono text-[13px]">data-etl</code> and <code class="font-mono text-[13px]">data-backfill</code> skills.</li></ul>""") + "\n"
+    + details_card("3 · Trust but verify", """<ul class="text-left space-y-2 list-disc pl-5">
+<li><strong>Contracts evolve additively.</strong> Version every event and table schema in one registry with compatibility checks; additive changes only, consumers pinning the version they read. A breaking rename with no contract silently breaks every downstream reader. See the <code class="font-mono text-[13px]">data-contracts</code> skill.</li>
+<li><strong>Gate promotion on signals, not row counts.</strong> Freshness, nulls, volume, and distribution — row counts pass plausible-but-wrong data. Failing checks block the pipeline with the offending sample attached, and quality history per dataset turns sudden shifts into incidents. See the <code class="font-mono text-[13px]">data-quality</code> skill.</li>
+<li><strong>Lineage is recorded, not remembered.</strong> Every dataset carries its sources and transforms, written automatically at run time — tribal knowledge rots, and a bad number with no origin takes days to explain. See the <code class="font-mono text-[13px]">data-lineage</code> skill.</li></ul>""",
+        is_open=True,
+    ) + "\n"
+    + details_card("4 · Shape and keep", """<ul class="text-left space-y-2 list-disc pl-5">
+<li><strong>Partition for pruning.</strong> Low-cardinality dates or keys let queries skip whole ranges; high-cardinality IDs spawn thousands of tiny files that slow every reader. Compact on a schedule. See the <code class="font-mono text-[13px]">data-partition</code> skill.</li>
+<li><strong>Expire per policy, prove deletion.</strong> Every dataset gets a written retention rule; PII gets the shortest one, with deletion on request and proof. Keep-forever drowns storage budgets and turns every breach into a GDPR incident. Archive in open formats. See the <code class="font-mono text-[13px]">data-retain</code> skill.</li>
+<li><strong>Streams are not batches.</strong> Unbounded transforms need windows plus watermarks so late and out-of-order events settle; every grouping needs an emit trigger, and watermark lag is the health metric. Change data capture streams from the database log — deletes must propagate, which polling can never do (<a href="https://debezium.io/" target="_blank" rel="noopener" class="text-accent underline">Debezium</a> works this way). Merges are keyed, never full overwrites. See the <code class="font-mono text-[13px]">data-streams</code>, <code class="font-mono text-[13px]">data-cdc</code>, and <code class="font-mono text-[13px]">data-upserts</code> skills.</li></ul>""") + "\n"
+    + """</section>
+"""
+)
+
+OPS_BODY = ("""<header class="space-y-2"><h1 class="font-display text-[38px]">Ops guide</h1><p class="text-[17px]">Ship safely, page rarely. Agents operate the system through gated pipelines and measured restores; humans verify the dashboard, the drill record, and the finding counts — never the procedure text.</p></header>
+<section class="grid gap-2 my-4">
+"""
+    + details_card("1 · Gates before prod", """<ul class="text-left space-y-2 list-disc pl-5">
+<li><strong>One shared pipeline, required gates.</strong> Every repo deploys through the same template: build, tests, security scan, approval for production. Hand-rolled pipelines drift until the deploy that matters most is the one least tested. Measure the result the way <a href="https://dora.dev/" target="_blank" rel="noopener" class="text-accent underline">DORA</a> does — speed and stability together: how often you ship, how fast changes land, how often they fail, how fast you recover.</li>
+<li><strong>Preview everything, roll out gradually.</strong> Every PR gets an ephemeral production mirror that auto-stops when idle — never production data in previews. Traffic shifts progressively behind health gates with the rollback trigger defined before starting; never 100 percent at once outside an emergency. See the <code class="font-mono text-[13px]">ops-pipeline</code>, <code class="font-mono text-[13px]">ops-preview</code>, and <code class="font-mono text-[13px]">ops-rollout</code> skills.</li></ul>""",
+        is_open=True,
+    ) + "\n"
+    + details_card("2 · Migrations and secrets", """<ul class="text-left space-y-2 list-disc pl-5">
+<li><strong>Expand then contract, always reversible.</strong> Version every schema change and run it with the deploy: add nullable, backfill, constrain, drop — readers never see a half-migrated schema. Dry-run against prod-shaped data; never edit an applied migration. Untested migrations turn deploys into outages with no way back. See the <code class="font-mono text-[13px]">ops-migrate</code> skill.</li>
+<li><strong>Inject secrets, rotate automatically.</strong> Vault-backed secrets enter at runtime with RBAC — never committed to repos, never one static value everywhere. Rotation runs on a schedule, not on manual tickets; every read is audited. Manual rotation scatters copies that outlive every fix. See the <code class="font-mono text-[13px]">ops-secrets</code> skill.</li></ul>""") + "\n"
+    + details_card("3 · Pages worth waking for", """<ul class="text-left space-y-2 list-disc pl-5">
+<li><strong>One id, symptoms only, runbook attached.</strong> Logs, metrics, and traces unify behind one request id so any alert opens the full story. Alert only on user-facing symptoms — every page actionable with a runbook link, or it becomes noise the team ignores. Dashboards are for debugging, not for watching. See the <code class="font-mono text-[13px]">ops-observe</code> skill.</li>
+<li><strong>Blameless reviews, tracked to done.</strong> Page a scheduled rotation with escalation paths — never a single hero with no notes. Postmortems focus on causes, never people (<a href="https://sre.google/sre-book/postmortem-culture/" target="_blank" rel="noopener" class="text-accent underline">Google's SRE book on postmortem culture</a>), and action items stay tracked until done — the review nobody reads is the incident that repeats. See the <code class="font-mono text-[13px]">ops-oncall</code> skill.</li></ul>""",
+        is_open=True,
+    ) + "\n"
+    + details_card("4 · Prove the restore", """<ul class="text-left space-y-2 list-disc pl-5">
+<li><strong>An untested backup is assumed broken.</strong> Back up on a schedule matched to a written RPO — and drill the restore, timed against the RTO, into an isolated environment. A missed RTO changes the strategy, not the apology. See the <code class="font-mono text-[13px]">ops-backup</code> skill.</li>
+<li><strong>Reproducible from a clean account.</strong> Every environment version-controlled, drift detection scheduled, state locked and backed up — console click-ops lives in one engineer's head. Processes stay stateless and disposable the <a href="https://12factor.net/" target="_blank" rel="noopener" class="text-accent underline">twelve-factor</a> way so scaling and restarts are boring. Probes split liveness from readiness so broken pods stop getting traffic. See the <code class="font-mono text-[13px]">ops-iac</code>, <code class="font-mono text-[13px]">ops-scale</code>, and <code class="font-mono text-[13px]">ops-probes</code> skills.</li></ul>""") + "\n"
+    + details_card("5 · Security operations", """<ul class="text-left space-y-2 list-disc pl-5">
+<li><strong>Every finding owned with a deadline.</strong> Scan continuously and rank by exploitability; block builds on critical images and dependencies, fail closed when the scanner errors. Scan-and-sit is the failure mode — a finding without an owner and a retest sits until it breaches. See the <code class="font-mono text-[13px]">sec-vuln</code> and <code class="font-mono text-[13px]">sec-scan</code> skills.</li>
+<li><strong>One IdP, no permanent exceptions.</strong> Enterprise login runs through one provider with phishing-resistant MFA; legacy logins and break-glass accounts expire by date. Sessions stay short-lived with server-side revocation. Secrets in code get revoked first and purged from history. See the <code class="font-mono text-[13px]">sec-sso</code>, <code class="font-mono text-[13px]">sec-session</code>, and <code class="font-mono text-[13px]">sec-secretscan</code> skills.</li>
+<li><strong>Detect, contain, prove.</strong> Tamper-evident logs with tested integrity, blocking WAF rules tuned to real traffic, retuned anomaly baselines, drilled containment runbooks, fleet-wide patching, and automated compliance evidence. Hardening the code itself follows the OWASP deep-dives; humans verify finding counts and drill logs. See the <code class="font-mono text-[13px]">sec-index</code> skill and the <a href="/skills" class="text-accent underline">Skills page</a>.</li></ul>""") + "\n"
+    + """</section>
+"""
+)
+
+
 def skill_card(s: Skill) -> str:
     return (
         '<article class="skill border border-solid border-line rounded-[10px] p-4 grid gap-2 text-left"><header class="flex gap-2.5 items-baseline justify-center flex-wrap"><input type="checkbox" data-trim="' + html.escape(s.id) + '" checked class="cursor-pointer w-4 h-4"><span class="font-mono text-xs bg-ink text-white px-2 py-0.5 rounded-full">' + html.escape(s.id) + "</span><strong>"
@@ -441,6 +494,8 @@ def llms() -> str:
         "- / ......... manifesto (human summary)",
         "- /ui ....... UI styling + behavior guide",
         "- /code ..... coding guide (Python first, guardrail frameworks)",
+        "- /data ..... data pipeline guide (land once, trust but verify)",
+        "- /ops ...... ops + security guide (gated deploys, paging, drills)",
         "- /skills ... skill library (all skills, copyable, trimmable install packs)",
         "- /about .... who runs this and why",
         "",
@@ -503,6 +558,18 @@ def ui_guide() -> str:
 def code_guide() -> str:
     hit("/code")
     return page("Coding guide", "Write Python because agents generate it fastest; lean on FastAPI, SQLModel, and Typer as guardrails.", "/code", CODE_BODY)
+
+
+@app.get("/data", response_class=HTMLResponse)
+def data_guide() -> str:
+    hit("/data")
+    return page("Data guide", "Land every event once, move in order, trust but verify.", "/data", DATA_BODY)
+
+
+@app.get("/ops", response_class=HTMLResponse)
+def ops_guide() -> str:
+    hit("/ops")
+    return page("Ops guide", "Gated deploys, paging that matters, drilled restores.", "/ops", OPS_BODY)
 
 
 @app.get("/about", response_class=HTMLResponse)
@@ -621,7 +688,7 @@ def robots() -> str:
 
 
 SITE_URL = "https://aimeanslove.fyi"
-SITEMAP_PAGES = ["/", "/code", "/ui", "/skills", "/about"]
+SITEMAP_PAGES = ["/", "/code", "/ui", "/data", "/ops", "/skills", "/about"]
 
 
 @app.get("/sitemap.xml")
