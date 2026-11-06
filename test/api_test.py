@@ -271,6 +271,7 @@ try:
     home = body.decode()
     assert status == 200 and 'id="support-dialog"' in home, "dialog on every page"
     assert "agentic ops" in home, "homepage frames old way versus agentic ops"
+    assert "Industry zombies" in home, "homepage buries MVC/MVP fences"
     status, _, body = get("/ui")
     assert status == 200 and "Flowbite" in body.decode(), "guide names Flowbite for components"
     assert "60-30-10" in body.decode() and "Green confirms" in body.decode(), "guide teaches research-backed color rules"
