@@ -59,14 +59,14 @@ try:
     assert status == 304, f"repeat returns 304, got {status}"
     assert body == b"", "304 has empty body"
 
-    # /api redirects to /board (no auto-redirect via low-level call)
+    # /api redirects to /skills (no auto-redirect via low-level call)
     import http.client
 
     conn = http.client.HTTPConnection("localhost", int(PORT))
     conn.request("GET", "/api")
     r = conn.getresponse()
     assert r.status == 302, f"/api redirects, got {r.status}"
-    assert r.getheader("Location").endswith("/board")
+    assert r.getheader("Location").endswith("/skills")
     conn.close()
 
     status, _, body = get("/api/stats")
@@ -78,7 +78,7 @@ try:
     assert os.path.exists(USAGE_FILE), "counts persisted"
     status, _, body = get("/api/skills?fields=id,why")
     bank = json.loads(body)["skills"]
-    assert len(bank) == 33 and all(s.get("why") for s in bank), "every skill explains why"
+    assert len(bank) == 36 and all(s.get("why") for s in bank), "every skill explains why"
     status, _, body = get("/api/skills?fields=id,prompt")
     for s in json.loads(body)["skills"]:
         local = ROOT / ".agents" / "skills" / s["id"] / "SKILL.md"
@@ -112,15 +112,24 @@ try:
     assert "shots/" in visual["prompt"], "verify-visual saves screenshots to shots/"
     assert "headless" in visual["prompt"], "verify-visual never trusts headless shots alone"
 
-    status, _, body = get("/board")
-    assert status == 200, f"board renders, got {status}"
+    status, _, body = get("/skills")
+    assert status == 200, f"skills page renders, got {status}"
+    assert "<h1" in body.decode() and ">Skills<" in body.decode(), "page renamed to Skills"
+    import http.client as _hc
+    _conn = _hc.HTTPConnection("localhost", int(PORT))
+    _conn.request("GET", "/board")
+    _r = _conn.getresponse()
+    assert _r.status == 302 and _r.getheader("Location") == "/skills", "/board redirects to /skills"
+    _conn.close()
     html = body.decode()
-    assert "code-reuse" in html and "Reuse before you build" in html, "board lists skills"
+    assert "code-reuse" in html and "Reuse before you build" in html, "skills page lists skills"
     assert "code-index" in html and "progressive disclosure" in html, "index skill maps tasks to skills"
-    assert "code-ssrf" in html and "code-crypto" in html, "OWASP set renders on board"
-    assert all(g in html for g in ("Start here", "Always on", "Security deep-dives", "Verify", "Run well")), "board groups skills"
-    assert html.count("data-copy-skill=") == 33, "every skill renders exactly once"
-    assert "data-copy-skill" in html, "board has copy buttons"
+    assert "code-ssrf" in html and "code-crypto" in html, "OWASP set renders on page"
+    assert all(g in html for g in ("Start here", "Always on", "Security deep-dives", "Verify", "Run well")), "skills page groups skills"
+    assert html.count("data-copy-skill=") == 36, "every skill renders exactly once"
+    assert "data-copy-skill" in html, "page has copy buttons"
+    assert html.count("data-trim=") == 36, "every card trimmable"
+    assert "data-pack" in html and "copy install pack" in html, "trim pack builder present"
     assert 'id="q"' not in html and "data-track" not in html, "no filter machinery"
     assert 'href="/about"' in html, "about linked from header and footer"
     assert "min-h-screen" in html and "flex-1" in html, "flex shell pins footer to the bottom"
@@ -149,12 +158,12 @@ try:
     status, _, body = get("/api/stats")
     routes_before = json.loads(body)["stats"]["routes"]
     fetched_before = sum(routes_before.get(k, 0) for k in ("/board.json", "/api/skills", "/api/skill/:id"))
-    status, _, _ = get("/board")
+    status, _, _ = get("/skills")
     assert status == 200, "page views still render"
     status, _, _ = get("/board.json")
     status, _, _ = get("/api/skills?track=code")
     status, _, _ = get("/api/skill/code-language?fields=id")
-    status, _, body = get("/board")
+    status, _, body = get("/skills")
     html = body.decode()
     m = re.search(r'href="/#agent"[^>]*>\s*(\d+)', html)
     assert m, "board shows usage counter badge"
@@ -166,7 +175,7 @@ try:
     assert status == 204
     status, _, _ = post("/api/copy?skill=nope", {})
     assert status == 404, "unknown skill copy rejected"
-    status, _, body = get("/board")
+    status, _, body = get("/skills")
     m = re.search(r'href="/#agent"[^>]*>\s*(\d+)', body.decode())
     assert m and int(m.group(1)) == badge_before, "copies sit pending, badge waits for rollup"
     status, _, body = get("/api/stats")
@@ -202,7 +211,7 @@ try:
     lit = json.loads(body)["skill"]
     assert "Flowbite" in lit["prompt"] and "React" in lit["prompt"], "ui-framework keeps Flowbite pieces, rules out heavy frameworks"
     assert "WebAwesome" in lit["prompt"], "ui-framework names WebAwesome for island pieces"
-    status, _, body = get("/board")
+    status, _, body = get("/skills")
     board = body.decode()
     assert "<uses-badge" in board, "usage badge is a Lit island"
     assert "lit@3.3.3" in board and 'type="module"' in board, "Lit island pinned and wired"

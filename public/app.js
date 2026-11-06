@@ -39,5 +39,53 @@ document.addEventListener("click", (e) => {
     navigator.sendBeacon?.("/api/copy?skill=" + encodeURIComponent(s.dataset.copySkill ?? ""));
     s.textContent = "copied";
     setTimeout(() => (s.textContent = "copy prompt"), 1200);
+    return;
+  }
+  const t = e.target.closest("[data-trim]");
+  if (t && e.target === t) {
+    updatePackCount();
+    return;
+  }
+  const pa = e.target.closest("[data-pack-all]");
+  if (pa) {
+    document.querySelectorAll("[data-trim]").forEach((c) => (c.checked = true));
+    updatePackCount();
+    return;
+  }
+  const pn = e.target.closest("[data-pack-none]");
+  if (pn) {
+    document.querySelectorAll("[data-trim]").forEach((c) => (c.checked = false));
+    updatePackCount();
+    return;
+  }
+  const pk = e.target.closest("[data-pack]");
+  if (pk) {
+    const cards = [...document.querySelectorAll(".skill")].filter((card) =>
+      card.querySelector("[data-trim]")?.checked
+    );
+    const pack = cards
+      .map((card) => card.querySelector(".prompt")?.textContent ?? "")
+      .filter(Boolean)
+      .join("\n\n---\n\n");
+    if (!pack) return;
+    navigator.clipboard?.writeText(pack);
+    cards.forEach((card) => {
+      const id = card.querySelector("[data-trim]")?.dataset.trim ?? "";
+      if (id) navigator.sendBeacon?.("/api/copy?skill=" + encodeURIComponent(id));
+    });
+    const label = pk.querySelector("[data-pack-count]");
+    pk.dataset.done = "1";
+    if (label) label.textContent = "copied " + cards.length;
+    setTimeout(() => {
+      delete pk.dataset.done;
+      updatePackCount();
+    }, 1500);
   }
 });
+
+function updatePackCount() {
+  const n = document.querySelectorAll("[data-trim]:checked").length;
+  document.querySelectorAll("[data-pack-count]").forEach((el) => {
+    if (!el.closest("[data-pack]")?.dataset.done) el.textContent = String(n);
+  });
+}
