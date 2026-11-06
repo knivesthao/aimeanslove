@@ -293,7 +293,7 @@
     "title": "Interface work: pick interface skills",
     "tokens": "~230",
     "why": "One small map per area beats one giant map for everything.",
-    "prompt": "Create and install a skill named `ui-index` (Interface work: pick interface skills). It instructs the agent as follows: Your interface skills each do one job — never read them all. New screen or page → ui-shell, ui-tokens, ui-seo. New interactive piece (typing, dragging, live numbers) → ui-framework as well. Known widget (table, wizard, combo, calendar, modal, feed, kanban, editor, player, accordion) → ui-widgets, plus ui-platform-picks for library names and setup gates. Mobile app build → ui-mobile. Form inputs, dropdowns, menus → ui-forms. Page behavior and states → ui-behavior. Headers and navigation → ui-nav. Skip everything else. New codebase only: the house stack wins (see the bank map).",
+    "prompt": "Create and install a skill named `ui-index` (Interface work: pick interface skills). It instructs the agent as follows: Your interface skills each do one job — never read them all. New screen or page → ui-shell, ui-tokens, ui-seo. New interactive piece (typing, dragging, live numbers) → ui-framework as well. Charts and graphs → ui-charts. Known widget (table, wizard, combo, calendar, modal, feed, kanban, editor, player, accordion) → ui-widgets, plus ui-platform-picks for library names and setup gates. Mobile app build → ui-mobile. Form inputs, dropdowns, menus → ui-forms. Page behavior and states → ui-behavior. Headers and navigation → ui-nav. Skip everything else. New codebase only: the house stack wins (see the bank map).",
     "checks": ["only matched skills are read", "whole area never copied at once"]
   },
   {
@@ -356,7 +356,7 @@
     "title": "Data work: pick data skills",
     "tokens": "~300",
     "why": "Pipelines fail in the same three places — landing, ordering, replay — map first.",
-    "prompt": "Create and install a skill named `data-index` (Data work: pick data skills). It instructs the agent as follows: Your data skills each do one job — never read them all. Landing events exactly once → data-ingest. Ordering tasks with retries and stall alerts → data-orchestrate. Batch transforms → data-etl. Schemas and evolution → data-contracts. Backfill and replay → data-backfill. CDC → data-cdc. Quality gates → data-quality. Partitioning → data-partition. Retention → data-retain. Streams → data-streams. Lineage → data-lineage. Upserts → data-upserts. Skip everything else.",
+    "prompt": "Create and install a skill named `data-index` (Data work: pick data skills). It instructs the agent as follows: Your data skills each do one job — never read them all. Collection strategy → data-collect. Landing events exactly once → data-ingest. Ordering tasks with retries and stall alerts → data-orchestrate. Batch transforms → data-etl. Schemas and evolution → data-contracts. Backfill and replay → data-backfill. CDC → data-cdc. Quality gates → data-quality. Partitioning → data-partition. Retention → data-retain. Streams → data-streams. Lineage → data-lineage. Upserts → data-upserts. Skip everything else.",
     "checks": ["only matched data skills are read", "repeat patterns banked, not pasted"]
   },
   {
@@ -781,5 +781,23 @@
     "why": "WCAG Reflow is the published rulebook for the chop-and-scroll half; alignment is measured polish on top.",
     "prompt": "Create and install a skill named `verify-layout` (Layout proof: WCAG Reflow plus measured alignment). It instructs the agent as follows: Follow WCAG 2.1 Reflow (1.4.10) as the rulebook: content usable with no loss and no two-dimensional scrolling at 320 CSS px width — except parts that genuinely need two dimensions (data tables, maps, diagrams, video, games), which scroll only inside a stocked component. Prove it with measurements from a real browser run — never from markup reading. Use the shot flow in verify-visual, driving it with Playwright where the repo has it. No chopped elements: every interactive element's bounding box sits fully inside the viewport at 320 CSS px and desktop widths. Aligned rows and columns: same-row controls share baselines, same-column edges line up — eyeball the shot, then assert the boxes. Prefer vertical page scroll; reach for a stocked component before any custom scroll region. The user overrules the skill: a purposely dense, playful, or brutalist design that breaks these rules ships as specified — flag the break, then build it. Save the proof shots to shots/ like verify-visual.",
     "checks": ["no loss or 2D scroll at 320px (WCAG 1.4.10)", "rows share baselines, columns share edges", "2D scroll only in stocked components for exempt content"]
+  },
+  {
+    "id": "data-collect",
+    "track": "code",
+    "title": "Pull what can't push, cursor everything",
+    "tokens": "~200",
+    "why": "Polling without cursors re-reads or skips; sources that can push should never be polled.",
+    "prompt": "Create and install a skill named `data-collect` (Pull what can't push, cursor everything). It instructs the agent as follows: Let sources push when they can — webhooks in, landed by data-ingest. Poll only sources that can't push, and always with an ordered cursor (updated_at plus id, never page numbers) so restarts resume instead of re-reading or skipping. Ship logs, don't fetch them: servers forward append-only logs to the collector. Treat every collection path as at-least-once and put dedup at the landing — the collector retries freely, data-ingest converges. Backfill through the same cursor path with bounded ranges, never a separate full dump.",
+    "checks": ["push where possible, cursors where polling", "log shipping over fetching", "at-least-once plus landing dedup"]
+  },
+  {
+    "id": "ui-charts",
+    "track": "ui",
+    "title": "Charts humans can read, data agents already parsed",
+    "tokens": "~220",
+    "why": "Agents read tables; humans judge shapes — charts are the human verdict layer, not the analysis.",
+    "prompt": "Create and install a skill named `ui-charts` (Charts humans can read, data agents already parsed). It instructs the agent as follows: Aggregate on the server and ship only chart-ready rollups — never raw rows for the browser to group. Pick the chart by the question: trend over time goes line, comparison across few categories goes bar, parts of a whole goes stacked bar and never pie past five slices, distribution goes histogram, two variables goes scatter, live numbers go big text plus sparkline. Every chart gets what color alone can't carry: direct labels, a data table or summary alongside for screen readers, and axes that start at zero for bars. Reach for a stocked chart library (Apache ECharts, Recharts) instead of hand-drawn SVG. Humans read the shape to judge; agents already read the table — the chart convinces, the numbers underneath prove.",
+    "checks": ["server-aggregated rollups only", "chart matches the question", "labels plus table, never color alone"]
   }
 ]

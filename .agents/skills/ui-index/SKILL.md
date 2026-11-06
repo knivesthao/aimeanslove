@@ -5,7 +5,7 @@ description: "One small map per area beats one giant map for everything."
 
 # Interface work: pick interface skills
 
-Create and install a skill named `ui-index` (Interface work: pick interface skills). It instructs the agent as follows: Your interface skills each do one job — never read them all. New screen or page → ui-shell, ui-tokens, ui-seo. New interactive piece (typing, dragging, live numbers) → ui-framework as well. Known widget (table, wizard, combo, calendar, modal, feed, kanban, editor, player, accordion) → ui-widgets, plus ui-platform-picks for library names and setup gates. Mobile app build → ui-mobile. Form inputs, dropdowns, menus → ui-forms. Page behavior and states → ui-behavior. Headers and navigation → ui-nav. Skip everything else. New codebase only: the house stack wins (see the bank map).
+Create and install a skill named `ui-index` (Interface work: pick interface skills). It instructs the agent as follows: Your interface skills each do one job — never read them all. New screen or page → ui-shell, ui-tokens, ui-seo. New interactive piece (typing, dragging, live numbers) → ui-framework as well. Charts and graphs → ui-charts. Known widget (table, wizard, combo, calendar, modal, feed, kanban, editor, player, accordion) → ui-widgets, plus ui-platform-picks for library names and setup gates. Mobile app build → ui-mobile. Form inputs, dropdowns, menus → ui-forms. Page behavior and states → ui-behavior. Headers and navigation → ui-nav. Skip everything else. New codebase only: the house stack wins (see the bank map).
 
 ## Checks
 
