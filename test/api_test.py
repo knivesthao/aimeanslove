@@ -78,7 +78,7 @@ try:
     assert os.path.exists(USAGE_FILE), "counts persisted"
     status, _, body = get("/api/skills?fields=id,why")
     bank = json.loads(body)["skills"]
-    assert len(bank) == 29 and all(s.get("why") for s in bank), "every skill explains why"
+    assert len(bank) == 30 and all(s.get("why") for s in bank), "every skill explains why"
     status, _, body = get("/api/skills?fields=id,prompt")
     for s in json.loads(body)["skills"]:
         local = ROOT / ".agents" / "skills" / s["id"] / "SKILL.md"
@@ -113,8 +113,8 @@ try:
     assert "code-reuse" in html and "Reuse before you build" in html, "board lists skills"
     assert "code-index" in html and "progressive disclosure" in html, "index skill maps tasks to skills"
     assert "code-ssrf" in html and "code-crypto" in html, "OWASP set renders on board"
-    assert all(g in html for g in ("Start here", "Always on", "Security deep-dives", "Verify", "Cache & track")), "board groups skills"
-    assert html.count("data-copy-skill=") == 29, "every skill renders exactly once"
+    assert all(g in html for g in ("Start here", "Always on", "Security deep-dives", "Verify", "Run well")), "board groups skills"
+    assert html.count("data-copy-skill=") == 30, "every skill renders exactly once"
     assert "data-copy-skill" in html, "board has copy buttons"
     assert 'id="q"' not in html and "data-track" not in html, "no filter machinery"
     assert 'href="/about"' in html, "about linked from header and footer"
