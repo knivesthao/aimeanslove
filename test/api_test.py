@@ -78,7 +78,7 @@ try:
     assert os.path.exists(USAGE_FILE), "counts persisted"
     status, _, body = get("/api/skills?fields=id,why")
     bank = json.loads(body)["skills"]
-    assert len(bank) == 86 and all(s.get("why") for s in bank), "every skill explains why"
+    assert len(bank) == 87 and all(s.get("why") for s in bank), "every skill explains why"
     status, _, body = get("/api/skills?fields=id,prompt")
     for s in json.loads(body)["skills"]:
         local = ROOT / ".agents" / "skills" / s["id"] / "SKILL.md"
@@ -122,6 +122,15 @@ try:
     assert "only matched leaves count" in plan, "plan states crossing maps is free"
     assert "Three or more matched skills → code-plan first" in index_map, "bank index routes by skill count"
     assert "in one batched request" in index_map and "never fetch the same skill twice" in index_map, "bank index states fetch-once protocol"
+    assert "mixed tasks match more than one line" in index_map, "bank index splits mixed UI-plus-API tasks"
+    assert "verify-layout for layout" in index_map, "bank index routes layout proof"
+    assert "never the procedure text" in area_maps["ops-index"], "ops keeps humans on dashboards"
+    assert "never the runbook text" in area_maps["sec-index"], "sec keeps humans on finding counts"
+    status, _, body = get("/api/skill/verify-layout?fields=prompt")
+    layout = json.loads(body)["skill"]["prompt"]
+    assert "bounding box" in layout and "scroll width fits" in layout, "layout proof measures, never eyeballs alone"
+    status, _, body = get("/api/skill/ui-seo?fields=prompt")
+    assert "noindex" in json.loads(body)["skill"]["prompt"], "paid pages stay out of crawlers"
     status, _, body = get("/api/skills?fields=id,prompt")
     bank_ids = [s["id"] for s in json.loads(body)["skills"]]
     prompts = {s["id"]: s["prompt"] for s in json.loads(body)["skills"]}
@@ -179,9 +188,9 @@ try:
     assert "code-index" in html and "progressive disclosure" in html, "index skill maps tasks to skills"
     assert "code-ssrf" in html and "code-crypto" in html, "OWASP set renders on page"
     assert all(g in html for g in ("Start here", "Always on", "Security deep-dives", "Verify", "Run well")), "skills page groups skills"
-    assert html.count("data-copy-skill=") == 86, "every skill renders exactly once"
+    assert html.count("data-copy-skill=") == 87, "every skill renders exactly once"
     assert "data-copy-skill" in html, "page has copy buttons"
-    assert html.count("data-trim=") == 86, "every card trimmable"
+    assert html.count("data-trim=") == 87, "every card trimmable"
     assert "data-pack" in html and "copy install pack" in html, "trim pack builder present"
     assert 'id="q"' not in html and "data-track" not in html, "no filter machinery"
     assert 'href="/about"' in html, "about linked from header and footer"

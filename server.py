@@ -408,7 +408,7 @@ GROUPS = [
     ("Move data", ["data-index", "data-ingest", "data-orchestrate", "data-etl", "data-contracts", "data-backfill", "data-cdc", "data-quality", "data-partition", "data-retain", "data-streams", "data-lineage", "data-upserts"]),
     ("Ship safely", ["ops-index", "ops-pipeline", "ops-observe", "ops-preview", "ops-migrate", "ops-rollout", "ops-secrets", "ops-backup", "ops-iac", "ops-scale", "ops-probes", "ops-oncall", "sec-index", "sec-vuln", "sec-sso", "sec-scan", "sec-secretscan", "sec-session", "sec-siem", "sec-waf", "sec-anomaly", "sec-runbooks", "sec-patch", "sec-compliance"]),
     ("Security deep-dives", ["code-auth", "code-crypto", "code-injection", "code-design", "code-misconfig", "code-deps", "code-integrity", "code-logging", "code-ssrf", "code-ratelimit"]),
-    ("Verify", ["verify-tests", "verify-visual"]),
+    ("Verify", ["verify-tests", "verify-visual", "verify-layout"]),
     ("Run well", ["code-cache", "code-track", "code-perf", "code-fallback"]),
     ("Get found", ["ui-seo"]),
 ]
@@ -419,10 +419,10 @@ BOARD_SECTIONS = "".join(
     for title, ids in GROUPS
 )
 
-BOARD_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">Skills</h1><p>Eighty-six skills is far more than any one task needs — and that's the point. Nobody reads them all. Read the <a href="/api/skill/code-index" class="text-accent underline">index skill</a> first, install only the matched skills, and skip the rest: a typical task runs on four or five skills, roughly a thousand tokens, instead of the whole bank.</p>
+BOARD_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">Skills</h1><p>Eighty-seven skills is far more than any one task needs — and that's the point. Nobody reads them all. Read the <a href="/api/skill/code-index" class="text-accent underline">index skill</a> first, install only the matched skills, and skip the rest: a typical task runs on four or five skills, roughly a thousand tokens, instead of the whole bank.</p>
 <p>How it works: <strong>1.</strong> the index maps your task to skills; <strong>2.</strong> copy those prompts below, or fetch them slim; <strong>3.</strong> re-read a skill only when its task arrives. Small skills plus one map keep every session's context small by design — no catch-all to wade through.</p>
-<div class="bg-wash border border-solid border-line rounded-[10px] p-[18px] flex flex-wrap items-center gap-3"><p class="m-0 text-sm"><strong>Trim an install pack:</strong> tick only the skills this task needs, then copy them as one pack.</p><div class="flex gap-2"><button type="button" data-pack class="cursor-pointer bg-accent text-white rounded-full px-4 py-2">copy install pack (<span data-pack-count>86</span>)</button><button type="button" data-pack-all class="cursor-pointer border border-solid border-line bg-white rounded-full px-3 py-2">all</button><button type="button" data-pack-none class="cursor-pointer border border-solid border-line bg-white rounded-full px-3 py-2">none</button></div></div>
-<p>The token badge on each card is from a test we ran on ourselves — our own payloads, counted — and the whole bank is about 18.2k tokens.</p></header>
+<div class="bg-wash border border-solid border-line rounded-[10px] p-[18px] flex flex-wrap items-center gap-3"><p class="m-0 text-sm"><strong>Trim an install pack:</strong> tick only the skills this task needs, then copy them as one pack.</p><div class="flex gap-2"><button type="button" data-pack class="cursor-pointer bg-accent text-white rounded-full px-4 py-2">copy install pack (<span data-pack-count>87</span>)</button><button type="button" data-pack-all class="cursor-pointer border border-solid border-line bg-white rounded-full px-3 py-2">all</button><button type="button" data-pack-none class="cursor-pointer border border-solid border-line bg-white rounded-full px-3 py-2">none</button></div></div>
+<p>The token badge on each card is from a test we ran on ourselves — our own payloads, counted — and the whole bank is about 18.5k tokens.</p></header>
 """ + BOARD_SECTIONS
 
 MISSING_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">Nothing here.</h1><p><a href="/" class="text-accent underline">Back home</a> · <a href="/skills" class="text-accent underline">Skills</a></p></header>"""
