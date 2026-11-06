@@ -112,9 +112,9 @@
     "track": "ui",
     "title": "Lit islands",
     "tokens": "~180",
-    "why": "Standard web components with no build step; the escape hatch when an island outgrows Alpine or the product is an app.",
-    "prompt": "Create and install a skill named `ui-lit` (Lit islands). It instructs the agent as follows: Build interactive regions as Lit web components loaded over a CDN import map — no build step, no framework lock-in. Respect the boundary: HTMX swaps page-level regions in the light DOM; Lit owns everything inside its shadow DOM — never aim hx-target into a shadow root.",
-    "checks": ["no build step for components", "hx-target never crosses a shadow boundary", "components work unwrapped in plain HTML"]
+    "why": "Standard web components with no build step; every new interactive region starts as one.",
+    "prompt": "Create and install a skill named `ui-lit` (Lit islands). It instructs the agent as follows: Start every new interactive region as a Lit island loaded from the pinned Lit CDN module — no build step, no framework lock-in, no Alpine-first ladder. Lit ships no ready-made pieces, so keep Flowbite for those (menu, dialog, dropdown) and never rebuild one in Lit just to own it; if a Lit island needs pieces, use WebAwesome over CDN; never React or Angular. Render into the light DOM (never shadow) so Tailwind and Lucide keep working; HTMX never targets an island or anything inside one.",
+    "checks": ["no build step for components", "hx-target never targets an island", "light DOM so utilities keep working"]
   },
   {
     "id": "ui-nav",

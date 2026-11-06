@@ -130,11 +130,45 @@ def nav(active: str) -> str:
 DOWNLOAD_ICON = '<i data-lucide="download" width="12" height="12" class="inline align-middle"></i>'
 
 
+ISLAND_JS = """import {LitElement, html} from 'https://cdn.jsdelivr.net/npm/lit@3.3.3/+esm';
+class UsesBadge extends LitElement {
+  static properties = { uses: { type: Number } };
+  createRenderRoot() { return this; }
+  constructor() {
+    super();
+    this.uses = parseInt(this.getAttribute('start') || '0', 10);
+  }
+  connectedCallback() {
+    super.connectedCallback();
+    this._timer = setInterval(() => { if (!document.hidden) this._load(); }, 60000);
+  }
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    clearInterval(this._timer);
+  }
+  async _load() {
+    try {
+      const r = await fetch('/api/stats');
+      if (!r.ok) return;
+      const j = await r.json();
+      const t = (j.stats && j.stats.routes) || {};
+      this.uses = (t['/board.json'] || 0) + (t['/api/skills'] || 0) + (t['/api/skill/:id'] || 0);
+    } catch (e) { /* stay on last count */ }
+  }
+  updated() { if (window.lucide) window.lucide.createIcons(); }
+  firstUpdated() { const f = this.querySelector('[data-fallback]'); if (f) f.remove(); }
+  render() {
+    return html`<a href="/#agent" class="font-mono text-xs bg-accent text-white rounded-full px-2.5 py-0.5 no-underline whitespace-nowrap">${this.uses} <i data-lucide="download" width="12" height="12" class="inline align-middle"></i></a>`;
+  }
+}
+customElements.define('uses-badge', UsesBadge);"""
+
+
 def float_pills() -> str:
     uses = library_uses()
     return (
         '<div class="mx-auto w-full max-w-[1060px] px-4 pt-3 flex items-center">'
-        f'<a href="/#agent" class="font-mono text-xs bg-accent text-white rounded-full px-2.5 py-0.5 no-underline whitespace-nowrap">{uses} {DOWNLOAD_ICON}</a>'
+        f'<uses-badge start="{uses}"><span data-fallback><a href="/#agent" class="font-mono text-xs bg-accent text-white rounded-full px-2.5 py-0.5 no-underline whitespace-nowrap">{uses} {DOWNLOAD_ICON}</a></span></uses-badge>'
         '<a href="/#support" data-open-support class="font-mono text-xs border border-solid border-accent text-accent rounded-full px-2.5 py-0.5 no-underline ml-auto">support us</a>'
         "</div>"
     )
@@ -165,7 +199,7 @@ def page(title: str, desc: str, active: str, body: str, machine: str | None = No
         + TAILWIND_HEAD
         + "</head>\n"
         '<body class="m-0 text-ink bg-paper font-sans">' + nav(active) + float_pills() + '\n<main class="max-w-[1060px] mx-auto px-7 pt-9 pb-[60px] text-left">' + body + "</main>\n"
-        + FOOTER + SUPPORT_DIALOG + "\n<script>" + CLIENT + "</script>\n" + tag + "</body></html>"
+        + FOOTER + SUPPORT_DIALOG + "\n<script>" + CLIENT + "</script>\n" + '<script type="module">' + ISLAND_JS + "</script>\n" + tag + "</body></html>"
     )
 
 
@@ -215,18 +249,18 @@ UI_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">UI g
 <li>Never trust a headless screenshot alone. Headless renders can lie — missing styles, shifted layout — while a real browser shows the truth. Use headless for a quick first look only; proof is a real browser, or the user's own screenshot. When the two disagree, believe the user's screen and stop editing until you know what it actually shows.</li></ul></div>
 </section>
 <section class="mt-4 bg-wash border border-solid border-line rounded-[10px] p-[18px] space-y-3"><h2 class="font-display text-[22px] mb-3">Client state — for hands, not data</h2>
-<p>Typing, dragging, and drawing are faster than any round trip, so they live in the browser: a small isolated interactive region — called an "island" — holds the work-in-progress. Alpine.js (a tiny JavaScript helper loaded from the web, not part of FastAPI) or focused vanilla JavaScript runs it. Alpine wins over React, Vue, or Lit here for two reasons: it needs no install and no build step — one script tag — and its instructions live as attributes in the same HTML the agent already reads, so there is no second language or file to context-switch into. But the server still owns the shared truth. The rule: never keep the same fact in both places without an expiry — sync back on natural pauses (debounced save), and the server re-checks everything it receives, because browser state is never trusted.</p>
+<p>Typing, dragging, and drawing are faster than any round trip, so they live in the browser: a small isolated interactive region — called an "island" — holds the work-in-progress. Islands are Lit custom elements from the start, loaded from the pinned Lit CDN module with no build step. Most sites are apps now, so one way beats two: no Alpine-first ladder to climb. But the server still owns the shared truth. The rule: never keep the same fact in both places without an expiry — sync back on natural pauses (debounced save), and the server re-checks everything it receives, because browser state is never trusted.</p>
 <ul class="text-left space-y-2 list-disc pl-5">
 <li><strong>Browser holds:</strong> keystrokes, drag positions, drawing strokes, open tabs, form drafts — anything hands are doing right now, plus prefs and anything that must work offline.</li>
 <li><strong>Server holds:</strong> everything shared, saved, or shown to anyone else. When in doubt, the server wins.</li>
 <li><strong>No global store by default.</strong> A Pinia/Zustand-style store is a second copy of the truth that needs syncing and goes stale. Small local islands don't have that problem because they own nothing shared.</li>
-<li><strong>Graduating an island.</strong> This is rare — roughly one feature in twenty — and you will smell it: the island passes 150 lines, or two islands need to share state with each other. Graduate to <strong>Lit</strong>: standard web components over a CDN import map, still no build step, and it lives beside HTMX and Alpine instead of replacing them.</li>
-<li><strong>App, not website? Start with Lit.</strong> The ladder is for pages with app-like moments. If the product itself is an app — an editor, a dashboard, a drawing tool — skip the ladder: build Lit islands (or Lit throughout) from day one, with the same FastAPI server behind them.</li></ul></section>
+<li><strong>When an island earns its place.</strong> Most pages need none — server HTML is cheaper to write and cheaper for agents to read. Build one when the region must respond faster than a round trip: typing, dragging, live numbers, offline drafts. Our own usage badge is one: it re-reads the stats every minute without a reload.</li>
+<li><strong>Light DOM, always.</strong> Our islands render into the light DOM (never shadow), so Tailwind utilities and Lucide icons keep working inside them with no shadow styling to fight. HTMX never targets an island or anything inside one — Lit owns its element's children.</li></ul></section>
 <section class="mt-4 bg-wash border border-solid border-line rounded-[10px] p-[18px] space-y-3"><h2 class="font-display text-[22px] mb-3">Mobile track — one language to both app stores</h2>
 <p>For app-like mobile builds, the token-densest path is <strong>FastAPI + HTMX + Tailwind, wrapped with Capacitor</strong>. One language (Python) serves logic and layout; almost no JavaScript is written; no Swift, Kotlin, or Dart is touched. Honest version of the pitch: HTMX doesn't delete data-fetching tokens, it moves them — fragments over JSON means no client state to synchronize, and that's where the savings actually come from. Tailwind's edge is correctness speed (models know it cold), not byte count — long class strings cost tokens per element, so keep components small.</p>
 <div class="grid gap-4 my-6 md:grid-cols-3 text-left">
 <div class="space-y-2"><h3 class="text-[19px] font-bold">FastAPI serves HTML</h3><p>Routes return fragments, not JSON. No fetch calls, no serializers, no client router drifting out of sync.</p></div>
-<div class="space-y-2"><h3 class="text-[19px] font-bold">HTMX for interactivity</h3><p><code class="font-mono text-[13px]">hx-get="/profile" hx-target="#content"</code> gives SPA behavior in one attribute. No React, no Vue, no state store. Boundary rule: HTMX swaps page-level regions; a Lit component owns everything inside its shadow DOM — never aim <code class="font-mono text-[13px]">hx-target</code> across it.</p></div>
+<div class="space-y-2"><h3 class="text-[19px] font-bold">HTMX for interactivity</h3><p><code class="font-mono text-[13px]">hx-get="/profile" hx-target="#content"</code> gives SPA behavior in one attribute. No React, no Vue, no state store. Boundary rule: HTMX swaps page-level regions; Lit owns its element's children — never aim <code class="font-mono text-[13px]">hx-target</code> at or into an island.</p></div>
 <div class="space-y-2"><h3 class="text-[19px] font-bold">Tailwind + Capacitor</h3><p>Responsive layout inline (<code class="font-mono text-[13px]">flex md:flex-row flex-col</code>), no stylesheet context-switching. Capacitor wraps the finished mobile viewport into iOS/Android shells; native features via plugins.</p></div>
 </div>
 <pre class="bg-white border border-solid border-line rounded-lg p-3 overflow-auto text-left font-mono text-[13px]">&lt;div id="content"&gt;
@@ -253,7 +287,7 @@ CODE_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">Co
 <li><strong>Auth — sessions, OAuth, and passwords done once, rightly.</strong> Logins use signed cookies (built into Starlette — one secret key, no extra package). "Sign in with Google" uses <code class="font-mono text-[13px]">authlib</code>. Services talking to each other use JWTs via <code class="font-mono text-[13px]">pyjwt</code>. Passwords are checked with bcrypt via <code class="font-mono text-[13px]">passlib</code> — never write your own password check, because a wrong one fails silently and an agent will not notice.</li>
 <li><strong>Background work — not inside the request.</strong> A web request should answer fast and finish. Fire-and-forget jobs (welcome emails) go in FastAPI <code class="font-mono text-[13px]">BackgroundTasks</code>. Real queues and schedules (video processing, nightly reports) go in a job runner like <code class="font-mono text-[13px]">arq</code>. The user never waits for work they cannot see.</li>
 <li><strong>Migrations — not create-all.</strong> Databases change shape over time. <code class="font-mono text-[13px]">Alembic</code> applies each change as a small step, forward and back. Never use <code class="font-mono text-[13px]">create_all</code> on a live database — it rebuilds tables from scratch and real data disappears on redeploy.</li>
-<li><strong>Lit — when the product is an app, not a website.</strong> Most builds today are apps. If yours is — an editor, a dashboard, a drawing tool — skip the HTML-first ladder and start with Lit islands or Lit throughout, over a CDN import map with no build step. Same FastAPI server behind them either way.</li>
+<li><strong>Lit — for pieces you build yourself, not pieces you borrow.</strong> Most builds today are apps. If yours is — an editor, a dashboard, a drawing tool — skip the HTML-first ladder and start with Lit islands or Lit throughout, over a CDN import map with no build step. Same FastAPI server behind them either way. Know what Lit is not: it gives you the machinery to build components, but ships zero ready-made ones — no menu, no dialog, no dropdown. Keep Flowbite for ready-made pieces; never rebuild one in Lit just to own it. If a Lit island itself needs ready-made pieces, use WebAwesome (Shoelace) over CDN — same no-build pattern, not a second design system to invent. And never React or Angular: they need a build step, ship heavy JavaScript, and cost tokens on every read — the opposite of this stack.</li>
 <li><strong>Tailwind — not hand-written CSS.</strong> Never write stylesheets by hand. Hand-written CSS costs tokens twice: once to write, and again for every agent that must read it. Style with Tailwind utilities on top of three color tokens; keep preflight off so base styles survive. Styling is the framework's job, not yours.</li>
 <li><strong>Capacitor — not React Native, Flutter, or native code.</strong> Those are whole new languages and systems the agent must learn, and native apps need Swift or Kotlin. Capacitor takes the mobile web page you already built and wraps it for both app stores, and ready-made plugins cover the common phone features (camera, location, push messages, files). The caveat: if you need a phone feature with no ready-made plugin, you write one small bridge piece — not a whole native app. A few things still need real native code: games and heavy graphics, home-screen widgets and Live Activities, watch apps, music apps where sound delay matters, and brand-new phone features with no plugin yet. Typical business and content apps never touch these.</li>
 <li><strong>Framework first, hand-written last.</strong> If the stack already solves it — layout, icons, menus, validation — use the stack's piece, never your own version. We lost days rebuilding a mobile menu by hand; the library version worked the first time. Hand-write only what no framework covers, like a single HTTP header.</li></ul></details>

@@ -93,7 +93,8 @@ try:
     assert "ui-details" in html and "Collapsible card stacks" in html, "board lists skills"
     assert "data-copy-skill" in html, "board has copy buttons"
     assert 'id="q"' not in html and "data-track" not in html, "no filter machinery"
-    assert "/llms.txt" not in html and "/api/stats" not in html, "no machine links on human pages"
+    visible = re.sub(r"<script.*?</script>", "", html, flags=re.S)
+    assert "/llms.txt" not in visible and "/api/stats" not in visible, "no machine links on human pages"
     status, _, _ = get("/", {"User-Agent": "Mozilla/5.0 (compatible; GPTBot/1.1)"})
     assert status == 200, "crawlers can fetch pages"
     status, _, body = get("/robots.txt")
@@ -123,6 +124,14 @@ try:
     assert status == 200 and "Flowbite" in body.decode(), "guide names Flowbite for components"
     status, _, body = get("/code")
     assert status == 200 and "Framework first" in body.decode(), "guide states framework-first rule"
+    status, _, body = get("/api/skill/ui-lit?fields=prompt")
+    lit = json.loads(body)["skill"]
+    assert "Flowbite" in lit["prompt"] and "React" in lit["prompt"], "ui-lit keeps Flowbite pieces, rules out heavy frameworks"
+    assert "WebAwesome" in lit["prompt"], "ui-lit names WebAwesome for island pieces"
+    status, _, body = get("/board")
+    board = body.decode()
+    assert "<uses-badge" in board, "usage badge is a Lit island"
+    assert "lit@3.3.3" in board and 'type="module"' in board, "Lit island pinned and wired"
     assert 'data-lucide="download"' in home, "badge uses Lucide icon"
     assert "createIcons" in home and "lucide@1.69.0" in home, "Lucide pinned and initialized"
     print("PASS: open endpoints + usage stats + board")
