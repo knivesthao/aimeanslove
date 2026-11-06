@@ -72,3 +72,8 @@ npx wrangler deploy
 - **Donations** — the support dialog says "not open yet" on purpose. When a
   platform is picked (Ko-fi, Open Collective, GitHub Sponsors), it lands behind
   the existing `support us` button with no other changes.
+- **DevSecOps** — security checks inside the deploy pipeline so the bank's
+  rules enforce themselves: secret scanning, dependency audit on every push,
+  tests gating deploys, signed artifacts. Future skills (`code-pipeline` and
+  friends) when the pipeline earns them; the `verify-tests` gate in CI comes
+  first.
