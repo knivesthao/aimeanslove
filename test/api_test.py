@@ -102,6 +102,12 @@ try:
         for s in bank if s["id"] not in ("code-index", "ui-index", "ui-widgets", "saas-index", "data-index", "ops-index", "sec-index")
     ), "every skill reachable by walking the index tree"
     assert "house rule beats the skill" in index_map, "stack skills defer to existing codebases"
+    assert "regulated data" in index_map, "bank index routes regulated data to sec-index"
+    status, _, body = get("/api/skill/sec-compliance?fields=prompt")
+    compliance = json.loads(body)["skill"]["prompt"]
+    assert "HIPAA" in compliance and "code-auditlog" in compliance, "compliance names HIPAA and routes to the audit trail"
+    status, _, body = get("/api/skill/code-auditlog?fields=prompt")
+    assert "whether or not HIPAA applies" in json.loads(body)["skill"]["prompt"], "audit trail states its non-HIPAA trigger"
     status, _, body = get("/")
     assert status == 200 and 'id="menubtn"' in body.decode(), "mobile hamburger present"
     status, _, _ = get("/skills.json")
