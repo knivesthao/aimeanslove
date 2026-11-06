@@ -130,6 +130,7 @@ try:
     assert "mixed tasks match more than one line" in index_map, "bank index splits mixed UI-plus-API tasks"
     assert "Step zero" in index_map, "bank index detects the stack before matching"
     assert "verify-layout for layout" in index_map, "bank index routes layout proof"
+    assert "Two or more agents sharing" in index_map, "bank index routes multi-agent work to ops"
     assert "per-track" in plan, "plan splits mixed jobs by track"
     assert "never the procedure text" in area_maps["ops-index"], "ops keeps humans on dashboards"
     assert "never the runbook text" in area_maps["sec-index"], "sec keeps humans on finding counts"
