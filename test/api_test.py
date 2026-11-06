@@ -121,6 +121,7 @@ try:
     assert "maps don't count" in plan, "plan excludes maps and always-on from the count"
     assert "only matched leaves count" in plan, "plan states crossing maps is free"
     assert "Three or more matched skills → code-plan first" in index_map, "bank index routes by skill count"
+    assert "in one batched request" in index_map and "never fetch the same skill twice" in index_map, "bank index states fetch-once protocol"
     status, _, body = get("/api/skills?fields=id,prompt")
     bank_ids = [s["id"] for s in json.loads(body)["skills"]]
     prompts = {s["id"]: s["prompt"] for s in json.loads(body)["skills"]}
