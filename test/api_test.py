@@ -123,6 +123,9 @@ try:
     assert "only matched leaves count" in plan, "plan states crossing maps is free"
     assert "Three or more matched skills → code-plan first" in index_map, "bank index routes by skill count"
     assert "Work that outlives the request" in index_map, "bank index routes async handoff"
+    assert "parallel fan-out" in index_map, "bank index matches literal parallel triggers"
+    status, _, body = get("/api/skill/code-perf?fields=prompt")
+    assert "code-async" in json.loads(body)["skill"]["prompt"], "perf hands off to async by name"
     assert "in one batched request" in index_map and "never fetch the same skill twice" in index_map, "bank index states fetch-once protocol"
     assert "mixed tasks match more than one line" in index_map, "bank index splits mixed UI-plus-API tasks"
     assert "Step zero" in index_map, "bank index detects the stack before matching"
