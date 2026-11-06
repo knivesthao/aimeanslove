@@ -3,9 +3,9 @@
     "id": "code-index",
     "track": "code",
     "title": "Start here: task first, stack second",
-    "tokens": "~560",
+    "tokens": "~540",
     "why": "One tiny map keeps every other skill small: the agent reads hundreds of tokens, not thousands.",
-    "prompt": "Create and install a skill named `code-index` (Start here: pick skills by task). It instructs the agent as follows: Your installed skills each do one job — never read them all. Work in two passes. Pass 1 — task first. Three skills apply to almost every task, so always read these: code-secure, code-reuse, code-token. Then match the task and read only the matched skills: Interface, screen, or component work → ui-index. New service or script → code-language, code-shape. Organizing a new codebase → code-group. Services in other languages → code-boundaries. Public API, forms, beacons → code-ratelimit. Repeat traffic → code-cache. Usage counts → code-track. Slow endpoint or heavy page → code-perf. Traffic spikes, shedding features → code-fallback. Login, accounts, permissions → code-auth. Security deep-dives, read on match: code-crypto, code-injection, code-design, code-misconfig, code-deps, code-integrity, code-logging, code-ssrf. Pass 2 — stack specifics. After the task match, apply the stack the codebase already uses: language → code-language (Python first on new code; if the project already uses another language, skip this skill or overwrite it with that stack). Interface framework → ui-index (house default Lit via ui-framework; React → ui-framework-react index; Angular → ui-framework-angular). Styling → ui-tokens (unless the project already has a design system — then skip it). Mobile platform → ui-mobile (Capacitor shell unless native is technically required). Service-to-service → code-boundaries (same-language HTTP, other languages gRPC, events validated). These stack picks assume a new codebase: if the project already uses something else — another language, framework, tokens, or platform — follow that instead. The house rule beats the skill. Skip everything else. When building is done → verify-tests, and verify-visual for anything with a screen. Long or multi-skill task → code-plan first. Missing a skill? Copy its prompt from the skills page once, install it, then use it locally. This follows progressive disclosure, the Agent Skills model — map first, details on demand: https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills",
+    "prompt": "Create and install a skill named `code-index` (Start here: pick skills by task). It instructs the agent as follows: Your installed skills each do one job — never read them all. Work in two passes. Pass 1 — task first. Three skills apply to almost every task, so always read these: code-secure, code-reuse, code-token. Then match the task and read only the matched skills: Interface, screen, or component work → ui-index. New service or script → code-language, code-shape. Organizing a new codebase → code-group. Services in other languages → code-boundaries. Public API, forms, beacons → code-ratelimit. Repeat traffic → code-cache. Usage counts → code-track. Slow endpoint or heavy page → code-perf. Traffic spikes, shedding features → code-fallback. Login, accounts, permissions → code-auth. Security deep-dives, read on match: code-crypto, code-injection, code-design, code-misconfig, code-deps, code-integrity, code-logging, code-ssrf. Pass 2 — stack specifics. After the task match, apply the stack the codebase already uses: language → code-language (Python first on new code; if the project already uses another language, skip this skill or overwrite it with that stack). Interface framework → ui-index (house default Lit via ui-framework; React → ui-framework-react index; Angular → ui-framework-angular). Styling → ui-tokens (unless the project already has a design system — then skip it). Mobile platform → ui-mobile (Capacitor shell unless native is technically required). Service-to-service → code-boundaries (same-language HTTP, other languages gRPC, events validated). These stack picks assume a new codebase: if the project already uses something else — another language, framework, tokens, or platform — follow that instead. The house rule beats the skill. Skip everything else. When building is done → verify-tests, and verify-visual for anything with a screen. Long or multi-skill task → code-plan first. Missing a skill? Copy its prompt from the skills page once, install it, then use it locally. This follows progressive disclosure — map first, details on demand.",
     "checks": ["only matched skills are read", "always-on skills never skipped", "whole bank never copied at once"]
   },
   {
@@ -309,36 +309,36 @@
     "id": "ui-react-components",
     "track": "ui",
     "title": "React components that stay small",
-    "tokens": "~220",
-    "why": "Small components with one job are cheap to generate and safe to reuse.",
-    "prompt": "Create and install a skill named `ui-react-components` (React components that stay small). It instructs the agent as follows: Build small components — one job each, props typed, composition over deep prop drilling (children and slots over five layers of props). State lives with the UI that uses it; lift only what two siblings truly share. Every list gets a stable key from the data, never the array index. No manual DOM writes — refs are the escape hatch, not the tool. Style with className plus your pipeline's CSS; keep ready-made pieces from a stocked library instead of hand-built dropdowns and dialogs. Apply the generic component rules too (see ui-framework).",
-    "checks": ["one job per component, props typed", "lists use stable data keys", "no manual DOM writes"]
+    "tokens": "~120",
+    "why": "Two concrete thresholds — drill depth and lift distance — that stop prop soup.",
+    "prompt": "Create and install a skill named `ui-react-components` (React components that stay small). It instructs the agent as follows: Build small components with typed props; compose with children and slots instead of drilling props past two layers. State lives with the UI that uses it; lift only what two siblings truly share.",
+    "checks": ["props drilled at most two layers deep", "shared state lifted, the rest colocated"]
   },
   {
     "id": "ui-react-hooks",
     "track": "ui",
     "title": "React hooks without tangles",
-    "tokens": "~210",
-    "why": "Most React bugs are effects that run too often and state that lives too far away.",
-    "prompt": "Create and install a skill named `ui-react-hooks` (React hooks without tangles). It instructs the agent as follows: Follow the rules of hooks — same order every render, never in loops, conditions, or nested functions. Keep state colocated with the UI that uses it; lift only shared state. Keep effects small and few: fetch or subscribe in the effect, clean up in its return, list every used value in deps. Reach for useMemo and useCallback only after a measured slowdown, not by default. Pull repeated state plus effects into one custom hook with a plain name (useCart, useFetch) so the next agent finds it.",
-    "checks": ["hooks top-level only, deps complete", "state colocated, shared logic in custom hooks", "no memo by default, measure first"]
+    "tokens": "~140",
+    "why": "Effects with cleanup, memo only on proof, and custom hooks named so the next agent finds them.",
+    "prompt": "Create and install a skill named `ui-react-hooks` (React hooks without tangles). It instructs the agent as follows: Keep effects small and few: fetch or subscribe in the effect, clean up in its return. Reach for useMemo and useCallback only after a measured slowdown, not by default. Pull repeated state plus effects into one custom hook with a plain name (useCart, useFetch) so the next agent finds it.",
+    "checks": ["effects small with cleanup", "shared logic in named custom hooks", "no memo by default, measure first"]
   },
   {
     "id": "ui-react-server",
     "track": "ui",
     "title": "React server-first with Next.js",
-    "tokens": "~230",
+    "tokens": "~210",
     "why": "Server components move fetching off the phone — one directive decides where code runs.",
-    "prompt": "Create and install a skill named `ui-react-server` (React server-first with Next.js). It instructs the agent as follows: Where the setup allows (Next.js App Router), fetch and render on the server by default: async server components own the data, props carry only serializable results to the client. Mark only interactive files with 'use client' — typing, dragging, live state — and keep server secrets out of them. Give each route loading.tsx and error.tsx so waiting and failure are designed states, not blank screens. Plain client-only React can't do server-first — same component rules, no server. Apply the generic component rules too (see ui-framework).",
+    "prompt": "Create and install a skill named `ui-react-server` (React server-first with Next.js). It instructs the agent as follows: Where the setup allows (Next.js App Router), fetch and render on the server by default: async server components own the data, props carry only serializable results to the client. Mark only interactive files with 'use client' — typing, dragging, live state — and keep server secrets out of them. Give each route loading.tsx and error.tsx so waiting and failure are designed states, not blank screens. Plain client-only React can't do server-first — same component rules, no server.",
     "checks": ["data fetched on the server where allowed", "'use client' only where interactive", "loading and error states designed"]
   },
   {
     "id": "ui-react-perf",
     "track": "ui",
     "title": "React fast lists and renders",
-    "tokens": "~210",
-    "why": "React feels slow in exactly two places: renders that repeat and lists that grow.",
-    "prompt": "Create and install a skill named `ui-react-perf` (React fast lists and renders). It instructs the agent as follows: Measure first, memo second: wrap only the component the profiler blames with React.memo, never everything. Split below-fold and heavy regions with React.lazy plus Suspense fallback so the first screen stays small. Virtualize lists past a few dozen rows instead of rendering thousands of nodes. Keep keys stable so rows update instead of remounting; paginate fetches and join them to indexed reads so N+1 requests never reach the client. Re-measure after every change.",
+    "tokens": "~120",
+    "why": "Two thresholds — memo only the blamed component, virtualize past a few dozen rows.",
+    "prompt": "Create and install a skill named `ui-react-perf` (React fast lists and renders). It instructs the agent as follows: Wrap only the component the profiler blames with React.memo, never everything. Split below-fold and heavy regions with React.lazy plus Suspense fallback. Virtualize lists past a few dozen rows. Paginate fetches so N+1 requests never reach the client.",
     "checks": ["memo only where profiler points", "heavy regions lazy with Suspense fallback", "long lists virtualized and paginated"]
   },
   {
