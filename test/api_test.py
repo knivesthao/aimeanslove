@@ -123,12 +123,20 @@ try:
     assert "Three or more matched skills → code-plan first" in index_map, "bank index routes by skill count"
     assert "in one batched request" in index_map and "never fetch the same skill twice" in index_map, "bank index states fetch-once protocol"
     assert "mixed tasks match more than one line" in index_map, "bank index splits mixed UI-plus-API tasks"
+    assert "Step zero" in index_map, "bank index detects the stack before matching"
     assert "verify-layout for layout" in index_map, "bank index routes layout proof"
+    assert "per-track" in plan, "plan splits mixed jobs by track"
     assert "never the procedure text" in area_maps["ops-index"], "ops keeps humans on dashboards"
     assert "never the runbook text" in area_maps["sec-index"], "sec keeps humans on finding counts"
     status, _, body = get("/api/skill/verify-layout?fields=prompt")
     layout = json.loads(body)["skill"]["prompt"]
-    assert "bounding box" in layout and "scroll width fits" in layout, "layout proof measures, never eyeballs alone"
+    assert "1.4.10" in layout, "layout proof cites the WCAG Reflow rulebook"
+    assert "bounding box" in layout, "layout proof measures, never eyeballs alone"
+    assert "overrules the skill" in layout, "user taste overrules the skill"
+    status, _, body = get("/api/skill/ops-observe?fields=prompt")
+    assert "trigger event" in json.loads(body)["skill"]["prompt"], "alerts double as machine triggers"
+    status, _, body = get("/api/skill/ops-pipeline?fields=prompt")
+    assert "trigger events" in json.loads(body)["skill"]["prompt"], "deploys broadcast machine triggers"
     status, _, body = get("/api/skill/ui-seo?fields=prompt")
     assert "noindex" in json.loads(body)["skill"]["prompt"], "paid pages stay out of crawlers"
     status, _, body = get("/api/skills?fields=id,prompt")
