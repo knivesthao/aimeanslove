@@ -96,7 +96,7 @@ def etagged(request: Request, obj: dict) -> Response:
     return JSONResponse(content=obj, headers={"etag": tag, "cache-control": "public, max-age=60"})
 
 
-NAV_LINKS = [("/code", "Coding guide"), ("/ui", "UI guide"), ("/board", "Board")]
+NAV_LINKS = [("/code", "Coding guide"), ("/ui", "UI guide"), ("/board", "Board"), ("/about", "About")]
 
 
 def nav_link(href: str, label: str, active: str) -> str:
@@ -185,8 +185,8 @@ SUPPORT_DIALOG = """<dialog id="support-dialog" class="rounded-[10px] border bor
 
 FOOTER = (
     '<footer class="border-t border-solid border-line px-7 py-[18px] flex justify-center gap-x-6 gap-y-3 flex-wrap text-[13px] text-muted text-center">'
-    "<span>ai (愛) means love</span>"
-    '<span class="font-mono">humans verify · agents build</span>'
+    '<a href="/about" class="text-accent underline">about</a>'
+    '<a href="/#contact" data-open-contact class="text-accent underline">contact us</a>'
     "</footer>"
 )
 
@@ -323,6 +323,14 @@ BOARD_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">S
 
 MISSING_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">Nothing here.</h1><p><a href="/" class="text-accent underline">Back home</a> · <a href="/board" class="text-accent underline">Board</a></p></header>"""
 
+ABOUT_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">About me</h1>
+<p class="max-w-[62ch] mx-auto">Hi, I'm Thao. I live in Southeast Asia and I build things for the web.</p></header>
+<section class="mt-4 bg-white border border-solid border-line rounded-[10px] p-[18px] space-y-3">
+<p class="m-0">I started ai (&#24859;) means love for one simple reason: the old way of writing code was for humans to read. Now agents write most of the code, so code should be easy for agents to read instead. Humans only need to judge two things — do the tests pass, and does it look right.</p>
+<p class="m-0">Everything here is free and open. If a skill saves your agent tokens, use it. If something breaks or you have an idea, reach me through the <a href="/#contact" data-open-contact class="text-accent underline">contact us</a> button — I read every message.</p>
+<p class="m-0">The code lives on <a href="https://github.com/knivesthao/aimeanslove" class="text-accent underline">GitHub</a>.</p>
+</section>"""
+
 
 def llms() -> str:
     lines = [
@@ -334,6 +342,7 @@ def llms() -> str:
         "- /ui ....... UI styling + behavior guide",
         "- /code ..... coding guide (Python first, guardrail frameworks)",
         "- /board .... memory bank (all skills, copyable)",
+        "- /about .... who runs this and why",
         "",
         "## Machine endpoints (open, no key — free forever)",
         "- GET /api/skills[?track=ui|code|verify&fields=id,prompt,checks]",
@@ -371,6 +380,12 @@ def ui_guide() -> str:
 def code_guide() -> str:
     hit("/code")
     return page("Coding guide", "Write Python because agents generate it fastest; lean on FastAPI, SQLModel, and Typer as guardrails.", "/code", CODE_BODY)
+
+
+@app.get("/about", response_class=HTMLResponse)
+def about() -> str:
+    hit("/about")
+    return page("About me", "Who runs ai (愛) means love and why it exists.", "/about", ABOUT_BODY)
 
 
 @app.get("/board", response_class=HTMLResponse)
