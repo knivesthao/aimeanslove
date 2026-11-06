@@ -3,9 +3,9 @@
     "id": "code-index",
     "track": "code",
     "title": "Start here: pick skills by task",
-    "tokens": "~460",
+    "tokens": "~480",
     "why": "One tiny map keeps every other skill small: the agent reads hundreds of tokens, not thousands.",
-    "prompt": "Create and install a skill named `code-index` (Start here: pick skills by task). It instructs the agent as follows: Your installed skills each do one job — never read them all. Three skills apply to almost every task, so always read these: code-secure, code-reuse, code-token. Then match the task and read only the matched skills: new screen or page → ui-shell, ui-tokens, ui-seo. New interactive piece (typing, dragging, live numbers) → ui-framework as well. Mobile app build → ui-mobile. New service or script → code-language, code-shape. Organizing a new codebase → code-group. Services in other languages → code-boundaries. Public API, forms, beacons → code-ratelimit. Repeat traffic → code-cache. Usage counts → code-track. Slow endpoint or heavy page → code-perf. Login, accounts, permissions → code-auth. Security deep-dives, read on match: code-crypto, code-injection, code-design, code-misconfig, code-deps, code-integrity, code-logging, code-ssrf. Page behavior and states → ui-behavior. Headers and navigation → ui-nav. These stack picks assume a new codebase: if the project already uses something else — another language, framework, or tokens — follow that instead. The house rule beats the skill. Skip everything else. When building is done → verify-tests, and verify-visual for anything with a screen. Missing a skill? Copy its prompt from the board once, install it, then use it locally. This follows progressive disclosure, the Agent Skills model — map first, details on demand: https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills",
+    "prompt": "Create and install a skill named `code-index` (Start here: pick skills by task). It instructs the agent as follows: Your installed skills each do one job — never read them all. Three skills apply to almost every task, so always read these: code-secure, code-reuse, code-token. Then match the task and read only the matched skills: new screen or page → ui-shell, ui-tokens, ui-seo. New interactive piece (typing, dragging, live numbers) → ui-framework as well. Mobile app build → ui-mobile. New service or script → code-language, code-shape. Organizing a new codebase → code-group. Services in other languages → code-boundaries. Public API, forms, beacons → code-ratelimit. Repeat traffic → code-cache. Usage counts → code-track. Slow endpoint or heavy page → code-perf. Traffic spikes, shedding features → code-fallback. Login, accounts, permissions → code-auth. Security deep-dives, read on match: code-crypto, code-injection, code-design, code-misconfig, code-deps, code-integrity, code-logging, code-ssrf. Page behavior and states → ui-behavior. Headers and navigation → ui-nav. Form inputs, dropdowns, menus → ui-forms. These stack picks assume a new codebase: if the project already uses something else — another language, framework, or tokens — follow that instead. The house rule beats the skill. Skip everything else. When building is done → verify-tests, and verify-visual for anything with a screen. Missing a skill? Copy its prompt from the board once, install it, then use it locally. This follows progressive disclosure, the Agent Skills model — map first, details on demand: https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills",
     "checks": ["only matched skills are read", "always-on skills never skipped", "whole bank never copied at once"]
   },
   {
@@ -156,9 +156,9 @@
     "id": "ui-tokens",
     "track": "ui",
     "title": "Tokens + Tailwind",
-    "tokens": "~240",
+    "tokens": "~280",
     "why": "Fixing palette and spacing to tokens removes an entire category of per-element decisions.",
-    "prompt": "Create and install a skill named `ui-tokens` (Tokens + Tailwind). It instructs the agent as follows: Style with Tailwind utilities for layout and spacing, on top of three color tokens (--ink, --paper, --accent) and a 4/8/16/32 scale. Keep preflight on as the consistent baseline — describe every margin, bullet, and underline explicitly, never rely on browser defaults. Two neutrals plus one accent, 1px borders, radii 6px/10px. Contrast >= 4.5:1 so the human eyeball verdict works.  If the project already uses a different design system, do not create this skill at all — skip it.",
+    "prompt": "Create and install a skill named `ui-tokens` (Tokens + Tailwind). It instructs the agent as follows: Style with Tailwind utilities for layout and spacing, on top of three color tokens (--ink, --paper, --accent) and a 4/8/16/32 scale. Keep preflight on as the consistent baseline — describe every margin, bullet, and underline explicitly, never rely on browser defaults. Two neutrals plus one accent, 1px borders, radii 6px/10px. Contrast >= 4.5:1 so the human eyeball verdict works. Color with meaning and measure: green confirms, red destroys or errors, blue informs — never subvert these. Hold roughly 60% neutral background, 30% structure and text, 10% high-contrast accent on interactive elements only.  If the project already uses a different design system, do not create this skill at all — skip it.",
     "checks": ["palette is 3 colors max", "no per-element color decisions", "contrast >= 4.5:1"]
   },
   {
@@ -268,5 +268,23 @@
     "why": "Users feel milliseconds and megabytes; everything else is invisible.",
     "prompt": "Create and install a skill named `code-perf` (Fast by budget). It instructs the agent as follows: Set a budget first: page weight, endpoint milliseconds, query count — then measure before changing anything. Cache first (see code-cache): repeated work should never recompute. Shrink the payload: paginate lists, select only needed columns, compress images, ship less JavaScript. Push heavy work out of the request into background jobs, and turn N+1 reads into single joined or batched reads on indexed columns. Re-measure after every change; speed you can't see is a guess.",
     "checks": ["budgets set before optimizing", "repeat work cached, not recomputed", "N+1 reads batched or joined"]
+  },
+  {
+    "id": "code-fallback",
+    "track": "code",
+    "title": "Shed load, keep serving",
+    "tokens": "~240",
+    "why": "Systems die when everything is equally critical; rank first, shed in order.",
+    "prompt": "Create and install a skill named `code-fallback` (Shed load, keep serving). It instructs the agent as follows: Rank every feature by criticality before trouble arrives: core serves, nice-to-haves shed first. Put each sheddable feature behind a flag so it turns off without a deploy. Under stress, serve stale cache, pause polling and beacons, and answer 429 with Retry-After on what's left — never crash the core to save the extras. Prove it with a stress test at multiples of peak load; an untested fallback is a wish. Group code by feature (see code-group) so a shed feature — or a future service split — follows existing seams instead of new surgery.",
+    "checks": ["features ranked by criticality", "shedding is flag-gated, not a deploy", "stress test proves the degraded mode"]
+  },
+  {
+    "id": "ui-forms",
+    "track": "ui",
+    "title": "Pick the right input",
+    "tokens": "~230",
+    "why": "Every extra click and scroll loses users; the right control asks nothing extra.",
+    "prompt": "Create and install a skill named `ui-forms` (Pick the right input). It instructs the agent as follows: For 2 to 4 options use radio buttons or segmented controls — everything visible, one click to answer. Use dropdowns only for 5 to 10 familiar options where space matters. Past 15 items use a combo box: a text input with live filtering so typing 2 or 3 characters isolates the target. For familiar data like birth years use plain numeric inputs, never long dropdown lists. Desktop hover menus wait 300 to 500 milliseconds before opening so passing cursors don't flicker them; prefer click-to-open menus.",
+    "checks": ["short lists use radio, not dropdowns", "15+ items get combo or text input", "hover menus carry 300-500ms delay"]
   }
 ]

@@ -78,7 +78,7 @@ try:
     assert os.path.exists(USAGE_FILE), "counts persisted"
     status, _, body = get("/api/skills?fields=id,why")
     bank = json.loads(body)["skills"]
-    assert len(bank) == 31 and all(s.get("why") for s in bank), "every skill explains why"
+    assert len(bank) == 32 and all(s.get("why") for s in bank), "every skill explains why"
     status, _, body = get("/api/skills?fields=id,prompt")
     for s in json.loads(body)["skills"]:
         local = ROOT / ".agents" / "skills" / s["id"] / "SKILL.md"
@@ -114,7 +114,7 @@ try:
     assert "code-index" in html and "progressive disclosure" in html, "index skill maps tasks to skills"
     assert "code-ssrf" in html and "code-crypto" in html, "OWASP set renders on board"
     assert all(g in html for g in ("Start here", "Always on", "Security deep-dives", "Verify", "Run well")), "board groups skills"
-    assert html.count("data-copy-skill=") == 31, "every skill renders exactly once"
+    assert html.count("data-copy-skill=") == 32, "every skill renders exactly once"
     assert "data-copy-skill" in html, "board has copy buttons"
     assert 'id="q"' not in html and "data-track" not in html, "no filter machinery"
     assert 'href="/about"' in html, "about linked from header and footer"
@@ -187,6 +187,9 @@ try:
     status, _, body = get("/ui")
     assert status == 200 and "Flowbite" in body.decode(), "guide names Flowbite for components"
     assert "60-30-10" in body.decode() and "Green confirms" in body.decode(), "guide teaches research-backed color rules"
+    assert "combo box" in body.decode() and "300–500ms" in body.decode(), "guide teaches research-backed component rules"
+    for m in re.finditer(r'<a href="(http[^"]*)"', body.decode()):
+        assert 'target="_blank" rel="noopener"' in body.decode()[m.start():m.start()+400], f"external link opens new tab: {m.group(1)}"
     status, _, body = get("/code")
     assert status == 200 and "Framework first" in body.decode(), "guide states framework-first rule"
     assert 'target="_blank" rel="noopener"' in body.decode(), "external links open a new tab"
