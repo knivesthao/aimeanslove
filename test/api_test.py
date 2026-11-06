@@ -108,6 +108,10 @@ try:
     assert "HIPAA" in compliance and "code-auditlog" in compliance, "compliance names HIPAA and routes to the audit trail"
     status, _, body = get("/api/skill/code-auditlog?fields=prompt")
     assert "whether or not HIPAA applies" in json.loads(body)["skill"]["prompt"], "audit trail states its non-HIPAA trigger"
+    assert "OWASP" in index_map, "bank index names the OWASP set"
+    assert "OWASP" in area_maps["sec-index"], "sec index points at OWASP deep-dives"
+    status, _, body = get("/api/skill/sec-waf?fields=prompt")
+    assert "code-injection" in json.loads(body)["skill"]["prompt"], "WAF rules reference injection payloads"
     status, _, body = get("/")
     assert status == 200 and 'id="menubtn"' in body.decode(), "mobile hamburger present"
     status, _, _ = get("/skills.json")
