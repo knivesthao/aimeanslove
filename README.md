@@ -62,3 +62,13 @@ Verify `resend.com/domains` for your sending domain if you move off the
 npx wrangler login
 npx wrangler deploy
 ```
+
+## Later (not now)
+
+- **Redis** — when the app outgrows one process, the rate-limit buckets and the
+  cache layer move to a shared store. Upstash has a free tier; the code is
+  already shaped for the swap (one interface, limits in config, no Redis in any
+  skill contract). Single instance until then.
+- **Donations** — the support dialog says "not open yet" on purpose. When a
+  platform is picked (Ko-fi, Open Collective, GitHub Sponsors), it lands behind
+  the existing `support us` button with no other changes.
