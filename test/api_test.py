@@ -82,6 +82,7 @@ try:
     status, _, body = get("/api/skill/code-index?fields=prompt")
     index_map = json.loads(body)["skill"]["prompt"]
     assert all(s["id"] in index_map for s in bank if s["id"] != "code-index"), "index maps every skill"
+    assert "house rule beats the skill" in index_map, "stack skills defer to existing codebases"
     status, _, body = get("/")
     assert status == 200 and 'id="menubtn"' in body.decode(), "mobile hamburger present"
     status, _, _ = get("/skills.json")
