@@ -78,7 +78,7 @@ try:
     assert os.path.exists(USAGE_FILE), "counts persisted"
     status, _, body = get("/api/skills?fields=id,why")
     bank = json.loads(body)["skills"]
-    assert len(bank) == 91 and all(s.get("why") for s in bank), "every skill explains why"
+    assert len(bank) == 92 and all(s.get("why") for s in bank), "every skill explains why"
     status, _, body = get("/api/skills?fields=id,prompt")
     for s in json.loads(body)["skills"]:
         local = ROOT / ".agents" / "skills" / s["id"] / "SKILL.md"
@@ -122,6 +122,7 @@ try:
     assert "maps don't count" in plan, "plan excludes maps and always-on from the count"
     assert "only matched leaves count" in plan, "plan states crossing maps is free"
     assert "Three or more matched skills → code-plan first" in index_map, "bank index routes by skill count"
+    assert "Work that outlives the request" in index_map, "bank index routes async handoff"
     assert "in one batched request" in index_map and "never fetch the same skill twice" in index_map, "bank index states fetch-once protocol"
     assert "mixed tasks match more than one line" in index_map, "bank index splits mixed UI-plus-API tasks"
     assert "Step zero" in index_map, "bank index detects the stack before matching"
@@ -197,9 +198,9 @@ try:
     assert "code-index" in html and "progressive disclosure" in html, "index skill maps tasks to skills"
     assert "code-ssrf" in html and "code-crypto" in html, "OWASP set renders on page"
     assert all(g in html for g in ("Start here", "Always on", "Security deep-dives", "Verify", "Run well")), "skills page groups skills"
-    assert html.count("data-copy-skill=") == 91, "every skill renders exactly once"
+    assert html.count("data-copy-skill=") == 92, "every skill renders exactly once"
     assert "data-copy-skill" in html, "page has copy buttons"
-    assert html.count("data-trim=") == 91, "every card trimmable"
+    assert html.count("data-trim=") == 92, "every card trimmable"
     assert "data-pack" in html and "copy install pack" in html, "trim pack builder present"
     assert "install only what matches" in html, "page pitches install-matched, not the playbook"
     assert 'id="q"' not in html and "data-track" not in html, "no filter machinery"
