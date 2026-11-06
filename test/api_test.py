@@ -118,6 +118,7 @@ try:
     assert "execute all unblocked steps together" in plan, "independents run in parallel"
     assert "in one batched request" in plan and "execution fetches nothing" in plan, "skills fetched once up front"
     assert "Three or more" in plan, "plan states its explicit skill-count trigger"
+    assert "last step is always cleanup" in plan, "plan ends with scratch cleanup"
     assert "maps don't count" in plan, "plan excludes maps and always-on from the count"
     assert "only matched leaves count" in plan, "plan states crossing maps is free"
     assert "Three or more matched skills → code-plan first" in index_map, "bank index routes by skill count"
