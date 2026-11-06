@@ -14,6 +14,17 @@ document.addEventListener("click", (e) => {
     dlg.close();
     return;
   }
+  const co = e.target.closest("[data-open-contact]");
+  if (co) {
+    e.preventDefault();
+    document.getElementById("contact-dialog")?.showModal();
+    return;
+  }
+  const cdlg = document.getElementById("contact-dialog");
+  if (cdlg && (e.target === cdlg || e.target.closest("[data-close-contact]"))) {
+    cdlg.close();
+    return;
+  }
   const c = e.target.closest("[data-copy]");
   if (c) {
     navigator.clipboard?.writeText(c.dataset.copy);

@@ -38,6 +38,24 @@ No keys. Everything is open and free; usage is counted at `/api/stats`.
 
 Token badges come from a test we ran on ourselves: `cl100k` tokenization over the exact JSON our own endpoints serve. Exact counts vary by model, so badges stay approximate (`~`).
 
+## Contact form (dialog + Resend)
+
+Every page has a `contact us` pill that opens a native `<dialog>` with the contact
+form. It posts to `POST /contact` (plain form post, no JS needed). The server
+validates `name` / `email` / `message`, drops bot posts via a `company`
+honeypot field, and sends the email through Resend.
+
+Setup (optional — without a key the form shows a "not set up yet" note instead
+of crashing):
+
+```bash
+export RESEND_API_KEY=re_...          # free tier is enough
+export CONTACT_TO=knives.thao@gmail.com  # default already
+```
+
+Verify `resend.com/domains` for your sending domain if you move off the
+`onboarding@resend.dev` test sender.
+
 ## Deploy (free)
 
 ```bash

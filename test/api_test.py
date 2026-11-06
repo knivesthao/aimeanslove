@@ -5,6 +5,7 @@ import re
 import subprocess
 import sys
 import time
+import urllib.parse
 import urllib.request
 from pathlib import Path
 
@@ -26,10 +27,20 @@ def get(path, headers=None):
         return e.code, dict(e.headers), e.read()
 
 
+def post(path, data):
+    body = urllib.parse.urlencode(data).encode()
+    req = urllib.request.Request(f"http://localhost:{PORT}{path}", data=body)
+    try:
+        with urllib.request.urlopen(req) as r:
+            return r.status, dict(r.headers), r.read()
+    except urllib.error.HTTPError as e:
+        return e.code, dict(e.headers), e.read()
+
+
 child = subprocess.Popen(
     [sys.executable, "server.py"],
     cwd=ROOT,
-    env={**os.environ, "PORT": PORT, "USAGE_FILE": USAGE_FILE},
+    env={**os.environ, "PORT": PORT, "USAGE_FILE": USAGE_FILE, "RESEND_API_KEY": ""},
     stdout=subprocess.DEVNULL,
 )
 try:
@@ -93,6 +104,16 @@ try:
     assert "ui-details" in html and "Collapsible card stacks" in html, "board lists skills"
     assert "data-copy-skill" in html, "board has copy buttons"
     assert 'id="q"' not in html and "data-track" not in html, "no filter machinery"
+    assert 'id="contact-dialog"' in html and "data-open-contact" in html, "contact lives in a dialog, not a page"
+    assert 'name="company"' in html, "contact dialog has honeypot"
+    status, _, _ = get("/contact")
+    assert status == 405, "GET /contact is POST-only, no page to render"
+    status, _, body = post("/contact", {"name": "A", "email": "not-an-email", "message": "hi"})
+    assert status == 400 and "valid email" in body.decode(), "bad email rejected with guidance"
+    status, _, body = post("/contact", {"name": "A", "email": "a@b.co", "message": "hi", "company": "bot"})
+    assert status == 200 and "on its way" in body.decode(), "honeypot gets silent thanks"
+    status, _, body = post("/contact", {"name": "A Tester", "email": "a@b.co", "message": "hello"})
+    assert status == 200 and "not set up yet" in body.decode(), "missing key fails gracefully, no crash"
     visible = re.sub(r"<script.*?</script>", "", html, flags=re.S)
     assert "/llms.txt" not in visible and "/api/stats" not in visible, "no machine links on human pages"
     status, _, _ = get("/", {"User-Agent": "Mozilla/5.0 (compatible; GPTBot/1.1)"})

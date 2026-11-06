@@ -8,6 +8,7 @@ import hashlib
 import html
 import json
 import os
+import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -170,6 +171,7 @@ def float_pills() -> str:
         '<div class="mx-auto w-full max-w-[1060px] px-4 pt-3 flex items-center">'
         f'<uses-badge start="{uses}"><span data-fallback><a href="/#agent" class="font-mono text-xs bg-accent text-white rounded-full px-2.5 py-0.5 no-underline whitespace-nowrap">{uses} {DOWNLOAD_ICON}</a></span></uses-badge>'
         '<a href="/#support" data-open-support class="font-mono text-xs border border-solid border-accent text-accent rounded-full px-2.5 py-0.5 no-underline ml-auto">support us</a>'
+        '<button type="button" data-open-contact class="font-mono text-xs border border-solid border-accent text-accent rounded-full px-2.5 py-0.5 ml-2 bg-transparent cursor-pointer">contact us</button>'
         "</div>"
     )
 
@@ -199,7 +201,7 @@ def page(title: str, desc: str, active: str, body: str, machine: str | None = No
         + TAILWIND_HEAD
         + "</head>\n"
         '<body class="m-0 text-ink bg-paper font-sans">' + nav(active) + float_pills() + '\n<main class="max-w-[1060px] mx-auto px-7 pt-9 pb-[60px] text-left">' + body + "</main>\n"
-        + FOOTER + SUPPORT_DIALOG + "\n<script>" + CLIENT + "</script>\n" + '<script type="module">' + ISLAND_JS + "</script>\n" + tag + "</body></html>"
+        + FOOTER + SUPPORT_DIALOG + CONTACT_DIALOG + "\n<script>" + CLIENT + "</script>\n" + '<script type="module">' + ISLAND_JS + "</script>\n" + tag + "</body></html>"
     )
 
 
@@ -375,6 +377,85 @@ def code_guide() -> str:
 def board() -> str:
     hit("/board")
     return page("Skill board", "Every skill as a copyable prompt. Paste one into any agent session.", "/board", BOARD_BODY)
+
+
+CONTACT_TO = os.environ.get("CONTACT_TO", "knives.thao@gmail.com")
+
+
+CONTACT_DIALOG = """<dialog id="contact-dialog" class="rounded-[10px] border border-solid border-line bg-white p-[18px] text-left text-ink max-w-[420px] backdrop:bg-ink/60">
+<p class="font-display text-[22px] mb-3">Contact us</p>
+<p class="m-0 text-sm">Ask a question, report a bug, or just say hi. A human reads every message.</p>
+<form method="post" action="/contact" class="space-y-3 text-left mt-3">
+<p class="m-0"><label class="block text-sm mb-1" for="cf-name">Your name</label>
+<input id="cf-name" name="name" required maxlength="100" autocomplete="name" class="w-full border border-solid border-line rounded-lg px-3 py-2 bg-white"></p>
+<p class="m-0"><label class="block text-sm mb-1" for="cf-email">Your email</label>
+<input id="cf-email" name="email" type="email" required maxlength="200" autocomplete="email" class="w-full border border-solid border-line rounded-lg px-3 py-2 bg-white"></p>
+<p class="m-0" hidden aria-hidden="true"><label>Company<input name="company" tabindex="-1" autocomplete="off"></label></p>
+<p class="m-0"><label class="block text-sm mb-1" for="cf-message">Message</label>
+<textarea id="cf-message" name="message" required maxlength="5000" rows="5" class="w-full border border-solid border-line rounded-lg px-3 py-2 bg-white"></textarea></p>
+<p class="m-0"><button type="submit" class="cursor-pointer bg-accent text-white rounded-full px-4 py-2">Send message</button></p>
+</form>
+<div class="mt-3 text-right"><button type="button" data-close-contact class="cursor-pointer border border-solid border-line bg-white rounded-md px-3 py-1.5">Close</button></div>
+</dialog>"""
+
+
+def send_contact_email(name: str, email: str, message: str) -> tuple[bool, str]:
+    key = os.environ.get("RESEND_API_KEY", "")
+    if not key:
+        return False, "missing-key"
+    payload = json.dumps({
+        "from": "Contact form <onboarding@resend.dev>",
+        "to": [CONTACT_TO],
+        "reply_to": email,
+        "subject": f"aimeanslove contact from {name}",
+        "text": f"From: {name} <{email}>\n\n{message}",
+    }).encode()
+    req = urllib.request.Request(
+        "https://api.resend.com/emails",
+        data=payload,
+        headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=15) as r:
+            return (200 <= r.status < 300), ("sent" if 200 <= r.status < 300 else f"http-{r.status}")
+    except Exception as e:
+        return False, f"error-{type(e).__name__}"
+
+
+def thanks_page() -> str:
+    return page("Thanks", "Message received.", "/contact",
+                '<header class="space-y-2"><h1 class="font-display text-[38px]">Thanks</h1>'
+                "<p>Your message is on its way. We read everything.</p>"
+                '<p><a href="/" class="text-accent underline">Back home</a></p></header>')
+
+
+def sorry_page(note: str) -> str:
+    return page("Sorry", "Message not sent.", "/contact",
+                '<header class="space-y-2"><h1 class="font-display text-[38px]">Sorry</h1>'
+                "<p>" + html.escape(note) + "</p>"
+                '<p><a href="/" class="text-accent underline">Back home</a></p></header>')
+
+
+@app.post("/contact", response_class=HTMLResponse)
+async def contact_post(request: Request):
+    hit("/contact")
+    form = await request.form()
+    name = str(form.get("name", "")).strip()
+    email = str(form.get("email", "")).strip()
+    message = str(form.get("message", "")).strip()
+    if str(form.get("company", "")).strip():
+        return thanks_page()
+    domain = email.split("@")[-1] if "@" in email else ""
+    if not name or len(name) > 100 or "." not in domain or not message or len(message) > 5000:
+        return HTMLResponse(
+            sorry_page("Please check: your name, a valid email address, and a message are all needed."),
+            status_code=400,
+        )
+    sent, _reason = send_contact_email(name, email, message)
+    if sent:
+        return thanks_page()
+    return sorry_page("Thanks for writing — but email sending is not set up yet, so your message wasn't sent. Please check back soon.")
 
 
 @app.get("/api", include_in_schema=False)
