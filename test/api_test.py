@@ -78,7 +78,7 @@ try:
     assert os.path.exists(USAGE_FILE), "counts persisted"
     status, _, body = get("/api/skills?fields=id,why")
     bank = json.loads(body)["skills"]
-    assert len(bank) == 92 and all(s.get("why") for s in bank), "every skill explains why"
+    assert len(bank) == 93 and all(s.get("why") for s in bank), "every skill explains why"
     status, _, body = get("/api/skills?fields=id,prompt")
     for s in json.loads(body)["skills"]:
         local = ROOT / ".agents" / "skills" / s["id"] / "SKILL.md"
@@ -140,6 +140,15 @@ try:
     assert "overrules the skill" in layout, "user taste overrules the skill"
     status, _, body = get("/api/skill/ops-observe?fields=prompt")
     assert "trigger event" in json.loads(body)["skill"]["prompt"], "alerts double as machine triggers"
+    assert "MCP" in json.loads(body)["skill"]["prompt"], "observe prefers queryable signals over dashboards"
+    status, _, body = get("/api/skill/ops-coordinate?fields=prompt")
+    coord = json.loads(body)["skill"]["prompt"]
+    assert "claim a task" in coord, "coordination runs on a shared plan ledger"
+    assert "ops-coordinate" in area_maps["ops-index"], "ops-index routes multi-agent work"
+    status, _, body = get("/ops")
+    ops = body.decode()
+    assert "modelcontextprotocol.io" in ops, "ops page backlinks the MCP source"
+    assert "ops-coordinate" in ops, "ops page names the coordination skill"
     status, _, body = get("/api/skill/ops-pipeline?fields=prompt")
     assert "trigger events" in json.loads(body)["skill"]["prompt"], "deploys broadcast machine triggers"
     status, _, body = get("/api/skill/ui-seo?fields=prompt")
@@ -201,9 +210,9 @@ try:
     assert "code-index" in html and "progressive disclosure" in html, "index skill maps tasks to skills"
     assert "code-ssrf" in html and "code-crypto" in html, "OWASP set renders on page"
     assert all(g in html for g in ("Start here", "Always on", "Security deep-dives", "Verify", "Run well")), "skills page groups skills"
-    assert html.count("data-copy-skill=") == 92, "every skill renders exactly once"
+    assert html.count("data-copy-skill=") == 93, "every skill renders exactly once"
     assert "data-copy-skill" in html, "page has copy buttons"
-    assert html.count("data-trim=") == 92, "every card trimmable"
+    assert html.count("data-trim=") == 93, "every card trimmable"
     assert "data-pack" in html and "copy install pack" in html, "trim pack builder present"
     assert "install only what matches" in html, "page pitches install-matched, not the playbook"
     assert 'id="q"' not in html and "data-track" not in html, "no filter machinery"

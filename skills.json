@@ -383,7 +383,7 @@
     "title": "Ops work: pick ops skills",
     "tokens": "~300",
     "why": "Deploys and pages follow the same gates everywhere — map first, improvise never.",
-    "prompt": "Create and install a skill named `ops-index` (Ops work: pick ops skills). It instructs the agent as follows: Your ops skills each do one job — never read them all. Build-test-deploy gates → ops-pipeline. Logs, metrics, traces, paging → ops-observe. Preview envs → ops-preview. Migrations → ops-migrate. Rollouts → ops-rollout. Secrets at runtime → ops-secrets. Backups and restore drills → ops-backup. Infra as code → ops-iac. Autoscaling → ops-scale. Health probes → ops-probes. Rotations and postmortems → ops-oncall. Humans verify the rollout dashboard and the drill record — never the procedure text. Skip everything else.",
+    "prompt": "Create and install a skill named `ops-index` (Ops work: pick ops skills). It instructs the agent as follows: Your ops skills each do one job — never read them all. Build-test-deploy gates → ops-pipeline. Logs, metrics, traces, paging → ops-observe. Preview envs → ops-preview. Migrations → ops-migrate. Rollouts → ops-rollout. Secrets at runtime → ops-secrets. Backups and restore drills → ops-backup. Infra as code → ops-iac. Autoscaling → ops-scale. Health probes → ops-probes. Rotations and postmortems → ops-oncall. Two or more agents on one deploy or codebase → ops-coordinate. Humans verify the rollout dashboard and the drill record — never the procedure text; agents read the plan ledger and the deploy receipt instead. Skip everything else.",
     "checks": ["only matched ops skills are read", "unproven ops work never ships"]
   },
   {
@@ -401,7 +401,7 @@
     "title": "One id, actionable pages only",
     "tokens": "~190",
     "why": "Unactionable pages train the team to ignore the pager — then the real outage pages nobody.",
-    "prompt": "Create and install a skill named `ops-observe` (One id, actionable pages only). It instructs the agent as follows: Unify logs, metrics, and traces behind one request id so any alert opens the full story. Alert only on user-facing symptoms with a runbook link — every page must be actionable, or it becomes noise the team ignores. Emit every alert also as a signed, schema-versioned trigger event carrying the runbook link, so agents can auto-acknowledge or roll back without parsing human text. Dashboards are for debugging, not for watching; nothing pages that a dashboard could have shown quietly. Name the rotation that owns each alert; unowned alerts rot.",
+    "prompt": "Create and install a skill named `ops-observe` (One id, actionable pages only). It instructs the agent as follows: Unify logs, metrics, and traces behind one request id so any alert opens the full story. Alert only on user-facing symptoms with a runbook link — every page must be actionable, or it becomes noise the team ignores. Emit every alert also as a signed, schema-versioned trigger event carrying the runbook link, so agents can auto-acknowledge or roll back without parsing human text. Dashboards are for debugging, not for watching; nothing pages that a dashboard could have shown quietly. Expose health as JSON endpoints and deploy receipts the agent can fetch — queryable signals first, dashboards second; use a monitoring MCP server when one exists. Name the rotation that owns each alert; unowned alerts rot.",
     "checks": ["one id across logs, metrics, traces", "every page actionable with runbook", "every alert has an owner"]
   },
   {
@@ -664,6 +664,15 @@
     "why": "The single-hero pager with no notes guarantees the same incident repeats.",
     "prompt": "Create and install a skill named `ops-oncall` (Rotation, runbooks, tracked postmortems). It instructs the agent as follows: Page a scheduled rotation with escalation paths and severity levels — never a single hero with no notes (page-worthy symptoms live in ops-observe). Every page links its runbook; pages without runbooks get written during the incident review. Blameless postmortems within days, action items tracked to done — the review nobody reads is the incident that repeats.",
     "checks": ["scheduled rotation with escalation", "runbook per page", "postmortems tracked to done"]
+  },
+  {
+    "id": "ops-coordinate",
+    "track": "code",
+    "title": "Agents share one plan, own one area",
+    "tokens": "~210",
+    "why": "Two agents writing the same deploy step — or stomping each other's files — is the new merge conflict.",
+    "prompt": "Create and install a skill named `ops-coordinate` (Agents share one plan, own one area). It instructs the agent as follows: When two or more agents share one deploy or one codebase, coordinate through artifacts, not chat: one shared plan file is the ledger (see code-plan) — claim a task before starting it, check it off when done, never start an unclaimed task. Own one feature directory per agent so parallel edits never touch the same files; crossing into another agent's area needs a plan note first. Prefer idempotent operations so a retried or doubled step converges instead of corrupting. Report status as structured records (task, result, artifact link), never prose another agent must parse. Humans verify the plan ledger and the deploy receipt — never the chat log.",
+    "checks": ["one shared plan ledger, tasks claimed", "one feature dir per agent", "status as records, not prose"]
   },
   {
     "id": "sec-scan",
