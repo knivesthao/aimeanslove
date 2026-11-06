@@ -143,7 +143,7 @@ try:
     assert status == 200, "page views still render"
     status, _, _ = get("/board.json")
     status, _, _ = get("/api/skills?track=code")
-    status, _, _ = get("/api/skill/code-python?fields=id")
+    status, _, _ = get("/api/skill/code-language?fields=id")
     status, _, body = get("/board")
     html = body.decode()
     m = re.search(r'href="/#agent"[^>]*>\s*(\d+)', html)
@@ -161,10 +161,10 @@ try:
     assert status == 200 and "Flowbite" in body.decode(), "guide names Flowbite for components"
     status, _, body = get("/code")
     assert status == 200 and "Framework first" in body.decode(), "guide states framework-first rule"
-    status, _, body = get("/api/skill/ui-lit?fields=prompt")
+    status, _, body = get("/api/skill/ui-framework?fields=prompt")
     lit = json.loads(body)["skill"]
-    assert "Flowbite" in lit["prompt"] and "React" in lit["prompt"], "ui-lit keeps Flowbite pieces, rules out heavy frameworks"
-    assert "WebAwesome" in lit["prompt"], "ui-lit names WebAwesome for island pieces"
+    assert "Flowbite" in lit["prompt"] and "React" in lit["prompt"], "ui-framework keeps Flowbite pieces, rules out heavy frameworks"
+    assert "WebAwesome" in lit["prompt"], "ui-framework names WebAwesome for island pieces"
     status, _, body = get("/board")
     board = body.decode()
     assert "<uses-badge" in board, "usage badge is a Lit island"

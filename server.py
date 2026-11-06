@@ -356,8 +356,8 @@ BY_ID = {s.id: s for s in SKILLS}
 GROUPS = [
     ("Start here", ["code-index"]),
     ("Always on", ["code-secure", "code-reuse", "code-token"]),
-    ("Build services", ["code-python", "ui-mobile", "code-shape", "code-boundaries", "code-group"]),
-    ("Build interfaces", ["ui-shell", "ui-tokens", "ui-behavior", "ui-lit", "ui-nav"]),
+    ("Build services", ["code-language", "ui-mobile", "code-shape", "code-boundaries", "code-group"]),
+    ("Build interfaces", ["ui-shell", "ui-tokens", "ui-behavior", "ui-framework", "ui-nav"]),
     ("Security deep-dives", ["code-auth", "code-crypto", "code-injection", "code-design", "code-misconfig", "code-deps", "code-integrity", "code-logging", "code-ssrf"]),
     ("Verify", ["verify-tests", "verify-visual"]),
 ]
