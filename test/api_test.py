@@ -201,7 +201,7 @@ try:
     assert "data-copy-skill" in html, "page has copy buttons"
     assert html.count("data-trim=") == 87, "every card trimmable"
     assert "data-pack" in html and "copy install pack" in html, "trim pack builder present"
-    assert "How a task runs" in html and "never the same skill twice" in html, "page explains the task flow"
+    assert "install only what matches" in html, "page pitches install-matched, not the playbook"
     assert 'id="q"' not in html and "data-track" not in html, "no filter machinery"
     assert 'href="/about"' in html, "about linked from header and footer"
     assert "min-h-screen" in html and "flex-1" in html, "flex shell pins footer to the bottom"
@@ -274,10 +274,14 @@ try:
     assert status == 200 and "Flowbite" in body.decode(), "guide names Flowbite for components"
     assert "60-30-10" in body.decode() and "Green confirms" in body.decode(), "guide teaches research-backed color rules"
     assert "combo box" in body.decode() and "300–500ms" in body.decode(), "guide teaches research-backed component rules"
+    assert "jasonformat.com/islands-architecture" in body.decode(), "guide credits the islands rulebook"
+    assert "Reflow (1.4.10)" in body.decode(), "guide cites WCAG Reflow for layout"
     for m in re.finditer(r'<a href="(http[^"]*)"', body.decode()):
         assert 'target="_blank" rel="noopener"' in body.decode()[m.start():m.start()+400], f"external link opens new tab: {m.group(1)}"
     status, _, body = get("/code")
     assert status == 200 and "Framework first" in body.decode(), "guide states framework-first rule"
+    assert "docs.python.org" in body.decode(), "guide backs Python with the language reference"
+    assert "preflight stays on" in body.decode(), "guide states preflight-on baseline"
     assert 'target="_blank" rel="noopener"' in body.decode(), "external links open a new tab"
     status, _, body = get("/api/skill/ui-framework?fields=prompt")
     lit = json.loads(body)["skill"]
