@@ -340,19 +340,37 @@ CODE_BODY = ("""<header class="space-y-2"><h1 class="font-display text-[38px]">C
 """
 )
 
-BOARD_CARDS = "".join(
-    '<article class="skill border border-solid border-line rounded-[10px] p-4 grid gap-2 text-left"><header class="flex gap-2.5 items-baseline justify-center flex-wrap"><span class="font-mono text-xs bg-ink text-white px-2 py-0.5 rounded-full">' + html.escape(s.id) + "</span><strong>"
-    + html.escape(s.title) + '</strong><span class="font-mono text-xs text-accent ml-auto" title="Estimated tokens for an agent to read this skill">' + html.escape(s.tokens) + " tokens</span></header>"
-    + '<p class="m-0 text-sm"><strong>Why:</strong> ' + html.escape(s.why) + "</p>"
-    + '<p class="prompt m-0 bg-wash rounded-lg p-2.5 text-sm text-left">' + html.escape(s.prompt) + "</p>"
-    + '<p class="m-0 text-[13px] text-muted">verify → ' + html.escape(" · ".join(s.checks)) + "</p>"
-    + '<div><button type="button" data-copy-skill="' + html.escape(s.id) + '" class="cursor-pointer border border-solid border-line bg-white rounded-md px-3 py-1.5">copy prompt</button></div></article>'
-    for s in SKILLS
+def skill_card(s: Skill) -> str:
+    return (
+        '<article class="skill border border-solid border-line rounded-[10px] p-4 grid gap-2 text-left"><header class="flex gap-2.5 items-baseline justify-center flex-wrap"><span class="font-mono text-xs bg-ink text-white px-2 py-0.5 rounded-full">' + html.escape(s.id) + "</span><strong>"
+        + html.escape(s.title) + '</strong><span class="font-mono text-xs text-accent ml-auto" title="Estimated tokens for an agent to read this skill">' + html.escape(s.tokens) + " tokens</span></header>"
+        + '<p class="m-0 text-sm"><strong>Why:</strong> ' + html.escape(s.why) + "</p>"
+        + '<p class="prompt m-0 bg-wash rounded-lg p-2.5 text-sm text-left">' + html.escape(s.prompt) + "</p>"
+        + '<p class="m-0 text-[13px] text-muted">verify → ' + html.escape(" · ".join(s.checks)) + "</p>"
+        + '<div><button type="button" data-copy-skill="' + html.escape(s.id) + '" class="cursor-pointer border border-solid border-line bg-white rounded-md px-3 py-1.5">copy prompt</button></div></article>'
+    )
+
+
+BY_ID = {s.id: s for s in SKILLS}
+
+GROUPS = [
+    ("Start here", ["code-index"]),
+    ("Always on", ["code-secure", "code-reuse", "code-token"]),
+    ("Build services", ["code-python", "ui-mobile", "code-shape", "code-boundaries", "code-group"]),
+    ("Build interfaces", ["ui-shell", "ui-tokens", "ui-behavior", "ui-lit", "ui-nav"]),
+    ("Security deep-dives", ["code-auth", "code-crypto", "code-injection", "code-design", "code-misconfig", "code-deps", "code-integrity", "code-logging", "code-ssrf"]),
+    ("Verify", ["verify-tests", "verify-visual"]),
+]
+
+BOARD_SECTIONS = "".join(
+    '<section class="mt-6"><h2 class="font-display text-[22px] text-left mb-3">' + title + "</h2>"
+    + '<div class="grid gap-3">' + "".join(skill_card(BY_ID[sid]) for sid in ids) + "</div></section>"
+    for title, ids in GROUPS
 )
 
 BOARD_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">Skill board</h1><p>Why skills? Every project re-decides the same things — language, validation, layout, proof — and each decision costs tokens every time it is remade. A skill decides once: fetch it, install it, and every session after starts from the answer instead of the question. These twenty-five are the full loop: the Python and mobile frameworks that set the foundation, token efficiency and security that keep builds cheap and safe, UI rules that keep human screens legible to agents, and tests plus visual checks as the only verdicts that matter.</p>
 <p>Copy a prompt into any agent session. Installing the whole bank at once is fine — reading stays selective through the index skill. The token badge on each card is from a test we ran on ourselves — our own payloads, counted — and the whole bank is about 5k tokens.</p></header>
-<section class="grid gap-3">""" + BOARD_CARDS + "</section>"""
+""" + BOARD_SECTIONS
 
 MISSING_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">Nothing here.</h1><p><a href="/" class="text-accent underline">Back home</a> · <a href="/board" class="text-accent underline">Board</a></p></header>"""
 
