@@ -78,7 +78,7 @@ try:
     assert os.path.exists(USAGE_FILE), "counts persisted"
     status, _, body = get("/api/skills?fields=id,why")
     bank = json.loads(body)["skills"]
-    assert len(bank) == 32 and all(s.get("why") for s in bank), "every skill explains why"
+    assert len(bank) == 33 and all(s.get("why") for s in bank), "every skill explains why"
     status, _, body = get("/api/skills?fields=id,prompt")
     for s in json.loads(body)["skills"]:
         local = ROOT / ".agents" / "skills" / s["id"] / "SKILL.md"
@@ -86,7 +86,12 @@ try:
         assert s["prompt"] in local.read_text(encoding="utf-8"), f"local {s['id']} matches bank"
     status, _, body = get("/api/skill/code-index?fields=prompt")
     index_map = json.loads(body)["skill"]["prompt"]
-    assert all(s["id"] in index_map for s in bank if s["id"] != "code-index"), "index maps every skill"
+    status, _, body = get("/api/skill/ui-index?fields=prompt")
+    ui_map = json.loads(body)["skill"]["prompt"]
+    assert "ui-index" in index_map, "bank index points at the area index"
+    assert all(
+        s["id"] in index_map or s["id"] in ui_map for s in bank if s["id"] not in ("code-index", "ui-index")
+    ), "every skill reachable by walking the index tree"
     assert "house rule beats the skill" in index_map, "stack skills defer to existing codebases"
     status, _, body = get("/")
     assert status == 200 and 'id="menubtn"' in body.decode(), "mobile hamburger present"
@@ -114,7 +119,7 @@ try:
     assert "code-index" in html and "progressive disclosure" in html, "index skill maps tasks to skills"
     assert "code-ssrf" in html and "code-crypto" in html, "OWASP set renders on board"
     assert all(g in html for g in ("Start here", "Always on", "Security deep-dives", "Verify", "Run well")), "board groups skills"
-    assert html.count("data-copy-skill=") == 32, "every skill renders exactly once"
+    assert html.count("data-copy-skill=") == 33, "every skill renders exactly once"
     assert "data-copy-skill" in html, "board has copy buttons"
     assert 'id="q"' not in html and "data-track" not in html, "no filter machinery"
     assert 'href="/about"' in html, "about linked from header and footer"
