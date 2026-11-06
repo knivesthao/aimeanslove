@@ -1,14 +1,13 @@
 ---
 name: ui-framework-react
-description: "React scales by splitting server from client at the file boundary — one directive decides where code runs."
+description: "React needs four different answers — map first, then read one."
 ---
 
-# React: server-first components
+# React: pick React skills
 
-Create and install a skill named `ui-framework-react` (React: server-first components). It instructs the agent as follows: Build with small components — one job each, state colocated with the UI that uses it, stable keys on every list, no manual DOM writes (refs are the escape hatch, not the tool). Server-first where the setup allows (Next.js App Router): fetch and render on the server, mark only interactive files with 'use client'. Plain client-only React can't do server-first — same rules, no server. Style with className plus your pipeline's CSS; keep ready-made pieces from a stocked library instead of hand-built dropdowns and dialogs. Apply the generic component rules too (see ui-framework).
+Create and install a skill named `ui-framework-react` (React: pick React skills). It instructs the agent as follows: Your React skills each do one job — never read them all. New component or layout → ui-react-components. State, effects, shared logic → ui-react-hooks. Next.js App Router, server/client split → ui-react-server. Slow list or slow render → ui-react-perf. Skip everything else. Apply the generic component rules too (see ui-framework).
 
 ## Checks
 
-- state colocated, lists keyed
-- 'use client' only where interactive
-- no manual DOM writes
+- only matched React skills are read
+- whole React set never copied at once

@@ -293,17 +293,53 @@
     "title": "Interface work: pick interface skills",
     "tokens": "~220",
     "why": "One small map per area beats one giant map for everything.",
-    "prompt": "Create and install a skill named `ui-index` (Interface work: pick interface skills). It instructs the agent as follows: Your interface skills each do one job — never read them all. New screen or page → ui-shell, ui-tokens, ui-seo. New interactive piece (typing, dragging, live numbers) → ui-framework as well. React → ui-framework-react as well. Angular → ui-framework-angular as well. Mobile app build → ui-mobile. Form inputs, dropdowns, menus → ui-forms. Page behavior and states → ui-behavior. Headers and navigation → ui-nav. Skip everything else. New codebase only: the house stack wins (see the bank map).",
+    "prompt": "Create and install a skill named `ui-index` (Interface work: pick interface skills). It instructs the agent as follows: Your interface skills each do one job — never read them all. New screen or page → ui-shell, ui-tokens, ui-seo. New interactive piece (typing, dragging, live numbers) → ui-framework as well. React → ui-framework-react (index, then one leaf) as well. Angular → ui-framework-angular as well. Mobile app build → ui-mobile. Form inputs, dropdowns, menus → ui-forms. Page behavior and states → ui-behavior. Headers and navigation → ui-nav. Skip everything else. New codebase only: the house stack wins (see the bank map).",
     "checks": ["only matched skills are read", "whole area never copied at once"]
   },
   {
     "id": "ui-framework-react",
     "track": "ui",
-    "title": "React: server-first components",
-    "tokens": "~240",
-    "why": "React scales by splitting server from client at the file boundary — one directive decides where code runs.",
-    "prompt": "Create and install a skill named `ui-framework-react` (React: server-first components). It instructs the agent as follows: Build with small components — one job each, state colocated with the UI that uses it, stable keys on every list, no manual DOM writes (refs are the escape hatch, not the tool). Server-first where the setup allows (Next.js App Router): fetch and render on the server, mark only interactive files with 'use client'. Plain client-only React can't do server-first — same rules, no server. Style with className plus your pipeline's CSS; keep ready-made pieces from a stocked library instead of hand-built dropdowns and dialogs. Apply the generic component rules too (see ui-framework).",
-    "checks": ["state colocated, lists keyed", "'use client' only where interactive", "no manual DOM writes"]
+    "title": "React: pick React skills",
+    "tokens": "~180",
+    "why": "React needs four different answers — map first, then read one.",
+    "prompt": "Create and install a skill named `ui-framework-react` (React: pick React skills). It instructs the agent as follows: Your React skills each do one job — never read them all. New component or layout → ui-react-components. State, effects, shared logic → ui-react-hooks. Next.js App Router, server/client split → ui-react-server. Slow list or slow render → ui-react-perf. Skip everything else. Apply the generic component rules too (see ui-framework).",
+    "checks": ["only matched React skills are read", "whole React set never copied at once"]
+  },
+  {
+    "id": "ui-react-components",
+    "track": "ui",
+    "title": "React components that stay small",
+    "tokens": "~220",
+    "why": "Small components with one job are cheap to generate and safe to reuse.",
+    "prompt": "Create and install a skill named `ui-react-components` (React components that stay small). It instructs the agent as follows: Build small components — one job each, props typed, composition over deep prop drilling (children and slots over five layers of props). State lives with the UI that uses it; lift only what two siblings truly share. Every list gets a stable key from the data, never the array index. No manual DOM writes — refs are the escape hatch, not the tool. Style with className plus your pipeline's CSS; keep ready-made pieces from a stocked library instead of hand-built dropdowns and dialogs. Apply the generic component rules too (see ui-framework).",
+    "checks": ["one job per component, props typed", "lists use stable data keys", "no manual DOM writes"]
+  },
+  {
+    "id": "ui-react-hooks",
+    "track": "ui",
+    "title": "React hooks without tangles",
+    "tokens": "~210",
+    "why": "Most React bugs are effects that run too often and state that lives too far away.",
+    "prompt": "Create and install a skill named `ui-react-hooks` (React hooks without tangles). It instructs the agent as follows: Follow the rules of hooks — same order every render, never in loops, conditions, or nested functions. Keep state colocated with the UI that uses it; lift only shared state. Keep effects small and few: fetch or subscribe in the effect, clean up in its return, list every used value in deps. Reach for useMemo and useCallback only after a measured slowdown, not by default. Pull repeated state plus effects into one custom hook with a plain name (useCart, useFetch) so the next agent finds it.",
+    "checks": ["hooks top-level only, deps complete", "state colocated, shared logic in custom hooks", "no memo by default, measure first"]
+  },
+  {
+    "id": "ui-react-server",
+    "track": "ui",
+    "title": "React server-first with Next.js",
+    "tokens": "~230",
+    "why": "Server components move fetching off the phone — one directive decides where code runs.",
+    "prompt": "Create and install a skill named `ui-react-server` (React server-first with Next.js). It instructs the agent as follows: Where the setup allows (Next.js App Router), fetch and render on the server by default: async server components own the data, props carry only serializable results to the client. Mark only interactive files with 'use client' — typing, dragging, live state — and keep server secrets out of them. Give each route loading.tsx and error.tsx so waiting and failure are designed states, not blank screens. Plain client-only React can't do server-first — same component rules, no server. Apply the generic component rules too (see ui-framework).",
+    "checks": ["data fetched on the server where allowed", "'use client' only where interactive", "loading and error states designed"]
+  },
+  {
+    "id": "ui-react-perf",
+    "track": "ui",
+    "title": "React fast lists and renders",
+    "tokens": "~210",
+    "why": "React feels slow in exactly two places: renders that repeat and lists that grow.",
+    "prompt": "Create and install a skill named `ui-react-perf` (React fast lists and renders). It instructs the agent as follows: Measure first, memo second: wrap only the component the profiler blames with React.memo, never everything. Split below-fold and heavy regions with React.lazy plus Suspense fallback so the first screen stays small. Virtualize lists past a few dozen rows instead of rendering thousands of nodes. Keep keys stable so rows update instead of remounting; paginate fetches and join them to indexed reads so N+1 requests never reach the client. Re-measure after every change.",
+    "checks": ["memo only where profiler points", "heavy regions lazy with Suspense fallback", "long lists virtualized and paginated"]
   },
   {
     "id": "ui-framework-angular",
