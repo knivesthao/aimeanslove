@@ -118,7 +118,8 @@ try:
     assert "execute all unblocked steps together" in plan, "independents run in parallel"
     assert "in one batched request" in plan and "execution fetches nothing" in plan, "skills fetched once up front"
     assert "Three or more" in plan, "plan states its explicit skill-count trigger"
-    assert "Three or more skills → code-plan first" in index_map, "bank index routes by skill count"
+    assert "maps don't count" in plan, "plan excludes maps and always-on from the count"
+    assert "Three or more matched skills → code-plan first" in index_map, "bank index routes by skill count"
     status, _, body = get("/api/skills?fields=id,prompt")
     bank_ids = [s["id"] for s in json.loads(body)["skills"]]
     prompts = {s["id"]: s["prompt"] for s in json.loads(body)["skills"]}
