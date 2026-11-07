@@ -293,7 +293,7 @@
     "title": "Interface work: pick interface skills",
     "tokens": "~230",
     "why": "One small map per area beats one giant map for everything.",
-    "prompt": "Create and install a skill named `ui-index` (Interface work: pick interface skills). It instructs the agent as follows: Your interface skills each do one job — never read them all. New screen or page → ui-shell, ui-tokens, ui-seo. New interactive piece (typing, dragging, live numbers) → ui-framework as well. Charts and graphs → ui-charts. Known widget (table, wizard, combo, calendar, modal, feed, kanban, editor, player, accordion) → ui-widgets, plus ui-platform-picks for library names and setup gates. Mobile app build → ui-mobile. Form inputs, dropdowns, menus → ui-forms. Page behavior and states → ui-behavior. Headers and navigation → ui-nav. Skip everything else. New codebase only: the house stack wins (see the bank map).",
+    "prompt": "Create and install a skill named `ui-index` (Interface work: pick interface skills). It instructs the agent as follows: Your interface skills each do one job — never read them all. New screen or page → ui-shell, ui-tokens, ui-seo. New interactive piece (typing, dragging, live numbers) → ui-framework as well. Charts and graphs → ui-charts plus ui-chart-twin for the machine twin. Known widget (table, wizard, combo, calendar, modal, feed, kanban, editor, player, accordion) → ui-widgets, plus ui-platform-picks for library names and setup gates. Mobile app build → ui-mobile. Form inputs, dropdowns, menus → ui-forms. Page behavior and states → ui-behavior. Headers and navigation → ui-nav. Skip everything else. New codebase only: the house stack wins (see the bank map).",
     "checks": ["only matched skills are read", "whole area never copied at once"]
   },
   {
@@ -803,11 +803,20 @@
   {
     "id": "ui-charts",
     "track": "ui",
-    "title": "Charts humans can read, data agents already parsed",
-    "tokens": "~300",
-    "why": "Agents read tables; humans judge shapes — charts are the human verdict layer, not the analysis.",
-    "prompt": "Create and install a skill named `ui-charts` (Charts humans can read, data agents already parsed). It instructs the agent as follows: Aggregate on the server and ship only chart-ready rollups — never raw rows for the browser to group. Pick the chart by the question: trend over time goes line, comparison across few categories goes bar, parts of a whole goes stacked bar and never pie past five slices, distribution goes histogram, two variables goes scatter, live numbers go big text plus sparkline. Encode by the Cleveland-McGill ranking: position on a common scale beats length beats angle beats area beats color — bars beat pies and flat beats 3D for a measured reason (Cleveland & McGill, JASA 1984). Every chart gets what color alone can't carry: direct labels, a data table alongside (the W3C's prescribed long description for charts) plus, when interactive, a declarative Vega-Lite-style JSON spec — the agent judges and regenerates from table and spec, never from pixels — and axes that start at zero for bars. Reach for a stocked chart library (Apache ECharts, Recharts) instead of hand-drawn SVG. Humans read the shape to judge; agents already read the table — the chart convinces, the numbers underneath prove.",
-    "checks": ["server-aggregated rollups only", "chart matches the question", "labels plus table, never color alone"]
+    "title": "Which chart for which question",
+    "tokens": "~260",
+    "why": "A chart picked by taste misleads; a chart picked by the question reads itself.",
+    "prompt": "Create and install a skill named `ui-charts` (Which chart for which question). It instructs the agent as follows: Pick the chart by the question, never by taste: trend over time goes line; comparison across a few categories goes bar; share of a whole at one moment goes stacked bar, share changing over time goes 100% stacked — pie only at five slices or fewer, never a donut for data; distribution goes histogram, five-number summaries go box plot; two variables go scatter with a trend line; matrix patterns go heatmap; a single number goes big text plus sparkline. Lookups go in a table, not a chart — charts show shapes, tables answer what-exactly. One message per chart: never dual axes, never 3D, never truncated bar axes — bars start at zero, log scale only across orders of magnitude. Label directly on the marks; the legend is the fallback. Then read ui-chart-twin and ship the chart's machine twin with it.",
+    "checks": ["chart matches the question", "no dual axes, 3D, or truncated bars", "machine twin shipped per ui-chart-twin"]
+  },
+  {
+    "id": "ui-chart-twin",
+    "track": "ui",
+    "title": "Every chart ships its machine twin",
+    "tokens": "~170",
+    "why": "Pixels convince humans but starve agents — the twin feeds both from one source.",
+    "prompt": "Create and install a skill named `ui-chart-twin` (Every chart ships its machine twin). It instructs the agent as follows: Aggregate on the server and ship only chart-ready rollups — never raw rows for the browser to group. Ship every chart with its machine twin: the data table underneath plus, when interactive, a declarative JSON spec in the Vega-Lite style — the agent judges and regenerates from table and spec, never from pixels. Encode by the measured ranking: position on a common scale beats length beats angle beats area beats color. Reach for a stocked chart library (Apache ECharts, Recharts) instead of hand-drawn SVG.",
+    "checks": ["chart-ready rollups only, no raw rows", "table plus spec under every chart", "stocked library, no hand-drawn SVG"]
   },
   {
     "id": "data-model",

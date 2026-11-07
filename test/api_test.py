@@ -78,7 +78,7 @@ try:
     assert os.path.exists(USAGE_FILE), "counts persisted"
     status, _, body = get("/api/skills?fields=id,why")
     bank = json.loads(body)["skills"]
-    assert len(bank) == 93 and all(s.get("why") for s in bank), "every skill explains why"
+    assert len(bank) == 94 and all(s.get("why") for s in bank), "every skill explains why"
     status, _, body = get("/api/skills?fields=id,prompt")
     for s in json.loads(body)["skills"]:
         local = ROOT / ".agents" / "skills" / s["id"] / "SKILL.md"
@@ -213,9 +213,9 @@ try:
     assert "code-index" in html and "progressive disclosure" in html, "index skill maps tasks to skills"
     assert "code-ssrf" in html and "code-crypto" in html, "OWASP set renders on page"
     assert all(g in html for g in ("Start here", "Always on", "Security deep-dives", "Verify", "Run well")), "skills page groups skills"
-    assert html.count("data-copy-skill=") == 93, "every skill renders exactly once"
+    assert html.count("data-copy-skill=") == 94, "every skill renders exactly once"
     assert "data-copy-skill" in html, "page has copy buttons"
-    assert html.count("data-trim=") == 93, "every card trimmable"
+    assert html.count("data-trim=") == 94, "every card trimmable"
     assert "data-pack" in html and "copy install pack" in html, "trim pack builder present"
     assert "install only what matches" in html, "page pitches install-matched, not the playbook"
     assert 'id="q"' not in html and "data-track" not in html, "no filter machinery"
@@ -310,9 +310,14 @@ try:
     assert "textbookofusability.com" in body.decode(), "data guide backlinks the perceptual ranking source"
     status, _, cb = get("/api/skill/ui-charts?fields=prompt")
     charts = json.loads(cb)["skill"]["prompt"]
-    assert "Cleveland" in charts, "charts skill encodes by the measured ranking"
-    assert "Vega-Lite" in charts, "charts skill ships a machine twin spec"
+    assert "100% stacked" in charts, "charts skill names share-over-time explicitly"
+    assert "ui-chart-twin" in charts, "picker chains the machine-twin leaf"
+    status, _, tb = get("/api/skill/ui-chart-twin?fields=prompt")
+    twin = json.loads(tb)["skill"]["prompt"]
+    assert "data table" in twin and "spec" in twin, "twin ships table plus spec"
+    assert "Cleveland" not in charts and "W3C" not in twin, "skills carry rules, pages carry sources"
     assert "adult in the room" in body.decode(), "data guide keeps the database as arbiter"
+    assert "agent readers" in body.decode(), "data guide states shapes are built for agents"
     assert "ui-charts" in ui_map, "area index routes charts"
     assert "data-model" in area_maps["data-index"], "area index routes data representation"
     status, _, body = get("/api/skill/data-model?fields=prompt")
