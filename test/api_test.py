@@ -306,6 +306,12 @@ try:
     assert status == 200 and "exactly once" in body.decode(), "data guide teaches idempotent landing"
     assert "dead-letter" in body.decode(), "data guide names the poison path"
     assert "verdict layer" in body.decode(), "data guide frames old way versus new way"
+    assert "vega.github.io/vega-lite" in body.decode(), "data guide backlinks the declarative spec source"
+    assert "textbookofusability.com" in body.decode(), "data guide backlinks the perceptual ranking source"
+    status, _, cb = get("/api/skill/ui-charts?fields=prompt")
+    charts = json.loads(cb)["skill"]["prompt"]
+    assert "Cleveland" in charts, "charts skill encodes by the measured ranking"
+    assert "Vega-Lite" in charts, "charts skill ships a machine twin spec"
     assert "adult in the room" in body.decode(), "data guide keeps the database as arbiter"
     assert "ui-charts" in ui_map, "area index routes charts"
     assert "data-model" in area_maps["data-index"], "area index routes data representation"
