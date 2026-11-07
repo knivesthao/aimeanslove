@@ -14,10 +14,14 @@ PORT = os.environ.get("TEST_PORT", "8797")
 USAGE_FILE = "/tmp/mf-test-usage.json"
 KEYS_FILE = "/tmp/mf-test-keys.json"
 TEST_KEY = "ailv_test_" + "x" * 32
+TEST_KEY_SOLO = "ailv_test_" + "y" * 32
 import hashlib as _hl
 
 with open(KEYS_FILE, "w", encoding="utf-8") as _kf:
-    json.dump({"keys": {_hl.sha256(TEST_KEY.encode()).hexdigest(): {"label": "test", "active": True, "uses": 0}}}, _kf)
+    json.dump({"keys": {
+        _hl.sha256(TEST_KEY.encode()).hexdigest(): {"label": "test", "active": True, "uses": 0},
+        _hl.sha256(TEST_KEY_SOLO.encode()).hexdigest(): {"label": "solo", "active": True, "uses": 0, "cap": 1},
+    }}, _kf)
 try:
     os.unlink(USAGE_FILE)
 except OSError:
@@ -111,6 +115,10 @@ try:
     assert status == 429 and b"install limit" in body, "eleventh seat refused, updates untouched"
     status, _, body = jpost(f"/api/install/receipt?key={TEST_KEY}", {"version": "2.0.0", "install_id": "t1", "installed": [], "kept": []})
     assert status == 200, "updates on known installs never blocked"
+    status, _, _ = jpost(f"/api/install/receipt?key={TEST_KEY_SOLO}", {"version": "1.0.0", "install_id": "solo-1", "installed": [], "kept": []})
+    assert status == 200, "cap-1 key installs once"
+    status, _, _ = jpost(f"/api/install/receipt?key={TEST_KEY_SOLO}", {"version": "1.0.0", "install_id": "solo-2", "installed": [], "kept": []})
+    assert status == 429, "per-key cap override honored"
 
     status, headers, _ = kget("/api/skill/code-secure?fields=prompt")
     assert status == 200

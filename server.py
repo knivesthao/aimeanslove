@@ -164,7 +164,11 @@ def _record_install(digest: str, iid: str, version: str) -> bool:
     if entry is None:
         return True
     installs = entry.setdefault("installs", {})
-    if iid not in installs and len(installs) >= INSTALL_ID_CAP:
+    try:
+        cap = int(entry.get("cap", INSTALL_ID_CAP))
+    except (TypeError, ValueError):
+        cap = INSTALL_ID_CAP
+    if iid not in installs and len(installs) >= cap:
         return False
     installs[iid] = {"version": version, "at": datetime.now(timezone.utc).isoformat()}
     try:
@@ -365,7 +369,7 @@ HOME_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">ai
 </section>
 <section class="mt-10 border-t-2 border-solid border-ink pt-5 space-y-3">
 <h2 class="font-display text-[22px] mb-3">Pay once, use forever</h2>
-<p>One $9.99 payment gets you a key to the whole bank — all 102 skills, every future update, no subscription, no meter. A typical task reads about 2.4k tokens instead of the 23.0k bank: pennies per task at current API rates, against a single payment that never renews. Keys open soon — the skill endpoints already check for one, and until checkout opens everything stays readable on the <a href="/skills" class="text-accent underline">skills page</a>.</p>
+<p>One $9.99 payment gets you a key to the whole bank — all 102 skills, every future update, no subscription, no meter. One seat covers up to 10 projects with free updates forever — teams buy a key per engineer.</p> A typical task reads about 2.4k tokens instead of the 23.0k bank: pennies per task at current API rates, against a single payment that never renews. Keys open soon — the skill endpoints already check for one, and until checkout opens everything stays readable on the <a href="/skills" class="text-accent underline">skills page</a>.</p>
 </section>
 <section id="agent" class="mt-10 border-t-2 border-solid border-ink pt-5 space-y-3">
 <h2 class="font-display text-[22px] mb-3">Give this to your agent</h2>
