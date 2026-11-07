@@ -128,7 +128,7 @@ def etagged(request: Request, obj: dict) -> Response:
     return JSONResponse(content=obj, headers={"etag": tag, "cache-control": "public, max-age=60"})
 
 
-NAV_LINKS = [("/code", "Coding guide"), ("/ui", "UI guide"), ("/data", "Data guide"), ("/ops", "Ops guide"), ("/skills", "Skills"), ("/about", "About")]
+NAV_LINKS = [("/code", "Coding guide"), ("/ui", "UI guide"), ("/data", "Data guide"), ("/ops", "Ops guide"), ("/skills", "Skills"), ("/releases", "Releases"), ("/about", "About")]
 
 
 def nav_link(href: str, label: str, active: str) -> str:
@@ -268,7 +268,7 @@ HOME_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">ai
 <pre class="bg-ink text-white rounded-lg p-3.5 text-sm overflow-auto text-left">curl https://aimeanslove.fyi/board.json
 curl "https://aimeanslove.fyi/api/skills?track=code&fields=id,prompt"</pre>
 <p>Or say it in plain words:</p>
-<p class="bg-wash rounded-lg p-2.5 text-sm text-left">Go to https://aimeanslove.fyi/board.json, read every skill, and install each one so you can use them.</p>
+<p class="bg-wash rounded-lg p-2.5 text-sm text-left">Go to https://aimeanslove.fyi/board.json, fetch the whole bank, and install every skill in one go as local files (one per skill, e.g. .agents/skills/&lt;id&gt;/SKILL.md) — then work from your local copies and never refetch mid-task.</p>
 </section>"""
 
 UI_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">UI guide</h1><p class="text-[17px]">Goal: an agent builds the drafts fast; a human shapes feel in the middle and confirms at the end. Mobile-first always — 360px first, scale up — unless the task genuinely needs a full monitor. Semantic HTML, tokens not prose, every state visible as text.</p></header>
@@ -276,7 +276,7 @@ UI_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">UI g
 <div class="border border-solid border-line rounded-[10px] p-[18px] bg-white"><h2 class="font-display text-[22px] mb-3">1 · Structure</h2><ul class="text-left space-y-2 list-disc pl-5">
 <li>Semantic landmarks: <code class="font-mono text-[13px]">&lt;header&gt; &lt;main&gt; &lt;footer&gt;</code>, real <code class="font-mono text-[13px]">&lt;button&gt;</code>/<code class="font-mono text-[13px]">&lt;a&gt;</code>/<code class="font-mono text-[13px]">&lt;input&gt;</code> with visible labels. No div-buttons.</li>
 <li>Icon-only controls welcome — but every control exposes metadata: a real element, a label or <code class="font-mono text-[13px]">aria-label</code>, and a <code class="font-mono text-[13px]">data-action</code>. Humans get the pixels; agents read the metadata.</li>
-<li>Shape every script your readers use. System fonts usually cover Lao and other complex scripts on modern phones — verify on a real device, since shaping bugs only show in real rendering.</li>
+<li>Shape every script your readers use. System fonts usually cover complex scripts on modern phones — verify on a real device, since shaping bugs only show in real rendering.</li>
 <li>Icons come from Lucide (<a href="https://lucide.dev/" target="_blank" rel="noopener" class="text-accent underline">Lucide</a>) — the best set for agents — never hand-written. Write <code class="font-mono text-[13px]">&lt;i data-lucide="name"&gt;</code> plus one <code class="font-mono text-[13px]">lucide.createIcons()</code> call — the agent picks names from the set, nobody draws pixels or pastes SVG paths by hand. Drawing icons burns tokens and time for a worse result: Lucide is already trained into the model, so the agent knows every name, and already familiar to users, so people recognize each icon on sight.</li>
 <li>Tailwind utilities for layout. System font stack.</li>
 <li>Flexbox for page and component layout — one direction at a time, same pattern on every page, so agents learn it once. The shell is a flex column: <code class="font-mono text-[13px]">body.flex.flex-col.min-h-screen</code>, content <code class="font-mono text-[13px]">main.flex-1</code> grows, footer sits last. Short pages get whitespace in the content area, never a floating footer — the footer is always stuck to the bottom.</li>
@@ -703,7 +703,41 @@ def robots() -> str:
 
 
 SITE_URL = "https://aimeanslove.fyi"
-SITEMAP_PAGES = ["/", "/code", "/ui", "/data", "/ops", "/skills", "/about"]
+SITEMAP_PAGES = ["/", "/code", "/ui", "/data", "/ops", "/skills", "/releases", "/about"]
+
+
+RELEASES = [
+    ("v1.0.0", "2026-11-07", "Signed, leased, measured", "102 skills, every one signed. Lease claims, canary comparator, human-first safety, measured proof section."),
+    ("2026-11-07", "2026-11-07", "Test hardening + sourced charts", "Lifecycle coverage tests. ui-chart-twin split. Cleveland-McGill, W3C tables, Vega-Lite twin, all backlinked."),
+    ("2026-11-07", "2026-11-07", "Agentic ops", "Data + Ops philosophy guides. ops-coordinate, queryable observe, don't-trust-the-system."),
+    ("2026-11-07", "2026-11-07", "Async, concurrency, model", "code-async handoff, data-concurrency, data-model."),
+    ("2026-11-07", "2026-11-07", "Foundation", "92-skill bank. Guides go philosophy-with-sources. Skills page pitches install-matched."),
+]
+
+
+@app.get("/releases")
+def releases_page(request: Request) -> str:
+    hit("/releases")
+    items = "".join(
+        f"<li><strong>{v} — {d} — {title}.</strong> {notes}</li>" for v, d, title, notes in RELEASES
+    )
+    return page("Releases", "What changed in the bank, dated.",
+                "/releases", f"""<header class="space-y-2"><h1 class="font-display text-[38px]">Releases</h1><p class="text-[17px]">The bank grows in public. Every change ships with notes and a feed — subscribe once, read the diff, update on your schedule. Nothing here changes silently under a pinned install.</p></header><ul class="text-left space-y-2 list-disc pl-5 mt-4">{items}</ul>""")
+
+
+@app.get("/releases.xml")
+def releases_feed() -> Response:
+    hit("/releases.xml")
+    items = "".join(
+        f"<item><title>{v} — {title}</title><link>{SITE_URL}/releases</link>"
+        f"<pubDate>Sat, 07 Nov 2026 00:00:00 +0000</pubDate><description>{notes}</description></item>"
+        for v, d, title, notes in RELEASES
+    )
+    body = ('<?xml version="1.0" encoding="UTF-8"?>'
+            '<rss version="2.0"><channel><title>ai (&#24859;) means love — releases</title>'
+            f"<link>{SITE_URL}/releases</link><description>Skill bank release notes.</description>"
+            + items + "</channel></rss>")
+    return Response(content=body, media_type="application/rss+xml")
 
 
 @app.get("/sitemap.xml")

@@ -201,7 +201,7 @@ try:
     assert "meaning stays human" in body.decode(), "data page keeps meaning with people"
     status, _, body = get("/ui")
     assert "shapes feel" in body.decode(), "ui guide keeps humans in the middle"
-    assert "Lao" in body.decode(), "ui guide notes complex-script shaping"
+    assert "shaping bugs only show in real rendering" in body.decode(), "ui guide notes complex-script shaping"
     status, _, body = get("/code")
     assert "guideline 4.2" in body.decode(), "code guide warns on store rejection"
     status, _, body = get("/ops")
@@ -231,7 +231,14 @@ try:
     status, _, body = get("/signatures.json")
     assert status == 200, f"signatures served, got {status}"
     sigs = json.loads(body)
-    assert sigs["bank_version"] == "1" and sigs["algorithm"] == "Ed25519", "signature set versioned and named"
+    assert sigs["bank_version"] == "1.0.0" and sigs["algorithm"] == "Ed25519", "signature set versioned and named"
+    status, _, body = get("/releases")
+    assert status == 200 and "v1.0.0" in body.decode(), "releases page lists the pinned bank version"
+    status, _, body = get("/releases.xml")
+    feed = body.decode()
+    assert status == 200 and feed.startswith("<?xml") and "<rss" in feed, "release feed is valid RSS"
+    assert feed.count("<item>") == 5, "feed carries every release note"
+    assert "install every skill in one go" in home2, "install prompt installs the whole bank at once"
     from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
     from cryptography.exceptions import InvalidSignature
     pub = Ed25519PublicKey.from_public_bytes(bytes.fromhex(sigs["public_key"]))

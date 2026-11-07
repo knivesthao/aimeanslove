@@ -1,6 +1,6 @@
 {
   "algorithm": "Ed25519",
-  "bank_version": "1",
+  "bank_version": "1.0.0",
   "public_key": "12dbf5e728b836117e3946b967ffff837d5c05901c6283c53dc29ec665ad050c",
   "skills": {
     "app-index": "70cb6e2412628ce7d4c6e379113eecd701c105259fb78ee3c9ed989142e82bcbb6a8d0f11dd11d5c9f7b288e3523fb6e9adf420b92002e9c8501888497da1f08",
