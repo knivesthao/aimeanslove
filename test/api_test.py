@@ -172,7 +172,7 @@ try:
     assert "ui-a11y" in ui_map, "interface map routes the a11y audit"
     assert "ops-safety" in area_maps["ops-index"], "ops map routes blast-radius safety"
     assert "data-metrics" in area_maps["data-index"] and "data-pii" in area_maps["data-index"], "data map routes metrics and PII"
-    for sid, needle in [("ops-coordinate", "scoped credentials"), ("ops-secrets", "out of band"),
+    for sid, needle in [("ops-coordinate", "scoped credentials"), ("ops-safety", "human's approval first"), ("ops-secrets", "out of band"),
                         ("code-auditlog", "Name the agent"), ("data-ingest", "pass additive"),
                         ("data-quality", "name an owner and an action"), ("data-retain", "shredding"),
                         ("ops-backup", "erasure log"), ("ops-rollout", "declared by a human"),
@@ -193,6 +193,15 @@ try:
     assert "owns the blast radius" in home2, "home names the fifth verdict"
     assert "13 to 17 percent" in home2, "home proof cites measured pack share"
     assert "verify-benchmark" in home2, "home proof names the trial protocol"
+    status, _, body = get("/ops")
+    assert "probabilistic actors" in body.decode(), "ops page names the deterministic-gates architecture"
+    status, _, body = get("/data")
+    assert "meaning stays human" in body.decode(), "data page keeps meaning with people"
+    status, _, body = get("/ui")
+    assert "shapes feel" in body.decode(), "ui guide keeps humans in the middle"
+    assert "Lao" in body.decode(), "ui guide notes complex-script shaping"
+    status, _, body = get("/code")
+    assert "guideline 4.2" in body.decode(), "code guide warns on store rejection"
     status, _, body = get("/ops")
     ops = body.decode()
     assert "modelcontextprotocol.io" in ops, "ops page backlinks the MCP source"
