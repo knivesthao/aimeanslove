@@ -151,7 +151,7 @@ BANK_VERSION = "1.0.0"
 # Abuse guard: one key is one seat — a few machines and projects, not the
 # internet. Distinct install_ids per key cap here. Updates reuse a known id and
 # are never blocked; only brand-new installs over the cap are refused.
-INSTALL_ID_CAP = 5
+INSTALL_ID_CAP = 10
 
 
 def _record_install(digest: str, iid: str, version: str) -> bool:

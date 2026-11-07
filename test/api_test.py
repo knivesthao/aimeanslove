@@ -104,11 +104,11 @@ try:
     status, _, body = kget("/api/stats")
     stats = json.loads(body)["stats"]
     assert stats["install_receipts"] == 1 and stats["install_versions"].get("1.0.0") == 1, "receipts visible in stats"
-    for i in range(4):
+    for i in range(9):
         status, _, _ = jpost(f"/api/install/receipt?key={TEST_KEY}", {"version": "1.0.0", "install_id": f"cap{i}", "installed": [], "kept": []})
         assert status == 200, f"seat {i} installs, got {status}"
     status, _, body = jpost(f"/api/install/receipt?key={TEST_KEY}", {"version": "1.0.0", "install_id": "capX", "installed": [], "kept": []})
-    assert status == 429 and b"install limit" in body, "sixth seat refused, updates untouched"
+    assert status == 429 and b"install limit" in body, "eleventh seat refused, updates untouched"
     status, _, body = jpost(f"/api/install/receipt?key={TEST_KEY}", {"version": "2.0.0", "install_id": "t1", "installed": [], "kept": []})
     assert status == 200, "updates on known installs never blocked"
 
