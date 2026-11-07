@@ -146,7 +146,7 @@ def _require_key(request: Request) -> str | JSONResponse:
     return digest
 
 
-BANK_VERSION = "1.0.0"
+BANK_VERSION = "1.0.1"
 
 # Abuse guard: one key is one seat — a few machines and projects, not the
 # internet. Distinct install_ids per key cap here. Updates reuse a known id and
@@ -245,7 +245,7 @@ def nav(active: str) -> str:
         for href, label in NAV_LINKS
     )
     return (
-        '<nav class="topnav sticky top-0 z-10 border-b border-solid border-line" style="background-image:url(\'/brand/hero-mark.jpg\');background-size:cover;background-position:center;">'
+        '<nav class="topnav sticky top-0 z-10 border-b border-solid border-line" style="background:linear-gradient(rgba(255,255,255,0.92),rgba(255,255,255,0.86)),url(\'/brand/hero-mark.jpg\');background-size:cover;background-position:center;">'
         '<div class="max-w-[1200px] mx-auto px-4 py-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-2.5 md:gap-x-7 text-center">'
         '<a href="/" class="font-mono font-bold text-lg md:text-xl flex flex-1 items-center justify-center gap-2 text-ink no-underline">'
         '<span>ai (<span class="text-accent" style="font-family:\'Klee One\',\'Hannotate SC\',\'Kaiti SC\',\'STKaiti\',\'KaiTi\',cursive;font-size:1.35em;line-height:1;">愛</span>) means love</span></a>'
@@ -364,14 +364,14 @@ HOME_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">ai
 </section>
 <section class="mt-10 border-t-2 border-solid border-ink pt-5 space-y-3">
 <h2 class="font-display text-[22px] mb-3">Pay once, use forever</h2>
-<p>One $9.99 payment gets you a key to the whole bank — all 102 skills, every future update, no subscription, no meter. One seat covers up to 10 projects with free updates forever — teams buy a key per engineer.</p> A typical task reads about 2.4k tokens instead of the 23.0k bank: pennies per task at current API rates, against a single payment that never renews. Keys open soon — the skill endpoints already check for one, and until checkout opens everything stays readable on the <a href="/skills" class="text-accent underline">skills page</a>.</p>
+<p>One $9.99 payment gets you a key to the whole bank — all 103 skills, every future update, no subscription, no meter. One seat covers up to 10 projects with free updates forever — teams buy a key per engineer.</p> A typical task reads about 2.4k tokens instead of the 23.0k bank: pennies per task at current API rates, against a single payment that never renews. Keys open soon — the skill endpoints already check for one, and until checkout opens everything stays readable on the <a href="/skills" class="text-accent underline">skills page</a>.</p>
 </section>
 <section id="agent" class="mt-10 border-t-2 border-solid border-ink pt-5 space-y-3">
 <h2 class="font-display text-[22px] mb-3">Give this to your agent</h2>
 <p>Have a key? One call installs the whole bank — the agent fetches, writes one file per skill, and works from local copies:</p>
 <pre class="bg-ink text-white rounded-lg p-3.5 text-sm overflow-auto text-left">curl "https://aimeanslove.fyi/api/install?key=YOUR_KEY"</pre>
 <p class="bg-wash rounded-lg p-2.5 text-sm text-left">Copy-paste install prompt — swap in the key, hand the whole block to the agent:</p>
-<pre class="bg-ink text-white rounded-lg p-3.5 text-sm overflow-auto text-left">Install the ai (愛) means love skill bank (102 skills, bank 1.0.0). Fetch https://aimeanslove.fyi/api/install?key=YOUR_KEY. Then: 0. Before fetching, GET https://aimeanslove.fyi/api/stats (open, no key) and compare its version to .agents/ailv.json. If equal, stop — you are current, nothing to download. 1. Read .agents/ailv.json if it exists. If its bank equals "1.0.0", stop — already installed. 2. List skill names already under .agents/skills/*/SKILL.md that the pack also contains. Keep those files; skip those ids — unification, never duplication. 3. Write every other pack item to its file path. 4. Write .agents/ailv.json with the bank version, the ids written, and the ids skipped. 5. Work from local copies and never refetch mid-task. 6. Report success: POST {"version": "1.0.0", "installed": [...], "kept": [...]} to https://aimeanslove.fyi/api/install/receipt?key=YOUR_KEY with the same key. If interrupted, re-run from the top — written files are skipped, nothing is lost.</pre>
+<pre class="bg-ink text-white rounded-lg p-3.5 text-sm overflow-auto text-left">Install the ai (愛) means love skill bank (103 skills, bank 1.0.1). Fetch https://aimeanslove.fyi/api/install?key=YOUR_KEY. Then: 0. Before fetching, GET https://aimeanslove.fyi/api/stats (open, no key) and compare its version to .agents/ailv.json. If equal, stop — you are current, nothing to download. 1. Read .agents/ailv.json if it exists. If its bank equals "1.0.1", stop — already installed. 2. List skill names already under .agents/skills/*/SKILL.md that the pack also contains. Keep those files; skip those ids — unification, never duplication. 3. Write every other pack item to its file path. 4. Write .agents/ailv.json with the bank version, the ids written, and the ids skipped. 5. Work from local copies and never refetch mid-task. 6. Report success: POST {"version": "1.0.1", "installed": [...], "kept": [...]} to https://aimeanslove.fyi/api/install/receipt?key=YOUR_KEY with the same key. If interrupted, re-run from the top — written files are skipped, nothing is lost.</pre>
 <p>No key yet? Taste free — every prompt is readable on the <a href="/skills" class="text-accent underline">skills page</a>, and the field list plus usage stats stay open:</p>
 <pre class="bg-ink text-white rounded-lg p-3.5 text-sm overflow-auto text-left">curl https://aimeanslove.fyi/api/fields</pre>
 </section>"""
@@ -410,6 +410,13 @@ UI_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">UI g
 <li>Short lists get radios. For 2 to 4 options use radio buttons or segmented controls — everything visible, one click to answer; dropdowns hide choices and cost clicks, with higher non-response and longer times (<a href="https://journals.sagepub.com/doi/10.1177/0894439306293888" target="_blank" rel="noopener" class="text-accent underline">Healey 2007</a>). Dropdowns only for 5 to 10 familiar options.</li>
 <li>Long lists get filters or plain inputs. Past about 15 items use a combo box — live filtering beats scrolling; for familiar data like birth years a plain numeric input beats any list (<a href="https://designnotes.blog.gov.uk/2013/12/05/asking-for-a-date-of-birth/" target="_blank" rel="noopener" class="text-accent underline">GOV.UK study</a>). Never make users scroll 50+ items.</li>
 <li>Hover menus wait. Desktop hover menus open after a 300–500ms delay so passing cursors don't flicker them shut (<a href="https://baymard.com/research-articles/dropdown-menu-flickering-issue" target="_blank" rel="noopener" class="text-accent underline">Baymard</a>); click-to-open is always safe.</li></ul></div>
+</section>
+<section class="mt-10 border-t-2 border-solid border-ink pt-5 space-y-3">
+<h2 class="font-display text-[22px] mb-3">5 · Images</h2>
+<ul class="text-left space-y-2 list-disc pl-5">
+<li><strong>Every image earns its place.</strong> Above the fold carries one value headline, one supporting line, one primary action, one visual, one trust signal — clear beats clever, and five-plus competing links sink conversion (<a href="https://ivyforms.com/blog/hero-section-examples/" target="_blank" rel="noopener" class="text-accent underline">Unbounce benchmarks via IvyForms</a>). Stores with a clear value proposition convert 2–4x higher (<a href="https://webmedic.com/ecommerce-value-proposition" target="_blank" rel="noopener" class="text-accent underline">MarketingSherpa via WebMedic</a>).</li>
+<li><strong>The hero is usually the slowest thing.</strong> Most mobile largest-paint elements are images (<a href="https://isitdownorjustme.net/web/website-imagery-optimization-guide/" target="_blank" rel="noopener" class="text-accent underline">Core Web Vitals data</a>), so treat the above-fold image as a budget: eager-load with high fetch priority, lazy-load everything below, modern formats, source sets with sizes, explicit width and height so layout never shifts (<a href="https://dev.to/ashtech52/core-web-vitals-in-2026-how-to-improve-lcp-inp-and-cls-on-slow-pages-2514" target="_blank" rel="noopener" class="text-accent underline">Core Web Vitals 2026</a>).</li>
+<li><strong>Say what it is, or say nothing.</strong> Informative images get real alt text; decorative and structural art gets empty alt or becomes a background. See the <code class="font-mono text-[13px]">ui-images</code> skill.</li></ul>
 </section>
 <section class="mt-4 bg-wash border border-solid border-line rounded-xl p-5 space-y-3"><h2 class="font-display text-[22px] mb-3">Client state — for hands, not data</h2>
 <p>Typing, dragging, and drawing are faster than any round trip, so they live in the browser: a small isolated interactive region — called an "island" — holds the work-in-progress. The pattern comes from <a href="https://jasonformat.com/islands-architecture/" target="_blank" rel="noopener" class="text-accent underline">Islands Architecture (Jason Miller; term coined by Katie Sylor-Miller at Etsy)</a>: server HTML with interactive regions hydrated in place, instead of one app-wide runtime. Islands are Lit custom elements from the start (<a href="https://lit.dev/" target="_blank" rel="noopener" class="text-accent underline">Lit</a>), loaded from the pinned CDN module with no build step. Most sites are apps now, so one way beats two: no Alpine-first ladder to climb. But the server still owns the shared truth. The rule: never keep the same fact in both places without an expiry — sync back on natural pauses (debounced save), and the server re-checks everything it receives, because browser state is never trusted.</p>
@@ -572,7 +579,7 @@ GROUPS = [
     ("Start here", ["code-index", "ui-index", "code-plan"]),
     ("Always on", ["code-secure", "code-reuse", "code-token"]),
     ("Build services", ["code-language", "ui-mobile", "code-shape", "code-boundaries", "code-polyglot", "code-group", "code-legacy", "code-lifecycle"]),
-    ("Build interfaces", ["ui-shell", "ui-tokens", "ui-behavior", "ui-framework", "ui-widgets", "ui-platform-picks", "ui-charts", "ui-chart-twin", "ui-nav", "ui-forms", "ui-a11y"]),
+    ("Build interfaces", ["ui-shell", "ui-tokens", "ui-behavior", "ui-framework", "ui-widgets", "ui-platform-picks", "ui-charts", "ui-chart-twin", "ui-nav", "ui-images", "ui-forms", "ui-a11y"]),
     ("Product features", ["app-index", "code-billing", "code-rbac", "code-invites", "code-notify", "code-search", "code-uploads", "code-auditlog", "code-webhooks", "code-apikeys", "code-flags", "code-impexp"]),
     ("Move data", ["data-index", "data-collect", "data-ingest", "data-orchestrate", "data-etl", "data-contracts", "data-model", "data-backfill", "data-cdc", "data-quality", "data-partition", "data-retain", "data-streams", "data-lineage", "data-upserts", "data-concurrency", "data-metrics", "data-pii"]),
     ("Ship safely", ["ops-index", "ops-pipeline", "ops-observe", "ops-preview", "ops-migrate", "ops-rollout", "ops-secrets", "ops-backup", "ops-iac", "ops-scale", "ops-probes", "ops-oncall", "ops-coordinate", "ops-safety", "sec-index", "sec-vuln", "sec-sso", "sec-scan", "sec-secretscan", "sec-session", "sec-siem", "sec-waf", "sec-anomaly", "sec-runbooks", "sec-patch", "sec-compliance"]),
@@ -588,9 +595,9 @@ BOARD_SECTIONS = "".join(
     for title, ids in GROUPS
 )
 
-BOARD_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">Skills</h1><p>One hundred two skills is far more than any one task needs — and that's the point. Nobody reads them all. Read the <a href="/api/skill/code-index" class="text-accent underline">index skill</a> first, install only the matched skills, and skip the rest: a typical task runs on a handful of matched skills, about a seventh of the bank, instead of the whole bank. Every skill is reachable from the maps and does exactly one job — nothing orphaned, nothing twice, one fetch per session.</p>
+BOARD_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">Skills</h1><p>One hundred three skills is far more than any one task needs — and that's the point. Nobody reads them all. Read the <a href="/api/skill/code-index" class="text-accent underline">index skill</a> first, install only the matched skills, and skip the rest: a typical task runs on a handful of matched skills, about a seventh of the bank, instead of the whole bank. Every skill is reachable from the maps and does exactly one job — nothing orphaned, nothing twice, one fetch per session.</p>
 <p>How it works: <strong>1.</strong> the index maps your task to skills; <strong>2.</strong> copy those prompts below, or fetch the pack with your key; <strong>3.</strong> install only what matches and let your agent work. Small skills plus one map keep every session's context small by design. Humans judge two things: tests pass, and it looks right.</p>
-<div class="bg-wash border border-solid border-line rounded-xl p-5 flex flex-wrap items-center gap-3"><p class="m-0 text-sm"><strong>Trim an install pack:</strong> tick only the skills this task needs, then copy them as one pack.</p><div class="flex gap-2"><button type="button" data-pack aria-live="polite" class="cursor-pointer bg-accent text-white rounded-full min-h-[44px] px-4 py-2">copy install pack (<span data-pack-count>102</span>)</button><button type="button" data-pack-all class="cursor-pointer border border-solid border-line bg-white rounded-full min-h-[44px] px-3 py-2">all</button><button type="button" data-pack-none class="cursor-pointer border border-solid border-line bg-white rounded-full min-h-[44px] px-3 py-2">none</button></div></div>
+<div class="bg-wash border border-solid border-line rounded-xl p-5 flex flex-wrap items-center gap-3"><p class="m-0 text-sm"><strong>Trim an install pack:</strong> tick only the skills this task needs, then copy them as one pack.</p><div class="flex gap-2"><button type="button" data-pack aria-live="polite" class="cursor-pointer bg-accent text-white rounded-full min-h-[44px] px-4 py-2">copy install pack (<span data-pack-count>103</span>)</button><button type="button" data-pack-all class="cursor-pointer border border-solid border-line bg-white rounded-full min-h-[44px] px-3 py-2">all</button><button type="button" data-pack-none class="cursor-pointer border border-solid border-line bg-white rounded-full min-h-[44px] px-3 py-2">none</button></div></div>
 <p>The token badge on each card is from a test we ran on ourselves — our own payloads, counted — and the whole bank is about 23.0k tokens.</p></header>
 """ + BOARD_SECTIONS
 
@@ -848,6 +855,7 @@ SITEMAP_PAGES = ["/", "/code", "/ui", "/data", "/ops", "/skills", "/releases", "
 
 
 RELEASES = [
+    ("v1.0.1", "2026-11-07", "Images earn their place", "ui-images: strategy, placement, budgets. Bank at 103 skills."),
     ("v1.0.0", "2026-11-07", "Signed, leased, measured", "102 skills, every one signed. Lease claims, canary comparator, human-first safety, measured proof section."),
     ("2026-11-07", "2026-11-07", "Test hardening + sourced charts", "Lifecycle coverage tests. ui-chart-twin split. Cleveland-McGill, W3C tables, Vega-Lite twin, all backlinked."),
     ("2026-11-07", "2026-11-07", "Agentic ops", "Data + Ops philosophy guides. ops-coordinate, queryable observe, don't-trust-the-system."),
