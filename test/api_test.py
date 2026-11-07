@@ -318,6 +318,8 @@ try:
     assert html.count("data-trim=") == 102, "every card trimmable"
     assert "data-pack" in html and "copy install pack" in html, "trim pack builder present"
     assert "install only what matches" in html, "page pitches install-matched, not the playbook"
+    assert "One hundred two skills" in html, "skills page states the live count"
+    assert "nothing orphaned, nothing twice" in html, "skills page states reachability without details"
     assert 'id="q"' not in html and "data-track" not in html, "no filter machinery"
     assert 'href="/about"' in html, "about linked from header and footer"
     assert "min-h-screen" in html and "flex-1" in html, "flex shell pins footer to the bottom"
