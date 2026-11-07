@@ -249,8 +249,7 @@ def nav(active: str) -> str:
         '<div class="max-w-[1200px] mx-auto px-4 py-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-2.5 md:gap-x-7 text-center">'
         '<a href="/" class="font-mono font-bold text-lg md:text-xl flex flex-1 items-center justify-center gap-2 text-ink no-underline">'
         '<span>ai (<span class="text-accent" style="font-family:\'Klee One\',\'Hannotate SC\',\'Kaiti SC\',\'STKaiti\',\'KaiTi\',cursive;font-size:1.35em;line-height:1;">愛</span>) means love</span></a>'
-        '<button id="menubtn" type="button" data-dropdown-toggle="mobile-menu" data-dropdown-placement="bottom-end" aria-label="Menu" aria-expanded="false" aria-controls="mobile-menu" class="md:hidden cursor-pointer border border-solid border-line bg-white rounded-lg min-h-[44px] min-w-[44px] px-3 py-1.5 text-xl leading-none text-ink">☰</button>'
-        '<span class="hidden md:flex md:w-auto md:flex-row md:gap-5">' + links + "</span>"
+        '<button id="menubtn" type="button" data-dropdown-toggle="mobile-menu" data-dropdown-placement="bottom-end" aria-label="Menu" aria-expanded="false" aria-controls="mobile-menu" class="cursor-pointer border border-solid border-line bg-white rounded-lg min-h-[44px] min-w-[44px] px-3 py-1.5 text-xl leading-none text-ink">☰</button>'
         '<div id="mobile-menu" class="z-10 hidden bg-white divide-y divide-line rounded-lg border border-solid border-line"><ul class="py-2 text-center" aria-label="Menu">' + items + "</ul></div>"
         "</div></nav>"
     )
