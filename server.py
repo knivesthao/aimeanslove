@@ -324,8 +324,10 @@ def page(title: str, desc: str, active: str, body: str, machine: str | None = No
     banner = ""
     if hero is not None:
         src, alt, dims = hero
-        eager = ' loading="eager" fetchpriority="high"' if active == "/" else ' loading="lazy"'
-        banner = '<figure class="m-0 mb-6"><img src="/brand/' + src + '" alt="' + alt + '" ' + dims + ' class="w-full h-auto rounded-xl"' + eager + "></figure>"
+        if active == "/":
+            banner = '<figure class="m-0 mb-6 max-w-[200px]"><img src="/brand/' + src + '" alt="' + alt + '" ' + dims + ' class="w-full h-auto rounded-xl" loading="eager" fetchpriority="high"></figure>'
+        else:
+            banner = '<figure class="m-0 mb-6"><img src="/brand/' + src + '" alt="' + alt + '" ' + dims + ' class="w-full h-auto rounded-xl" loading="lazy"></figure>'
     body = banner + body
     return (
         '<!doctype html><html lang="en"><head><meta charset="utf-8">\n'
