@@ -78,7 +78,7 @@ try:
     assert os.path.exists(USAGE_FILE), "counts persisted"
     status, _, body = get("/api/skills?fields=id,why")
     bank = json.loads(body)["skills"]
-    assert len(bank) == 94 and all(s.get("why") for s in bank), "every skill explains why"
+    assert len(bank) == 102 and all(s.get("why") for s in bank), "every skill explains why"
     status, _, body = get("/api/skills?fields=id,prompt")
     for s in json.loads(body)["skills"]:
         local = ROOT / ".agents" / "skills" / s["id"] / "SKILL.md"
@@ -158,15 +158,41 @@ try:
     lifecycle = {
         "start": ["code-index", "ui-index", "code-plan"],
         "always": ["code-secure", "code-reuse", "code-token"],
-        "build": ["code-language", "code-shape", "code-group", "code-polyglot", "code-boundaries"],
-        "interface": ["ui-shell", "ui-framework", "ui-widgets", "ui-forms", "ui-nav"],
+        "build": ["code-language", "code-shape", "code-group", "code-legacy", "code-lifecycle", "code-polyglot", "code-boundaries"],
+        "interface": ["ui-shell", "ui-framework", "ui-widgets", "ui-forms", "ui-nav", "ui-a11y"],
         "product": ["app-index", "code-billing", "code-auth", "code-auditlog"],
-        "data": ["data-index", "data-collect", "data-ingest", "data-model", "data-orchestrate"],
-        "ship": ["ops-index", "ops-pipeline", "ops-observe", "ops-rollout", "ops-backup", "ops-coordinate"],
-        "verify": ["verify-tests", "verify-visual", "verify-layout"],
+        "data": ["data-index", "data-collect", "data-ingest", "data-model", "data-contracts", "data-metrics", "data-pii", "data-orchestrate"],
+        "ship": ["ops-index", "ops-pipeline", "ops-observe", "ops-rollout", "ops-backup", "ops-coordinate", "ops-safety"],
+        "verify": ["verify-tests", "verify-visual", "verify-layout", "verify-debug", "verify-benchmark"],
     }
     missing = [s for stage in lifecycle.values() for s in stage if s not in all_ids]
     assert not missing, f"lifecycle stages uncovered: {missing}"
+    assert "code-legacy" in index_map and "code-lifecycle" in index_map, "bank routes legacy and lifecycle"
+    assert "verify-debug" in index_map and "verify-benchmark" in index_map, "bank routes debug and benchmark"
+    assert "ui-a11y" in ui_map, "interface map routes the a11y audit"
+    assert "ops-safety" in area_maps["ops-index"], "ops map routes blast-radius safety"
+    assert "data-metrics" in area_maps["data-index"] and "data-pii" in area_maps["data-index"], "data map routes metrics and PII"
+    for sid, needle in [("ops-coordinate", "scoped credentials"), ("ops-secrets", "out of band"),
+                        ("code-auditlog", "Name the agent"), ("data-ingest", "pass additive"),
+                        ("data-quality", "name an owner and an action"), ("data-retain", "shredding"),
+                        ("ops-backup", "erasure log"), ("ops-rollout", "declared by a human"),
+                        ("ops-pipeline", "real bus"), ("data-contracts", "handshake"),
+                        ("verify-tests", "Quarantine flakes"), ("ui-forms", "at the field"),
+                        ("ui-behavior", "offline"), ("ui-tokens", "prefers-color-scheme"),
+                        ("data-cdc", "watches the tap"), ("ops-rollout", "roll forward stateful")]:
+        status, _, rb = get(f"/api/skill/{sid}?fields=prompt")
+        assert needle in json.loads(rb)["skill"]["prompt"], f"{sid} carries: {needle}"
+    import sys as _sys
+    _sys.path.insert(0, str(ROOT / "script"))
+    import bench
+    m = bench.measure()
+    assert m["bank_skills"] == 102, "bench sees the whole bank"
+    assert all(v["share"] <= 0.20 for v in m["packs"].values()), "typical task packs stay under a fifth of the bank"
+    status, _, body = get("/")
+    home2 = body.decode()
+    assert "owns the blast radius" in home2, "home names the fifth verdict"
+    assert "13 to 17 percent" in home2, "home proof cites measured pack share"
+    assert "verify-benchmark" in home2, "home proof names the trial protocol"
     status, _, body = get("/ops")
     ops = body.decode()
     assert "modelcontextprotocol.io" in ops, "ops page backlinks the MCP source"
@@ -233,9 +259,9 @@ try:
     assert "code-index" in html and "progressive disclosure" in html, "index skill maps tasks to skills"
     assert "code-ssrf" in html and "code-crypto" in html, "OWASP set renders on page"
     assert all(g in html for g in ("Start here", "Always on", "Security deep-dives", "Verify", "Run well")), "skills page groups skills"
-    assert html.count("data-copy-skill=") == 94, "every skill renders exactly once"
+    assert html.count("data-copy-skill=") == 102, "every skill renders exactly once"
     assert "data-copy-skill" in html, "page has copy buttons"
-    assert html.count("data-trim=") == 94, "every card trimmable"
+    assert html.count("data-trim=") == 102, "every card trimmable"
     assert "data-pack" in html and "copy install pack" in html, "trim pack builder present"
     assert "install only what matches" in html, "page pitches install-matched, not the playbook"
     assert 'id="q"' not in html and "data-track" not in html, "no filter machinery"

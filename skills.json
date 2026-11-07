@@ -3,9 +3,9 @@
     "id": "code-index",
     "track": "code",
     "title": "Start here: task first, stack second",
-    "tokens": "~680",
+    "tokens": "~790",
     "why": "One tiny map keeps every other skill small: the agent reads hundreds of tokens, not thousands.",
-    "prompt": "Create and install a skill named `code-index` (Start here: pick skills by task). It instructs the agent as follows: Your installed skills each do one job — never read them all. Step zero: detect the codebase's language, framework, and tokens before matching anything. Bound to a stack? The house defaults never apply — follow the codebase and skip or overwrite every conflicting house skill. We default to Python plus FastAPI plus Pydantic and Lit only for new, unbound work because agents generate it fastest with the fewest mistakes — never force it on an existing codebase. Work in two passes. Pass 1 — task first. Three skills apply to almost every task, so always read these: code-secure, code-reuse, code-token. Then match the task and read only the matched skills — mixed tasks match more than one line, so a UI-plus-API job reads ui-index and the service skills: Interface, screen, or component work → ui-index. New service or script → code-language, code-shape. Organizing a new codebase → code-group. Services in other languages → code-boundaries, then code-polyglot for the guest side. Public API, forms, beacons → code-ratelimit. Repeat traffic → code-cache. Usage counts → code-track. Slow endpoint or heavy page → code-perf. Work that outlives the request → code-async. Background jobs, queues, workers, and parallel fan-out also land on code-async. Traffic spikes, shedding features → code-fallback. Login, accounts, permissions → code-auth. Product features (billing, roles, admin — any SaaS, SIS, billing system) → app-index. Landing data and scheduling pipelines → data-index. Build-test-deploy gates and paging → ops-index. Two or more agents sharing one deploy or codebase → ops-index too. Vuln deadlines, enterprise login, regulated data → sec-index. Security deep-dives — the OWASP Top 10 set, read on match: code-crypto, code-injection, code-design, code-misconfig, code-deps, code-integrity, code-logging, code-ssrf. Pass 2 — stack specifics. After the task match, apply the stack the codebase already uses: language → code-language (Python first on new code; if the project already uses another language, skip this skill or overwrite it with that stack). Interface framework → ui-index (house default Lit via ui-framework; widget libraries per framework live in ui-platform-picks). Styling → ui-tokens (unless the project already has a design system — then skip it). Mobile platform → ui-mobile (Capacitor shell unless native is technically required). Service-to-service → code-boundaries (same-language HTTP, other languages gRPC, events validated). These stack picks assume a new codebase: if the project already uses something else — another language, framework, tokens, or platform — follow that instead. The house rule beats the skill. Skip everything else. Fetch all matched skills in one batched request; never fetch the same skill twice in one session — installed skills live locally. When building is done → verify-tests, plus verify-visual for screens and verify-layout for layout. Three or more matched skills → code-plan first. Missing a skill? Copy its prompt from the skills page once, install it, then use it locally. This follows progressive disclosure — map first, details on demand.",
+    "prompt": "Create and install a skill named `code-index` (Start here: pick skills by task). It instructs the agent as follows: Your installed skills each do one job — never read them all. Step zero: detect the codebase's language, framework, and tokens before matching anything. Bound to a stack? The house defaults never apply — follow the codebase and skip or overwrite every conflicting house skill. We default to Python plus FastAPI plus Pydantic and Lit only for new, unbound work because agents generate it fastest with the fewest mistakes — never force it on an existing codebase. Work in two passes. Pass 1 — task first. Three skills apply to almost every task, so always read these: code-secure, code-reuse, code-token. Then match the task and read only the matched skills — mixed tasks match more than one line, so a UI-plus-API job reads ui-index and the service skills: Interface, screen, or component work → ui-index. New service or script → code-language, code-shape. Organizing a new codebase → code-group. Inheriting an old codebase → code-legacy. Services in other languages → code-boundaries, then code-polyglot for the guest side. Public API, forms, beacons → code-ratelimit. Repeat traffic → code-cache. Usage counts → code-track. Slow endpoint or heavy page → code-perf. Work that outlives the request → code-async. Background jobs, queues, workers, and parallel fan-out also land on code-async. Traffic spikes, shedding features → code-fallback. Login, accounts, permissions → code-auth. Product features (billing, roles, admin — any SaaS, SIS, billing system) → app-index. Landing data and scheduling pipelines → data-index. Build-test-deploy gates and paging → ops-index. Two or more agents sharing one deploy or codebase → ops-index too. Vuln deadlines, enterprise login, regulated data → sec-index. Security deep-dives — the OWASP Top 10 set, read on match: code-crypto, code-injection, code-design, code-misconfig, code-deps, code-integrity, code-logging, code-ssrf. Pass 2 — stack specifics. After the task match, apply the stack the codebase already uses: language → code-language (Python first on new code; if the project already uses another language, skip this skill or overwrite it with that stack). Interface framework → ui-index (house default Lit via ui-framework; widget libraries per framework live in ui-platform-picks). Styling → ui-tokens (unless the project already has a design system — then skip it). Mobile platform → ui-mobile (Capacitor shell unless native is technically required). Service-to-service → code-boundaries (same-language HTTP, other languages gRPC, events validated). These stack picks assume a new codebase: if the project already uses something else — another language, framework, tokens, or platform — follow that instead. The house rule beats the skill. Skip everything else. Fetch all matched skills in one batched request; never fetch the same skill twice in one session — installed skills live locally. When building is done → verify-tests, plus verify-visual for screens, verify-layout for layout, verify-debug when the output is wrong, and verify-benchmark to prove the savings. Three or more matched skills → code-plan first. Missing a skill? Copy its prompt from the skills page once, install it, then use it locally. Evolving the bank itself — versions, retiring skills → code-lifecycle. This follows progressive disclosure — map first, details on demand.",
     "checks": ["only matched skills are read", "always-on skills never skipped", "whole bank never copied at once"]
   },
   {
@@ -156,18 +156,18 @@
     "id": "ui-tokens",
     "track": "ui",
     "title": "Tokens + Tailwind",
-    "tokens": "~310",
+    "tokens": "~300",
     "why": "Fixing palette and spacing to tokens removes an entire category of per-element decisions.",
-    "prompt": "Create and install a skill named `ui-tokens` (Tokens + Tailwind). It instructs the agent as follows: Style with Tailwind utilities for layout and spacing, on top of three color tokens (--ink, --paper, --accent) and a 4/8/16/32 scale. Keep preflight on as the consistent baseline — describe every margin, bullet, and underline explicitly, never rely on browser defaults. Two neutrals plus one accent, 1px borders, radii 6px/10px. Contrast >= 4.5:1 so the human eyeball verdict works. Color with meaning and measure: green confirms, red destroys or errors, blue informs — never subvert these. Hold roughly 60% neutral background, 30% structure and text, 10% high-contrast accent on interactive elements only. Layer tokens: raw option palettes stay private, decisions (accent, text) and component tokens are what code reads (Fowler, Material).  If the project already uses a different design system, do not create this skill at all — skip it.",
+    "prompt": "Create and install a skill named `ui-tokens` (Tokens + Tailwind). It instructs the agent as follows: Style with Tailwind utilities for layout and spacing, on top of three color tokens (--ink, --paper, --accent) and a 4/8/16/32 scale. Keep preflight on as the consistent baseline — describe every margin, bullet, and underline explicitly, never rely on browser defaults. Two neutrals plus one accent, 1px borders, radii 6px/10px. Contrast >= 4.5:1 so the human eyeball verdict works. Color with meaning and measure: green confirms, red destroys or errors, blue informs — never subvert these. Hold roughly 60% neutral background, 30% structure and text, 10% high-contrast accent on interactive elements only. Layer tokens: raw option palettes stay private, decisions (accent, text) and component tokens are what code reads (Fowler, Material).  If the project already uses a different design system, do not create this skill at all — skip it. Theme with tokens, not branches: dark mode rides inverted tokens (same names, swapped values) behind prefers-color-scheme — never a second stylesheet, never color literals in components.",
     "checks": ["palette is 3 colors max", "no per-element color decisions", "contrast >= 4.5:1"]
   },
   {
     "id": "ui-behavior",
     "track": "ui",
     "title": "Behavior contract",
-    "tokens": "~190",
+    "tokens": "~180",
     "why": "Explicit text states make every outcome checkable by agents and humans alike, with no interpretation needed.",
-    "prompt": "Create and install a skill named `ui-behavior` (Behavior contract). It instructs the agent as follows: Every mutation needs an explicit state: idle → working → done|error. Show text status, never color alone. Respect prefers-reduced-motion. Confirm destructive actions inline. Humans verify by looking; log the state string for agents. For standard widgets (dialog, menu, combo, toggle, disclosure) follow the ARIA Authoring Practices pattern, keyboard behavior included — never invent interactions the platform already defined.",
+    "prompt": "Create and install a skill named `ui-behavior` (Behavior contract). It instructs the agent as follows: Every mutation needs an explicit state: idle → working → done|error. Show text status, never color alone. Respect prefers-reduced-motion. Confirm destructive actions inline. Humans verify by looking; log the state string for agents. For standard widgets (dialog, menu, combo, toggle, disclosure) follow the ARIA Authoring Practices pattern, keyboard behavior included — never invent interactions the platform already defined. Cover the empty, the broken, and the offline: every list states its empty case, every fetch states its error with a retry, every offline-capable screen says so — no blank regions, no silent failures.",
     "checks": ["each action exposes a text status", "reduced-motion honored", "destructive action confirms"]
   },
   {
@@ -180,12 +180,30 @@
     "checks": ["module <150 lines", "no global mutation", "tracebacks never reach clients"]
   },
   {
+    "id": "verify-benchmark",
+    "track": "verify",
+    "title": "Measure the task, not the skill",
+    "tokens": "~170",
+    "why": "Savings nobody measured are marketing; one protocol turns claims into numbers.",
+    "prompt": "Create and install a skill named `verify-benchmark` (Measure the task, not the skill). It instructs the agent as follows: Prove savings with a with/without trial on a real task: run it once with only matched skills installed, once with the whole bank, once with no skills. Record tokens burned, wall time, and defect count per run; report all three, never tokens alone. Match the task first with the bank map — the no-skills run still follows the plan rules (inline if five steps or fewer, file if longer). Publish the method and the raw numbers with the result; a claim without both is marketing.",
+    "checks": ["with/without/no-skill trial run", "tokens, time, defects all reported", "method plus raw numbers published"]
+  },
+  {
+    "id": "verify-debug",
+    "track": "verify",
+    "title": "Diagnose the run, not the intent",
+    "tokens": "~160",
+    "why": "A wrong agent needs a debugger, not a re-read; bisect the run to the guilty step.",
+    "prompt": "Create and install a skill named `verify-debug` (Diagnose the run, not the intent). It instructs the agent as follows: When the output is wrong, reproduce first with the smallest input that still fails. Bisect the plan: re-run steps in order against their done-states until one lies — the guilty step is the first whose output fails its check. Read receipts, samples, and drill records, never the agent's explanation of what it meant. Fix the step, not the plan; if two steps disagree, the contract between them is the bug. Record the failure shape so the next run recognizes it.",
+    "checks": ["smallest failing input reproduced", "guilty step bisected by done-state", "contract fixed when steps disagree"]
+  },
+  {
     "id": "verify-tests",
     "track": "verify",
     "title": "Tests are the spec",
-    "tokens": "~160",
+    "tokens": "~150",
     "why": "Tests are the only verdict both humans and agents can trust without reading the code.",
-    "prompt": "Create and install a skill named `verify-tests` (Tests are the spec). It instructs the agent as follows: Humans judge by tests, not by reading code. Ship one runnable check per behavior: one command (`./run.sh test`, `pytest`) must pass. Cover happy path + one edge (empty, oversized, unauthorized). Print PASS/FAIL lines an agent can parse.",
+    "prompt": "Create and install a skill named `verify-tests` (Tests are the spec). It instructs the agent as follows: Humans judge by tests, not by reading code. Ship one runnable check per behavior: one command (`./run.sh test`, `pytest`) must pass. Cover happy path + one edge (empty, oversized, unauthorized). Print PASS/FAIL lines an agent can parse. Quarantine flakes: a test that fails with no code change leaves the suite with its failure log attached — rerun it alone, fix or delete it within the week, never retry it blindly in place.",
     "checks": ["one command runs all checks", "edge case covered", "output is parseable"]
   },
   {
@@ -282,18 +300,18 @@
     "id": "ui-forms",
     "track": "ui",
     "title": "Pick the right input",
-    "tokens": "~260",
+    "tokens": "~240",
     "why": "Every extra click and scroll loses users; the right control asks nothing extra.",
-    "prompt": "Create and install a skill named `ui-forms` (Pick the right input). It instructs the agent as follows: For 2 to 4 options use radio buttons or segmented controls — everything visible, one click to answer. Use dropdowns only for 5 to 10 familiar options where space matters. Past 15 items use a combo box: a text input with live filtering so typing 2 or 3 characters isolates the target. For familiar data like birth years use plain numeric inputs, never long dropdown lists. Desktop hover menus wait 300 to 500 milliseconds before opening so passing cursors don't flicker them; prefer click-to-open menus. When one option suits most users, show it as the combo box default instead of giving all options equal weight (Microsoft).",
+    "prompt": "Create and install a skill named `ui-forms` (Pick the right input). It instructs the agent as follows: For 2 to 4 options use radio buttons or segmented controls — everything visible, one click to answer. Use dropdowns only for 5 to 10 familiar options where space matters. Past 15 items use a combo box: a text input with live filtering so typing 2 or 3 characters isolates the target. For familiar data like birth years use plain numeric inputs, never long dropdown lists. Desktop hover menus wait 300 to 500 milliseconds before opening so passing cursors don't flicker them; prefer click-to-open menus. When one option suits most users, show it as the combo box default instead of giving all options equal weight (Microsoft). Errors live where the eyes are: failed submits name every bad field inline at the field, announce the count at the top, and keep all entered data — never a bare toast, never wiped forms.",
     "checks": ["short lists use radio, not dropdowns", "15+ items get combo or text input", "hover menus carry 300-500ms delay"]
   },
   {
     "id": "ui-index",
     "track": "ui",
     "title": "Interface work: pick interface skills",
-    "tokens": "~230",
+    "tokens": "~220",
     "why": "One small map per area beats one giant map for everything.",
-    "prompt": "Create and install a skill named `ui-index` (Interface work: pick interface skills). It instructs the agent as follows: Your interface skills each do one job — never read them all. New screen or page → ui-shell, ui-tokens, ui-seo. New interactive piece (typing, dragging, live numbers) → ui-framework as well. Charts and graphs → ui-charts plus ui-chart-twin for the machine twin. Known widget (table, wizard, combo, calendar, modal, feed, kanban, editor, player, accordion) → ui-widgets, plus ui-platform-picks for library names and setup gates. Mobile app build → ui-mobile. Form inputs, dropdowns, menus → ui-forms. Page behavior and states → ui-behavior. Headers and navigation → ui-nav. Skip everything else. New codebase only: the house stack wins (see the bank map).",
+    "prompt": "Create and install a skill named `ui-index` (Interface work: pick interface skills). It instructs the agent as follows: Your interface skills each do one job — never read them all. New screen or page → ui-shell, ui-tokens, ui-seo. New interactive piece (typing, dragging, live numbers) → ui-framework as well. Charts and graphs → ui-charts plus ui-chart-twin for the machine twin. Known widget (table, wizard, combo, calendar, modal, feed, kanban, editor, player, accordion) → ui-widgets, plus ui-platform-picks for library names and setup gates. Mobile app build → ui-mobile. Form inputs, dropdowns, menus → ui-forms. Page behavior and states → ui-behavior. Headers and navigation → ui-nav. Accessibility audit → ui-a11y. Skip everything else. New codebase only: the house stack wins (see the bank map).",
     "checks": ["only matched skills are read", "whole area never copied at once"]
   },
   {
@@ -354,18 +372,18 @@
     "id": "data-index",
     "track": "code",
     "title": "Data work: pick data skills",
-    "tokens": "~300",
+    "tokens": "~210",
     "why": "Pipelines fail in the same three places — landing, ordering, replay — map first.",
-    "prompt": "Create and install a skill named `data-index` (Data work: pick data skills). It instructs the agent as follows: Your data skills each do one job — never read them all. Collection strategy → data-collect. Landing events exactly once → data-ingest. Ordering tasks with retries and stall alerts → data-orchestrate. Batch transforms → data-etl. Schemas and evolution → data-contracts. Data representation → data-model. Backfill and replay → data-backfill. CDC → data-cdc. Quality gates → data-quality. Partitioning → data-partition. Retention → data-retain. Streams → data-streams. Lineage → data-lineage. Upserts → data-upserts. Concurrent writers → data-concurrency. Skip everything else.",
+    "prompt": "Create and install a skill named `data-index` (Data work: pick data skills). It instructs the agent as follows: Your data skills each do one job — never read them all. Collection strategy → data-collect. Landing events exactly once → data-ingest. Ordering tasks with retries and stall alerts → data-orchestrate. Batch transforms → data-etl. Schemas and evolution → data-contracts. Data representation → data-model. Backfill and replay → data-backfill. CDC → data-cdc. Quality gates → data-quality. Partitioning → data-partition. Retention → data-retain. Streams → data-streams. Lineage → data-lineage. Upserts → data-upserts. Concurrent writers → data-concurrency. Shared metric definitions → data-metrics. Finding personal data → data-pii. Skip everything else.",
     "checks": ["only matched data skills are read", "repeat patterns banked, not pasted"]
   },
   {
     "id": "data-ingest",
     "track": "code",
     "title": "Land every event exactly once",
-    "tokens": "~200",
+    "tokens": "~170",
     "why": "Without dedup keys every retry double-counts — revenue, usage, and analytics all inflate.",
-    "prompt": "Create and install a skill named `data-ingest` (Land every event exactly once). It instructs the agent as follows: Land every event exactly once: producers attach an idempotency key and retry freely; consumers dedup on that key before writing, so replays converge instead of double-counting. Validate against the schema first — reject unknown fields loudly, never silently drop. Poison events go to a dead-letter queue after N tries and page nobody; the stream never blocks on one bad record. Keep the dedup store bounded with a TTL past the retry window.",
+    "prompt": "Create and install a skill named `data-ingest` (Land every event exactly once). It instructs the agent as follows: Land every event exactly once: producers attach an idempotency key and retry freely; consumers dedup on that key before writing, so replays converge instead of double-counting. Validate against the schema first: reject breaking changes loudly, but pass additive additions through and log them — rejecting every unknown field pages someone for harmless change. Poison events go to a dead-letter queue after N tries and page nobody; the stream never blocks on one bad record. Keep the dedup store bounded with a TTL past the retry window.",
     "checks": ["retries converge, never double-count", "poison in DLQ, stream never blocks", "dedup store TTL-bounded"]
   },
   {
@@ -381,18 +399,18 @@
     "id": "ops-index",
     "track": "code",
     "title": "Ops work: pick ops skills",
-    "tokens": "~300",
+    "tokens": "~220",
     "why": "Deploys and pages follow the same gates everywhere — map first, improvise never.",
-    "prompt": "Create and install a skill named `ops-index` (Ops work: pick ops skills). It instructs the agent as follows: Your ops skills each do one job — never read them all. Build-test-deploy gates → ops-pipeline. Logs, metrics, traces, paging → ops-observe. Preview envs → ops-preview. Migrations → ops-migrate. Rollouts → ops-rollout. Secrets at runtime → ops-secrets. Backups and restore drills → ops-backup. Infra as code → ops-iac. Autoscaling → ops-scale. Health probes → ops-probes. Rotations and postmortems → ops-oncall. Two or more agents on one deploy or codebase → ops-coordinate. Humans verify the rollout dashboard and the drill record — never the procedure text; agents read the plan ledger and the deploy receipt instead. Skip everything else.",
+    "prompt": "Create and install a skill named `ops-index` (Ops work: pick ops skills). It instructs the agent as follows: Your ops skills each do one job — never read them all. Build-test-deploy gates → ops-pipeline. Logs, metrics, traces, paging → ops-observe. Preview envs → ops-preview. Migrations → ops-migrate. Rollouts → ops-rollout. Secrets at runtime → ops-secrets. Backups and restore drills → ops-backup. Infra as code → ops-iac. Autoscaling → ops-scale. Health probes → ops-probes. Rotations and postmortems → ops-oncall. Destructive ops and failing actors → ops-safety. Two or more agents on one deploy or codebase → ops-coordinate. Humans verify the rollout dashboard and the drill record — never the procedure text; agents read the plan ledger and the deploy receipt instead. Skip everything else.",
     "checks": ["only matched ops skills are read", "unproven ops work never ships"]
   },
   {
     "id": "ops-pipeline",
     "track": "code",
     "title": "One template, gated deploys, one-button rollback",
-    "tokens": "~200",
+    "tokens": "~210",
     "why": "Hand-rolled pipelines drift until the deploy that matters most is the one least tested.",
-    "prompt": "Create and install a skill named `ops-pipeline` (One template, gated deploys, one-button rollback). It instructs the agent as follows: Deploy only from one shared templated pipeline — never hand-rolled per repo. Required gates in order: build, tests, security scan, approval for production. Every deploy links to its commit; every PR gets a preview environment (see ops-preview). Broadcast deploy start and finish as machine-readable trigger events (see ops-observe) so agents and rollouts react without polling. Rollback means redeploying the previous known-good artifact with one action — never a new build under fire. Block on critical scan findings; ticket the rest with SLAs.",
+    "prompt": "Create and install a skill named `ops-pipeline` (One template, gated deploys, one-button rollback). It instructs the agent as follows: Deploy only from one shared templated pipeline — never hand-rolled per repo. Required gates in order: build, tests, security scan, approval for production. Every deploy links to its commit; every PR gets a preview environment (see ops-preview). Broadcast deploy start and finish as machine-readable trigger events (see ops-observe) so agents and rollouts react without polling. Rollback means redeploying the previous known-good artifact with one action — never a new build under fire. Block on critical scan findings; ticket the rest with SLAs. Deliver trigger events on a real bus with ordering, dedup, and replay — an event nobody reliably delivers is a log line with ambition.",
     "checks": ["one shared template, no hand-rolled pipes", "preview envs auto-stop", "rollback is one action on an old artifact"]
   },
   {
@@ -462,9 +480,9 @@
     "id": "code-auditlog",
     "track": "code",
     "title": "Immutable actor-action-target trail",
-    "tokens": "~210",
+    "tokens": "~190",
     "why": "Debug logs are not audit logs — auditors ask who did what, and noise is not an answer.",
-    "prompt": "Create and install a skill named `code-auditlog` (Immutable actor-action-target trail). It instructs the agent as follows: Record actor, action, target, and timestamp as immutable events — debug logs are not audit logs (break-in detection lives in code-logging). Any app with more than one user role — or with money, permissions, or exports — needs this whether or not HIPAA applies; regulated data only makes mandatory what multi-user accountability already requires. Keep the trail append-only with a retention policy and export for auditors. Log permission changes, data exports, and impersonation sessions first; those are the rows auditors ask for.",
+    "prompt": "Create and install a skill named `code-auditlog` (Immutable actor-action-target trail). It instructs the agent as follows: Record actor, action, target, and timestamp as immutable events — debug logs are not audit logs (break-in detection lives in code-logging). Any app with more than one user role — or with money, permissions, or exports — needs this whether or not HIPAA applies; regulated data only makes mandatory what multi-user accountability already requires. Keep the trail append-only with a retention policy and export for auditors. Log permission changes, data exports, and impersonation sessions first; those are the rows auditors ask for. Name the agent in the actor field — 'which agent did this' must be answerable without asking anyone.",
     "checks": ["immutable actor-action-target events", "retention plus export", "permission and export actions covered"]
   },
   {
@@ -516,9 +534,9 @@
     "id": "data-contracts",
     "track": "code",
     "title": "Versioned schemas, additive only",
-    "tokens": "~190",
+    "tokens": "~130",
     "why": "A breaking rename with no contract silently breaks every downstream reader.",
-    "prompt": "Create and install a skill named `data-contracts` (Versioned schemas, additive only). It instructs the agent as follows: Version every event and table schema in one registry with compatibility checks on publish. Additive changes only — new optional fields, never renames or type changes without a new version. Consumers pin the version they read; producers support the last N versions through a dual-write window.",
+    "prompt": "Create and install a skill named `data-contracts` (Versioned schemas, additive only). It instructs the agent as follows: Version every event and table schema in one registry with compatibility checks on publish. Additive changes only — new optional fields, never renames or type changes without a new version. Consumers pin the version they read; producers support the last N versions through a dual-write window. Promise freshness too: each feed declares how late is too late and what happens on breach — a contract without an SLA is a handshake.",
     "checks": ["schemas versioned in one registry", "additive-only evolution", "consumers pin versions"]
   },
   {
@@ -534,18 +552,18 @@
     "id": "data-cdc",
     "track": "code",
     "title": "Stream the log, never poll",
-    "tokens": "~180",
+    "tokens": "~130",
     "why": "API polling misses deletes and hammers the source; the log has every change in order.",
-    "prompt": "Create and install a skill named `data-cdc` (Stream the log, never poll). It instructs the agent as follows: Stream row inserts, updates, and deletes from the database log — deletes must propagate, which API polling can never do. Treat the log as the source of truth with ordered offsets; consumers checkpoint so restarts resume, never restart from zero.",
+    "prompt": "Create and install a skill named `data-cdc` (Stream the log, never poll). It instructs the agent as follows: Stream row inserts, updates, and deletes from the database log — deletes must propagate, which API polling can never do. Treat the log as the source of truth with ordered offsets; consumers checkpoint so restarts resume, never restart from zero. Operate the connector like production: monitor the schema-history topic, snapshot deliberately, and alert on silent stalls — the log is only truth if someone watches the tap.",
     "checks": ["deletes propagate", "ordered offsets with checkpoints", "no polling"]
   },
   {
     "id": "data-quality",
     "track": "code",
     "title": "Gate promotion on signals, not row counts",
-    "tokens": "~190",
+    "tokens": "~130",
     "why": "Row counts pass plausible-but-wrong data; the bad numbers ship to every dashboard.",
-    "prompt": "Create and install a skill named `data-quality` (Gate promotion on signals, not row counts). It instructs the agent as follows: Gate every promotion on freshness, nulls, volume, and distribution — row counts alone pass plausible-but-wrong data. Failing checks block the pipeline and page the dataset owner, with the offending sample attached. Track quality history per dataset; sudden shifts are the incident.",
+    "prompt": "Create and install a skill named `data-quality` (Gate promotion on signals, not row counts). It instructs the agent as follows: Gate every promotion on freshness, nulls, volume, and distribution — row counts alone pass plausible-but-wrong data. Failing checks block the pipeline and page the dataset owner, with the offending sample attached. Track quality history per dataset; page only on shifts that name an owner and an action — alert fatigue trains teams to ignore every page, including real ones.",
     "checks": ["multi-signal gates, not row counts", "failures block with samples", "quality history tracked"]
   },
   {
@@ -561,9 +579,9 @@
     "id": "data-retain",
     "track": "code",
     "title": "Expire per policy, prove deletion",
-    "tokens": "~180",
+    "tokens": "~150",
     "why": "Keep-forever drowns storage budgets and turns every breach into a GDPR incident.",
-    "prompt": "Create and install a skill named `data-retain` (Expire per policy, prove deletion). It instructs the agent as follows: Expire or cold-store every dataset per written policy — cost and GDPR exposure both grow with keep-forever. PII gets the shortest retention and deletion on request with proof. Archive in open formats so cold data stays readable without the original cluster.",
+    "prompt": "Create and install a skill named `data-retain` (Expire per policy, prove deletion). It instructs the agent as follows: Expire or cold-store every dataset per written policy — cost and GDPR exposure both grow with keep-forever. PII gets the shortest retention and deletion on request with proof. Archive in open formats so cold data stays readable without the original cluster. Square erasure with immutable backups by key-per-subject shredding: destroying one subject's key deletes them from every backup holding it — deletion with proof, restores that still work.",
     "checks": ["policy per dataset, enforced", "PII deletable with proof", "open-format archives"]
   },
   {
@@ -615,18 +633,18 @@
     "id": "ops-rollout",
     "track": "code",
     "title": "Progressive traffic, predefined rollback",
-    "tokens": "~190",
+    "tokens": "~160",
     "why": "Shipping 100% at once with no rollback trigger turns every bad deploy into a full outage.",
-    "prompt": "Create and install a skill named `ops-rollout` (Progressive traffic, predefined rollback). It instructs the agent as follows: Shift traffic progressively — canary then staged percentages — with health gates promoting each step. Define the rollback trigger before starting; rollback is one action that restores the last good version in minutes. Never 100% at once outside an emergency, and emergencies get a postmortem.",
+    "prompt": "Create and install a skill named `ops-rollout` (Progressive traffic, predefined rollback). It instructs the agent as follows: Shift traffic progressively — canary then staged percentages — with health gates promoting each step. Define the rollback trigger before starting; rollback is one action that restores the last good version in minutes. Compare canary metrics against the baseline automatically before each promotion — progressive without comparison is just slow. Roll back stateless, roll forward stateful: data never goes back, only forward with a fix. Never 100% at once outside an emergency; emergencies are declared by a human, and every one gets a postmortem.",
     "checks": ["health-gated progressive steps", "rollback trigger predefined", "rollback in minutes"]
   },
   {
     "id": "ops-backup",
     "track": "code",
     "title": "Drilled restores timed to RTO",
-    "tokens": "~180",
+    "tokens": "~140",
     "why": "An untested backup is assumed broken — teams discover it during the real outage.",
-    "prompt": "Create and install a skill named `ops-backup` (Drilled restores timed to RTO). It instructs the agent as follows: Back up on a schedule matched to a written RPO — and drill the restore, because an untested backup is assumed broken. Restores get timed against the RTO with the result recorded; a missed RTO changes the backup strategy, not the apology. Test restores into an isolated environment, never over production.",
+    "prompt": "Create and install a skill named `ops-backup` (Drilled restores timed to RTO). It instructs the agent as follows: Back up on a schedule matched to a written RPO — and drill the restore, because an untested backup is assumed broken. Restores get timed against the RTO with the result recorded; a missed RTO changes the backup strategy, not the apology. Test restores into an isolated environment, never over production. Restores honor erasure: replay the erasure log before opening a restored copy, so shredded subjects stay shredded.",
     "checks": ["RPO-matched schedule", "drilled restores timed to RTO", "isolated restore tests"]
   },
   {
@@ -669,10 +687,19 @@
     "id": "ops-coordinate",
     "track": "code",
     "title": "Agents share one plan, own one area",
-    "tokens": "~210",
+    "tokens": "~250",
     "why": "Two agents writing the same deploy step — or stomping each other's files — is the new merge conflict.",
-    "prompt": "Create and install a skill named `ops-coordinate` (Agents share one plan, own one area). It instructs the agent as follows: When two or more agents share one deploy or one codebase, coordinate through artifacts, not chat: one shared plan file is the ledger (see code-plan) — claim a task before starting it, check it off when done, never start an unclaimed task. Own one feature directory per agent so parallel edits never touch the same files; crossing into another agent's area needs a plan note first. Prefer idempotent operations so a retried or doubled step converges instead of corrupting. Report status as structured records (task, result, artifact link), never prose another agent must parse. Humans verify the plan ledger and the deploy receipt — never the chat log.",
+    "prompt": "Create and install a skill named `ops-coordinate` (Agents share one plan, own one area). It instructs the agent as follows: When two or more agents share one deploy or one codebase, coordinate through artifacts, not chat: one shared plan file is the ledger (see code-plan) — claim a task before starting it, check it off when done, never start an unclaimed task. Own one feature directory per agent so parallel edits never touch the same files; crossing into another agent's area needs a plan note first. Prefer idempotent operations so a retried or doubled step converges instead of corrupting. Report status as structured records (task, result, artifact link), never prose another agent must parse. Humans verify the plan ledger and the deploy receipt — never the chat log. Stay inside scoped credentials: touch only your area's deploy, data, and secrets — IAM, DNS, billing, prod data, and root credentials are never in reach (see ops-safety for the full blast-radius rules).",
     "checks": ["one shared plan ledger, tasks claimed", "one feature dir per agent", "status as records, not prose"]
+  },
+  {
+    "id": "ops-safety",
+    "track": "code",
+    "title": "Blast radius first, speed second",
+    "tokens": "~190",
+    "why": "Fast agents with prod access convert mistakes into outages at machine speed.",
+    "prompt": "Create and install a skill named `ops-safety` (Blast radius first, speed second). It instructs the agent as follows: Scope every agent's credentials least-privilege: an agent touches only its area's deploy, data, and secrets — IAM, DNS, billing, prod data, and root credentials are never in an agent's reach. Destructive ops (data deletes, infra teardown, mass revocation) need a second approver, human or agent, before executing — no exceptions, only a faster approval path for emergencies. An actor whose deploys fail twice in a row loses deploy rights automatically, like a drained host, until a human reinstates them. Cap what agents may spend: budgets with alerts and kill switches on agent-driven cloud actions.",
+    "checks": ["agents scoped, never-touch list enforced", "destructive ops need a second approver", "failing actors auto-drained, spend capped"]
   },
   {
     "id": "sec-scan",
@@ -759,9 +786,9 @@
     "id": "ops-secrets",
     "track": "code",
     "title": "Vault-injected secrets, rotated automatically",
-    "tokens": "~200",
+    "tokens": "~130",
     "why": "Committed secrets and manual rotation scatter copies that outlive every fix.",
-    "prompt": "Create and install a skill named `ops-secrets` (Vault-injected secrets, rotated automatically). It instructs the agent as follows: Inject vault-backed secrets at runtime with RBAC — never commit secrets to repos or share one static value across environments. Rotate automatically on a schedule — no manual tickets, no copies in chat or env files. Audit every read; alert on reads from unexpected places.",
+    "prompt": "Create and install a skill named `ops-secrets` (Vault-injected secrets, rotated automatically). It instructs the agent as follows: Inject vault-backed secrets at runtime with RBAC — never commit secrets to repos or share one static value across environments. Rotate automatically on a schedule — no manual tickets, no copies in chat or env files. Audit every read; alert on reads from unexpected places. Seed the vault out of band: the first secret never travels through the systems it protects, and agents never hold root credentials.",
     "checks": ["runtime injection only, never committed", "rotation automatic, no manual tickets", "reads audited"]
   },
   {
@@ -781,6 +808,24 @@
     "why": "Guest code fails at the seam and in language-specific traps the Python-trained agent walks into.",
     "prompt": "Create and install a skill named `code-polyglot` (Own guest-language code safely). It instructs the agent as follows: Use this only for code the house language technically cannot carry — Python remains the default everywhere else. Define the seam first: the contract lives in one repo as protobuf or JSON schema, and both sides generate from it — never hand-write both ends. Test the seam with recorded fixtures in the caller's language; the guest service proves itself with its own native tests, run with its native command (go test, cargo test, mix test). Keep guest code small and boring — the hot path only, everything else stays in Python. Agent pitfalls per guest: Rust — restructure ownership instead of cloning to satisfy the borrow checker. Go — propagate context and wrap errors; never swallow err. Erlang and Elixir — supervision trees own restarts, so don't defensively trap what the supervisor replays; keep state in processes.",
     "checks": ["seam defined as generated contract", "seam tests with recorded fixtures", "guest code minimal, hot path only"]
+  },
+  {
+    "id": "code-legacy",
+    "track": "code",
+    "title": "Strangle the monolith",
+    "tokens": "~130",
+    "why": "Rewrites stall for years; strangulation ships every quarter.",
+    "prompt": "Create and install a skill named `code-legacy` (Strangle the monolith). It instructs the agent as follows: Follow the existing patterns first — restructuring is costly and error-prone. Carve by seam: put new behavior behind the old interface, route traffic slice by slice, and let the replacement grow while the monolith shrinks. Isolate with anti-corruption layers so legacy quirks never leak into new code. Delete dead paths only after the new path carries everything with clean drills. Never a flag-day rewrite.",
+    "checks": ["existing patterns followed first", "traffic moves slice by slice", "no flag-day rewrite"]
+  },
+  {
+    "id": "code-lifecycle",
+    "track": "code",
+    "title": "Version, pin, retire",
+    "tokens": "~160",
+    "why": "A bank with no uninstall rots; one stale skill poisons every agent that installs it.",
+    "prompt": "Create and install a skill named `code-lifecycle` (Version, pin, retire). It instructs the agent as follows: Pin every installed skill to its version; check for updates on a schedule, never silently auto-update. Verify the bank's signature before installing — provenance first, content second. Deprecate before removing: mark superseded, point at the replacement, delete after one release — never vanish a skill agents depend on. Retire skills the field stops using; a bank that only grows stops being read. This skill governs the bank itself, including this skill.",
+    "checks": ["installed skills pinned and signed", "deprecate-then-remove, never vanish", "retired skills actually deleted"]
   },
   {
     "id": "verify-layout",
@@ -819,6 +864,15 @@
     "checks": ["chart-ready rollups only, no raw rows", "table plus spec under every chart", "stocked library, no hand-drawn SVG"]
   },
   {
+    "id": "ui-a11y",
+    "track": "ui",
+    "title": "Audit with keyboard, ears, motion off",
+    "tokens": "~140",
+    "why": "Contrast ratios are the beginning of accessibility, not the end.",
+    "prompt": "Create and install a skill named `ui-a11y` (Audit with keyboard, ears, motion off). It instructs the agent as follows: Walk every flow keyboard-only: tab order matches visual order, every control reachable and operable, focus always visible, traps only where intended with escape hatches. Run a screen-reader pass on each template: landmarks set, headings in order, live regions announce state changes, charts expose their data twin. Honor reduced motion fully — no essential animation without a static equivalent. Audit on a schedule, not once.",
+    "checks": ["keyboard-only walkthrough passes", "screen-reader pass per template", "reduced motion fully honored"]
+  },
+  {
     "id": "data-model",
     "track": "code",
     "title": "Data shaped for agent readers",
@@ -835,6 +889,24 @@
     "why": "Two writers plus no locking equals lost updates — the bug that only appears in production.",
     "prompt": "Create and install a skill named `data-concurrency` (Concurrent writers converge, never clobber). It instructs the agent as follows: Wrap multi-record changes in one database transaction — partial writes are corruption, not an edge case. Prefer optimistic locking: a version column on contested rows, retry the whole transaction on version mismatch, never hold a pessimistic lock across network calls. Make every write idempotent (see data-ingest) so the retry is safe to run twice. Shard hot rows — a single counter row updated by thousands of writers serializes everything; aggregate shards or buffer increments instead. Accept the database as the adult in the room: uniqueness, foreign keys, and check constraints enforced by the store beat application-level checks that race. Know your isolation default and what it hides; escalate only the transaction that proved it needs more.",
     "checks": ["multi-record changes in one transaction", "optimistic locking with retry, no held locks", "hot rows sharded, not hammered"]
+  },
+  {
+    "id": "data-metrics",
+    "track": "code",
+    "title": "One definition per metric",
+    "tokens": "~140",
+    "why": "Two dashboards with two definitions of revenue are both reproducible and both wrong.",
+    "prompt": "Create and install a skill named `data-metrics` (One definition per metric). It instructs the agent as follows: Define each metric once, in one registry owned by one team: name, formula, inputs, and grain. Dashboards and models read definitions, never re-derive them. Flag duplicate names with different formulas as incidents. Changing a definition versions it; restating history replays from the new version with the change logged. Movement is agent work; meaning is decided by people, then written here.",
+    "checks": ["each metric defined once with an owner", "duplicate names flagged as incidents", "definition changes versioned"]
+  },
+  {
+    "id": "data-pii",
+    "track": "code",
+    "title": "Find PII before you policy it",
+    "tokens": "~130",
+    "why": "Retention rules on unlabeled data are theater; the PII lives in note_2.",
+    "prompt": "Create and install a skill named `data-pii` (Find PII before you policy it). It instructs the agent as follows: Classify before retaining: scan text fields, webhook payloads, and new columns for personal data on a schedule — PII hides in free text and oddly named columns. Label what you find at the source; retention and erasure act on labels, never on guesses. Quarantine unlabeled new sources until classified. Re-scan when producers change shape.",
+    "checks": ["scheduled scans of text and new columns", "retention acts on labels", "unlabeled sources quarantined"]
   },
   {
     "id": "code-async",
