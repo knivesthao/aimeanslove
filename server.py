@@ -52,6 +52,14 @@ tailwind.config = {
   } }
 };
 </script>
+<style type="text/tailwindcss">
+@layer base {
+  :focus-visible { @apply outline-2 outline-accent outline-offset-2; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+</style>
 """
 
 # Usage tracking: every request counted, API counts persisted to usage.json.
@@ -231,6 +239,11 @@ def page(title: str, desc: str, active: str, body: str, machine: str | None = No
         '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
         "<title>" + title + " — ai (愛) means love</title>\n"
         '<meta name="description" content="' + desc + '">\n'
+        '<link rel="icon" type="image/png" href="/brand/favicon.png">\n'
+        '<meta property="og:title" content="' + title + " — ai (愛) means love" + '">\n'
+        '<meta property="og:description" content="' + desc + '">\n'
+        '<meta property="og:image" content="' + SITE_URL + '/brand/og-card.png">\n'
+        '<meta name="twitter:card" content="summary_large_image">\n'
         + TAILWIND_HEAD
         + "</head>\n"
         '<body class="m-0 text-ink bg-paper font-sans flex flex-col min-h-screen">' + nav(active) + float_pills() + '\n<main class="max-w-[1060px] w-full flex-1 mx-auto px-7 pt-9 pb-[60px] text-left">' + body + "</main>\n"
@@ -338,7 +351,7 @@ def details_card(title: str, inner: str, is_open: bool = False, anchor: str | No
         '<details class="border border-solid border-line rounded-[10px] p-[18px] bg-white text-left space-y-2"' + attrs + ">"
         '<summary class="cursor-pointer list-none flex items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">'
         '<h2 class="font-display text-[22px] text-left">' + title + "</h2>"
-        '<span aria-hidden="true" class="open:rotate-180 transition-transform text-accent text-xl leading-none shrink-0">\u25be</span></summary>'
+        '<span aria-hidden="true" class="open:rotate-180 motion-safe:transition-transform text-accent text-xl leading-none shrink-0">\u25be</span></summary>'
         + inner + "</details>"
     )
 
@@ -801,6 +814,14 @@ async def plan_release(request: Request) -> Response:
 def plan_claims() -> Response:
     prune_claims()
     return JSONResponse({"ok": True, "claims": [{"task": t, **c} for t, c in CLAIMS.items()]})
+
+
+@app.get("/brand/{name}")
+def brand_asset(name: str) -> Response:
+    allowed = {"og-card.png": "image/png", "favicon.png": "image/png"}
+    if name not in allowed:
+        return JSONResponse({"ok": False, "error": "no such asset"}, status_code=404)
+    return Response(content=(ROOT / "public" / "brand" / name).read_bytes(), media_type=allowed[name])
 
 
 @app.get("/signatures.json")

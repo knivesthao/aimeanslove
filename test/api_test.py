@@ -196,6 +196,15 @@ try:
     assert "What the pack arms added was completeness" in home2, "home proof reports the trial honestly"
     assert "coordination-heavy build" in home2, "home proof names the discriminating follow-up"
     assert "Pay once, use forever" in home2, "home states the one-time price"
+    assert 'rel="icon"' in home2 and "/brand/favicon.png" in home2, "favicon wired"
+    assert "prefers-reduced-motion" in home2 and ":focus-visible" in home2, "global a11y guards present"
+    assert 'property="og:image"' in home2 and "/brand/og-card.png" in home2, "social card wired"
+    status, _, body = get("/code")
+    assert "motion-safe:transition-transform" in body.decode(), "motion honors reduced-motion"
+    status, headers, body = get("/brand/og-card.png")
+    assert status == 200 and any("image/png" in v for v in headers.values()), "brand asset served"
+    status, _, _ = get("/brand/evil.png")
+    assert status == 404, "brand route safelisted"
     assert "Keys open soon" in home2, "home is honest the key system is pending"
     status, _, body = get("/ops")
     assert "probabilistic actors" in body.decode(), "ops page names the deterministic-gates architecture"
