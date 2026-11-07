@@ -15,6 +15,6 @@
   when the app outgrows one process (Upstash free tier).
 - [ ] **Donations** — pick a platform (Ko-fi, Open Collective, GitHub
   Sponsors); it lands behind the existing `support us` button.
-- [ ] **DevSecOps** — secret scanning, dependency audit on every push, tests
-  gating deploys, signed artifacts; `code-pipeline`-style skills when the
-  pipeline earns them.
+- [ ] **DevSecOps skills** (bank growth, not project tooling) — research
+  secret scanning, dependency audit, gated deploys, signed artifacts as
+  future skills; build them when the bank earns them.
