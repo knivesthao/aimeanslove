@@ -104,6 +104,32 @@ def rollup_copies() -> None:
             pass
 
 
+KEYS_FILE = Path(os.environ.get("AILV_KEYS_FILE", str(ROOT / "keys.json")))
+
+
+def _load_keys() -> dict:
+    try:
+        db = json.loads(KEYS_FILE.read_text(encoding="utf-8"))
+        return db.get("keys", {}) if isinstance(db, dict) else {}
+    except (OSError, ValueError):
+        return {}
+
+
+def _check_key(raw: str) -> str | None:
+    digest = hashlib.sha256(raw.encode()).hexdigest()
+    entry = _load_keys().get(digest)
+    return digest if entry and entry.get("active", True) else None
+
+
+def _touch_key(digest: str) -> None:
+    try:
+        db = json.loads(KEYS_FILE.read_text(encoding="utf-8"))
+        db["keys"][digest]["uses"] = db["keys"][digest].get("uses", 0) + 1
+        KEYS_FILE.write_text(json.dumps(db, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    except (OSError, ValueError, KeyError):
+        pass
+
+
 def hit(route: str, skill: str | None = None) -> None:
     rollup_copies()
     STATS["requests"] += 1
@@ -159,11 +185,11 @@ def nav(active: str) -> str:
     )
     return (
         '<nav class="topnav sticky top-0 z-10 bg-paper border-b border-solid border-line">'
-        '<div class="max-w-[1060px] mx-auto px-4 py-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-2.5 md:gap-x-7 text-center">'
+        '<div class="max-w-[1200px] mx-auto px-4 py-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-2.5 md:gap-x-7 text-center">'
         '<a href="/" class="font-mono font-bold text-lg md:text-xl flex flex-1 items-center justify-center gap-2 text-ink no-underline">'
         '<span class="inline-block w-2.5 h-2.5 bg-accent rounded-full"></span>ai (愛) means love</a>'
-        '<button id="menubtn" type="button" data-dropdown-toggle="mobile-menu" data-dropdown-placement="bottom-end" aria-label="Menu" aria-expanded="false" aria-controls="mobile-menu" class="md:hidden cursor-pointer border border-solid border-line bg-white rounded-md px-3 py-1.5 text-xl leading-none text-ink">☰</button>'
-        '<span class="hidden md:flex md:w-auto md:flex-row md:gap-[18px]">' + links + "</span>"
+        '<button id="menubtn" type="button" data-dropdown-toggle="mobile-menu" data-dropdown-placement="bottom-end" aria-label="Menu" aria-expanded="false" aria-controls="mobile-menu" class="md:hidden cursor-pointer border border-solid border-line bg-white rounded-lg min-h-[44px] min-w-[44px] px-3 py-1.5 text-xl leading-none text-ink">☰</button>'
+        '<span class="hidden md:flex md:w-auto md:flex-row md:gap-5">' + links + "</span>"
         '<div id="mobile-menu" class="z-10 hidden bg-white divide-y divide-line rounded-lg border border-solid border-line"><ul class="py-2 text-center" aria-label="Menu">' + items + "</ul></div>"
         "</div></nav>"
     )
@@ -209,7 +235,7 @@ customElements.define('uses-badge', UsesBadge);"""
 def float_pills() -> str:
     uses = library_uses()
     return (
-        '<div class="mx-auto w-full max-w-[1060px] px-4 pt-3 flex items-center">'
+        '<div class="mx-auto w-full max-w-[1200px] px-4 pt-3 flex items-center">'
         f'<uses-badge start="{uses}"><span data-fallback><a href="/#agent" class="font-mono text-xs bg-accent text-white rounded-full px-2.5 py-0.5 no-underline whitespace-nowrap">{uses} {DOWNLOAD_ICON}</a></span></uses-badge>'
         '<a href="/#support" data-open-support class="font-mono text-xs border border-solid border-accent text-accent rounded-full px-2.5 py-0.5 no-underline ml-auto">support us</a>'
         '<button type="button" data-open-contact class="font-mono text-xs border border-solid border-accent text-accent rounded-full px-2.5 py-0.5 ml-2 bg-transparent cursor-pointer">contact us</button>'
@@ -217,23 +243,29 @@ def float_pills() -> str:
     )
 
 
-SUPPORT_DIALOG = """<dialog id="support-dialog" class="rounded-[10px] border border-solid border-line bg-white p-[18px] text-left text-ink max-w-[420px] backdrop:bg-ink/60">
+SUPPORT_DIALOG = """<dialog id="support-dialog" class="rounded-xl border border-solid border-line bg-white p-5 text-left text-ink max-w-[420px] backdrop:bg-ink/60">
 <p class="font-display text-[22px] mb-3">Support the library</p>
 <p class="m-0">Free forever: no keys, no paywall on the endpoints. If these skills saved you tokens, chip in when donations open — every bit keeps the bank free for the next agent. Donations are not open yet — check back soon.</p>
-<div class="mt-3 text-right"><button type="button" data-close-support class="cursor-pointer border border-solid border-line bg-white rounded-md px-3 py-1.5">Close</button></div>
+<div class="mt-3 text-right"><button type="button" data-close-support class="cursor-pointer border border-solid border-line bg-white rounded-lg px-3 py-1.5">Close</button></div>
 </dialog>"""
 
 
 FOOTER = (
-    '<footer class="border-t border-solid border-line px-7 py-[18px] flex justify-center gap-x-6 gap-y-3 flex-wrap text-[13px] text-muted text-center">'
+    '<footer class="border-t border-solid border-line px-8 py-[18px] flex justify-center gap-x-6 gap-y-3 flex-wrap text-[13px] text-muted text-center">'
     '<a href="/about" class="text-accent underline">about</a>'
     '<a href="/#contact" data-open-contact class="text-accent underline">contact us</a>'
     "</footer>"
 )
 
 
-def page(title: str, desc: str, active: str, body: str, machine: str | None = None) -> str:
+def page(title: str, desc: str, active: str, body: str, machine: str | None = None, hero: tuple[str, str, str] | None = None) -> str:
     tag = '<script type="application/json" id="machine">' + machine + "</script>" if machine else ""
+    banner = ""
+    if hero is not None:
+        src, alt, dims = hero
+        eager = ' loading="eager" fetchpriority="high"' if active == "/" else ' loading="lazy"'
+        banner = '<figure class="m-0 mb-6"><img src="/brand/' + src + '" alt="' + alt + '" ' + dims + ' class="w-full h-auto rounded-xl"' + eager + "></figure>"
+    body = banner + body
     return (
         '<!doctype html><html lang="en"><head><meta charset="utf-8">\n'
         '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
@@ -246,8 +278,8 @@ def page(title: str, desc: str, active: str, body: str, machine: str | None = No
         '<meta name="twitter:card" content="summary_large_image">\n'
         + TAILWIND_HEAD
         + "</head>\n"
-        '<body class="m-0 text-ink bg-paper font-sans flex flex-col min-h-screen">' + nav(active) + float_pills() + '\n<main class="max-w-[1060px] w-full flex-1 mx-auto px-7 pt-9 pb-[60px] text-left">' + body + "</main>\n"
-        + FOOTER + SUPPORT_DIALOG + CONTACT_DIALOG + "\n<script>" + CLIENT + "</script>\n" + '<script type="module">' + ISLAND_JS + "</script>\n" + tag + "</body></html>"
+        '<body class="m-0 text-ink bg-paper font-sans flex flex-col min-h-screen">' + '<a href="#content" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:bg-white focus:px-3 focus:py-2 focus:border focus:border-solid focus:border-line">Skip to content</a>' + nav(active) + float_pills() + '\n<main id="content" class="max-w-[1200px] w-full flex-1 mx-auto px-8 pt-8 pb-16 text-left">' + body + "</main>\n"
+        + FOOTER + SUPPORT_DIALOG + contact_dialog() + "\n<script>" + CLIENT + "</script>\n" + '<script type="module">' + ISLAND_JS + "</script>\n" + tag + "</body></html>"
     )
 
 
@@ -281,16 +313,16 @@ HOME_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">ai
 </section>
 <section id="agent" class="mt-10 border-t-2 border-solid border-ink pt-5 space-y-3">
 <h2 class="font-display text-[22px] mb-3">Give this to your agent</h2>
-<p>Paste the lines below into any agent session (Muse, Claude, or any coding agent). They fetch the skills straight into the agent — no key, no signup, the endpoints are open:</p>
-<pre class="bg-ink text-white rounded-lg p-3.5 text-sm overflow-auto text-left">curl https://aimeanslove.fyi/board.json
-curl "https://aimeanslove.fyi/api/skills?track=code&fields=id,prompt"</pre>
-<p>Or say it in plain words:</p>
-<p class="bg-wash rounded-lg p-2.5 text-sm text-left">Go to https://aimeanslove.fyi/board.json, fetch the whole bank, and install every skill in one go as local files (one per skill, e.g. .agents/skills/&lt;id&gt;/SKILL.md) — then work from your local copies and never refetch mid-task.</p>
+<p>Have a key? One call installs the whole bank — the agent fetches, writes one file per skill, and works from local copies:</p>
+<pre class="bg-ink text-white rounded-lg p-3.5 text-sm overflow-auto text-left">curl "https://aimeanslove.fyi/api/install?key=YOUR_KEY"</pre>
+<p class="bg-wash rounded-lg p-2.5 text-sm text-left">Say it in plain words: fetch https://aimeanslove.fyi/api/install?key=YOUR_KEY, write each returned skill to its file path, then work from your local copies and never refetch mid-task.</p>
+<p>No key yet? The slim endpoints stay open for tasting — fetch one map and the skills it names:</p>
+<pre class="bg-ink text-white rounded-lg p-3.5 text-sm overflow-auto text-left">curl https://aimeanslove.fyi/api/skill/code-index?fields=prompt</pre>
 </section>"""
 
 UI_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">UI guide</h1><p class="text-[17px]">Goal: an agent builds the drafts fast; a human shapes feel in the middle and confirms at the end. Mobile-first always — 360px first, scale up — unless the task genuinely needs a full monitor. Semantic HTML, tokens not prose, every state visible as text.</p></header>
 <section class="grid gap-4 my-6 md:grid-cols-3">
-<div class="border border-solid border-line rounded-[10px] p-[18px] bg-white"><h2 class="font-display text-[22px] mb-3">1 · Structure</h2><ul class="text-left space-y-2 list-disc pl-5">
+<div class="border border-solid border-line rounded-xl p-5 bg-white"><h2 class="font-display text-[22px] mb-3">1 · Structure</h2><ul class="text-left space-y-2 list-disc pl-5">
 <li>Semantic landmarks: <code class="font-mono text-[13px]">&lt;header&gt; &lt;main&gt; &lt;footer&gt;</code>, real <code class="font-mono text-[13px]">&lt;button&gt;</code>/<code class="font-mono text-[13px]">&lt;a&gt;</code>/<code class="font-mono text-[13px]">&lt;input&gt;</code> with visible labels. No div-buttons.</li>
 <li>Icon-only controls welcome — but every control exposes metadata: a real element, a label or <code class="font-mono text-[13px]">aria-label</code>, and a <code class="font-mono text-[13px]">data-action</code>. Humans get the pixels; agents read the metadata.</li>
 <li>Shape every script your readers use. System fonts usually cover complex scripts on modern phones — verify on a real device, since shaping bugs only show in real rendering.</li>
@@ -302,7 +334,7 @@ UI_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">UI g
 <li>Fast by budget. Set a budget (page weight, endpoint milliseconds, query count), measure first, cache the repeats, shrink the payload, and re-measure after every change. See the <code class="font-mono text-[13px]">code-perf</code> skill.</li>
 <li>Shed load, keep serving. Rank features by criticality, shed the nice-to-haves behind flags, and prove the degraded mode with a stress test — feature grouping means a future service split follows existing seams. See the <code class="font-mono text-[13px]">code-fallback</code> skill.</li>
 <li>External links open a new tab. Any link leaving the site gets <code class="font-mono text-[13px]">target="_blank" rel="noopener"</code> so the reader never loses their place here; internal links never do.</li></ul></div>
-<div class="border border-solid border-line rounded-[10px] p-[18px] bg-white"><h2 class="font-display text-[22px] mb-3">2 · Styling tokens + Tailwind</h2><ul class="text-left space-y-2 list-disc pl-5">
+<div class="border border-solid border-line rounded-xl p-5 bg-white"><h2 class="font-display text-[22px] mb-3">2 · Styling tokens + Tailwind</h2><ul class="text-left space-y-2 list-disc pl-5">
 <li><a href="https://tailwindcss.com/" target="_blank" rel="noopener" class="text-accent underline">Tailwind</a> utilities for layout and spacing, on top of three color tokens (<code class="font-mono text-[13px]">--ink --paper --accent</code>) and a <code class="font-mono text-[13px]">4/8/16/32</code> scale. Preflight stays on as the consistent baseline — every margin, bullet, and underline is stated explicitly, never inherited from a browser default.</li>
 <li>Two neutrals + one accent. 1px solid lines. Radii: 6px / 10px. Utilities handle the how, tokens handle the what.</li>
 <li>Minimalist palettes win. Studies find 1–2 dominant colors plus functional neutrals complete tasks about 15% faster with about 25% fewer errors than vibrant multi-color themes — saturated color everywhere is visual overload (<a href="https://www.ijahci.com/index.php/ijahci/article/download/21/17/31" target="_blank" rel="noopener" class="text-accent underline">IJAHCI study</a>). Our two-neutrals-plus-accent is that finding, applied.</li>
@@ -311,19 +343,19 @@ UI_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">UI g
 <li>Color moves money across cultures. About 44% of consumers say the palette influenced a purchase, and blue tests well in every region studied — so the accent earns its keep twice: brand and conversion (<a href="https://doi.org/10.47909/awari.744" target="_blank" rel="noopener" class="text-accent underline">Alotaibi 2025</a>).</li>
 <li>Interactive components come from Flowbite (<a href="https://flowbite.com/" target="_blank" rel="noopener" class="text-accent underline">Flowbite</a>), never hand-built. Flowbite is made for Tailwind and mobile-first, and loads from one CDN script with no build step. Use its data attributes (for example <code class="font-mono text-[13px]">data-dropdown-toggle</code> for the mobile menu) — we lost real time rebuilding a menu by hand and the library version worked the first time.</li>
 <li>No gradients, no glass blur, no gray-on-gray body text. Contrast ≥ 4.5:1.</li></ul></div>
-<div class="border border-solid border-line rounded-[10px] p-[18px] bg-white"><h2 class="font-display text-[22px] mb-3">3 · Behavior</h2><ul class="text-left space-y-2 list-disc pl-5">
+<div class="border border-solid border-line rounded-xl p-5 bg-white"><h2 class="font-display text-[22px] mb-3">3 · Behavior</h2><ul class="text-left space-y-2 list-disc pl-5">
 <li>Every mutation exposes <code class="font-mono text-[13px]">idle → working → done | error</code> as text, never color alone.</li>
 <li>Confirm destructive actions inline. Honor <code class="font-mono text-[13px]">prefers-reduced-motion</code>.</li>
 <li>Seed demo data: no lorem, no empty lists. Each screen lists 3 things to eyeball.</li>
 <li>Verification screenshots live in the project's <code class="font-mono text-[13px]">shots/</code> folder (gitignored), named for what they show — never <code class="font-mono text-[13px]">/tmp</code>, so they don't pile up where nobody looks.</li>
 <li>Never trust a headless screenshot alone. Headless renders can lie — missing styles, shifted layout — while a real browser shows the truth. Use headless for a quick first look only; proof is a real browser, or the user's own screenshot. When the two disagree, believe the user's screen and stop editing until you know what it actually shows.</li>
 <li>Layout follows the published rulebook. <a href="https://www.w3.org/TR/WCAG21/#reflow" target="_blank" rel="noopener" class="text-accent underline">WCAG 2.1 Reflow (1.4.10)</a> is the standard: content usable with no loss and no two-dimensional scrolling — the exceptions (tables, maps, diagrams) scroll inside their own component, never the page. Alignment beyond that is measured, not eyeballed. See the verify-layout skill.</li></ul></div>
-<div class="border border-solid border-line rounded-[10px] p-[18px] bg-white"><h2 class="font-display text-[22px] mb-3">4 · Components</h2><ul class="text-left space-y-2 list-disc pl-5">
+<div class="border border-solid border-line rounded-xl p-5 bg-white"><h2 class="font-display text-[22px] mb-3">4 · Components</h2><ul class="text-left space-y-2 list-disc pl-5">
 <li>Short lists get radios. For 2 to 4 options use radio buttons or segmented controls — everything visible, one click to answer; dropdowns hide choices and cost clicks, with higher non-response and longer times (<a href="https://journals.sagepub.com/doi/10.1177/0894439306293888" target="_blank" rel="noopener" class="text-accent underline">Healey 2007</a>). Dropdowns only for 5 to 10 familiar options.</li>
 <li>Long lists get filters or plain inputs. Past about 15 items use a combo box — live filtering beats scrolling; for familiar data like birth years a plain numeric input beats any list (<a href="https://designnotes.blog.gov.uk/2013/12/05/asking-for-a-date-of-birth/" target="_blank" rel="noopener" class="text-accent underline">GOV.UK study</a>). Never make users scroll 50+ items.</li>
 <li>Hover menus wait. Desktop hover menus open after a 300–500ms delay so passing cursors don't flicker them shut (<a href="https://baymard.com/research-articles/dropdown-menu-flickering-issue" target="_blank" rel="noopener" class="text-accent underline">Baymard</a>); click-to-open is always safe.</li></ul></div>
 </section>
-<section class="mt-4 bg-wash border border-solid border-line rounded-[10px] p-[18px] space-y-3"><h2 class="font-display text-[22px] mb-3">Client state — for hands, not data</h2>
+<section class="mt-4 bg-wash border border-solid border-line rounded-xl p-5 space-y-3"><h2 class="font-display text-[22px] mb-3">Client state — for hands, not data</h2>
 <p>Typing, dragging, and drawing are faster than any round trip, so they live in the browser: a small isolated interactive region — called an "island" — holds the work-in-progress. The pattern comes from <a href="https://jasonformat.com/islands-architecture/" target="_blank" rel="noopener" class="text-accent underline">Islands Architecture (Jason Miller; term coined by Katie Sylor-Miller at Etsy)</a>: server HTML with interactive regions hydrated in place, instead of one app-wide runtime. Islands are Lit custom elements from the start (<a href="https://lit.dev/" target="_blank" rel="noopener" class="text-accent underline">Lit</a>), loaded from the pinned CDN module with no build step. Most sites are apps now, so one way beats two: no Alpine-first ladder to climb. But the server still owns the shared truth. The rule: never keep the same fact in both places without an expiry — sync back on natural pauses (debounced save), and the server re-checks everything it receives, because browser state is never trusted.</p>
 <ul class="text-left space-y-2 list-disc pl-5">
 <li><strong>Browser holds:</strong> keystrokes, drag positions, drawing strokes, open tabs, form drafts — anything hands are doing right now, plus prefs and anything that must work offline.</li>
@@ -331,7 +363,7 @@ UI_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">UI g
 <li><strong>No global store by default.</strong> A Pinia/Zustand-style store is a second copy of the truth that needs syncing and goes stale. Small local islands don't have that problem because they own nothing shared.</li>
 <li><strong>When an island earns its place.</strong> Most pages need none — server HTML is cheaper to write and cheaper for agents to read. Build one when the region must respond faster than a round trip: typing, dragging, live numbers, offline drafts. Our own usage badge is one: it re-reads the stats every minute without a reload.</li>
 <li><strong>Light DOM, always.</strong> Our islands render into the light DOM (never shadow), so Tailwind utilities and Lucide icons keep working inside them with no shadow styling to fight. HTMX never targets an island or anything inside one — Lit owns its element's children.</li></ul></section>
-<section class="mt-4 bg-wash border border-solid border-line rounded-[10px] p-[18px] space-y-3"><h2 class="font-display text-[22px] mb-3">Mobile track — one language to both app stores</h2>
+<section class="mt-4 bg-wash border border-solid border-line rounded-xl p-5 space-y-3"><h2 class="font-display text-[22px] mb-3">Mobile track — one language to both app stores</h2>
 <p>For app-like mobile builds, the token-densest path is <strong>FastAPI + <a href="https://htmx.org/" target="_blank" rel="noopener" class="text-accent underline">HTMX</a> + Tailwind, wrapped with <a href="https://capacitorjs.com/" target="_blank" rel="noopener" class="text-accent underline">Capacitor</a></strong>. One language (Python) serves logic and layout; almost no JavaScript is written; no Swift, Kotlin, or Dart is touched. Honest version of the pitch: HTMX doesn't delete data-fetching tokens, it moves them — fragments over JSON means no client state to synchronize, and that's where the savings actually come from. Tailwind's edge is correctness speed (models know it cold), not byte count — long class strings cost tokens per element, so keep components small.</p>
 <div class="grid gap-4 my-6 md:grid-cols-3 text-left">
 <div class="space-y-2"><h3 class="text-[19px] font-bold">FastAPI serves HTML</h3><p>Routes return fragments, not JSON. No fetch calls, no serializers, no client router drifting out of sync.</p></div>
@@ -348,7 +380,7 @@ def details_card(title: str, inner: str, is_open: bool = False, anchor: str | No
     if is_open:
         attrs += " open"
     return (
-        '<details class="border border-solid border-line rounded-[10px] p-[18px] bg-white text-left space-y-2"' + attrs + ">"
+        '<details class="border border-solid border-line rounded-xl p-5 bg-white text-left space-y-2"' + attrs + ">"
         '<summary class="cursor-pointer list-none flex items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">'
         '<h2 class="font-display text-[22px] text-left">' + title + "</h2>"
         '<span aria-hidden="true" class="open:rotate-180 motion-safe:transition-transform text-accent text-xl leading-none shrink-0">\u25be</span></summary>'
@@ -469,12 +501,12 @@ OPS_BODY = ("""<header class="space-y-2"><h1 class="font-display text-[38px]">Op
 
 def skill_card(s: Skill) -> str:
     return (
-        '<article class="skill border border-solid border-line rounded-[10px] p-4 grid gap-2 text-left"><header class="flex gap-2.5 items-baseline justify-center flex-wrap"><input type="checkbox" data-trim="' + html.escape(s.id) + '" checked class="cursor-pointer w-4 h-4"><span class="font-mono text-xs bg-ink text-white px-2 py-0.5 rounded-full">' + html.escape(s.id) + "</span><strong>"
+        '<article class="skill border border-solid border-line rounded-xl p-4 grid gap-2 text-left"><header class="flex gap-3 items-baseline justify-center flex-wrap min-h-[44px]"><input type="checkbox" data-trim="' + html.escape(s.id) + '" checked class="cursor-pointer w-4 h-4"><span class="font-mono text-xs bg-ink text-white px-2 py-0.5 rounded-full">' + html.escape(s.id) + "</span><strong>"
         + html.escape(s.title) + '</strong><span class="font-mono text-xs text-accent ml-auto" title="Estimated tokens for an agent to read this skill">' + html.escape(s.tokens) + " tokens</span></header>"
         + '<p class="m-0 text-sm"><strong>Why:</strong> ' + html.escape(s.why) + "</p>"
         + '<p class="prompt m-0 bg-wash rounded-lg p-2.5 text-sm text-left">' + html.escape(s.prompt) + "</p>"
         + '<p class="m-0 text-[13px] text-muted">verify → ' + html.escape(" · ".join(s.checks)) + "</p>"
-        + '<div><button type="button" data-copy-skill="' + html.escape(s.id) + '" class="cursor-pointer border border-solid border-line bg-white rounded-md px-3 py-1.5">copy prompt</button></div></article>'
+        + '<div><button type="button" data-copy-skill="' + html.escape(s.id) + '" aria-live="polite" class="cursor-pointer border border-solid border-line bg-white rounded-lg min-h-[44px] px-3 py-1.5">copy prompt</button></div></article>'
     )
 
 
@@ -502,7 +534,7 @@ BOARD_SECTIONS = "".join(
 
 BOARD_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">Skills</h1><p>One hundred two skills is far more than any one task needs — and that's the point. Nobody reads them all. Read the <a href="/api/skill/code-index" class="text-accent underline">index skill</a> first, install only the matched skills, and skip the rest: a typical task runs on a handful of matched skills, about a seventh of the bank, instead of the whole bank. Every skill is reachable from the maps and does exactly one job — nothing orphaned, nothing twice, one fetch per session.</p>
 <p>How it works: <strong>1.</strong> the index maps your task to skills; <strong>2.</strong> copy those prompts below, or fetch them slim; <strong>3.</strong> install only what matches and let your agent work. Small skills plus one map keep every session's context small by design. Humans judge two things: tests pass, and it looks right.</p>
-<div class="bg-wash border border-solid border-line rounded-[10px] p-[18px] flex flex-wrap items-center gap-3"><p class="m-0 text-sm"><strong>Trim an install pack:</strong> tick only the skills this task needs, then copy them as one pack.</p><div class="flex gap-2"><button type="button" data-pack class="cursor-pointer bg-accent text-white rounded-full px-4 py-2">copy install pack (<span data-pack-count>102</span>)</button><button type="button" data-pack-all class="cursor-pointer border border-solid border-line bg-white rounded-full px-3 py-2">all</button><button type="button" data-pack-none class="cursor-pointer border border-solid border-line bg-white rounded-full px-3 py-2">none</button></div></div>
+<div class="bg-wash border border-solid border-line rounded-xl p-5 flex flex-wrap items-center gap-3"><p class="m-0 text-sm"><strong>Trim an install pack:</strong> tick only the skills this task needs, then copy them as one pack.</p><div class="flex gap-2"><button type="button" data-pack aria-live="polite" class="cursor-pointer bg-accent text-white rounded-full min-h-[44px] px-4 py-2">copy install pack (<span data-pack-count>102</span>)</button><button type="button" data-pack-all class="cursor-pointer border border-solid border-line bg-white rounded-full min-h-[44px] px-3 py-2">all</button><button type="button" data-pack-none class="cursor-pointer border border-solid border-line bg-white rounded-full min-h-[44px] px-3 py-2">none</button></div></div>
 <p>The token badge on each card is from a test we ran on ourselves — our own payloads, counted — and the whole bank is about 23.0k tokens.</p></header>
 """ + BOARD_SECTIONS
 
@@ -510,7 +542,7 @@ MISSING_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]"
 
 ABOUT_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">About me</h1>
 <p>Hi, I'm Thao. I live in Southeast Asia and I build things for the web.</p></header>
-<section class="mt-4 bg-white border border-solid border-line rounded-[10px] p-[18px] space-y-3">
+<section class="mt-4 bg-white border border-solid border-line rounded-xl p-5 space-y-3">
 <p class="m-0">I started ai (&#24859;) means love for one simple reason: the old way of writing code was for humans to read. Now agents write most of the code, so code should be easy for agents to read instead. Humans only need to judge two things — do the tests pass, and does it look right.</p>
 <p class="m-0">Everything here is free and open. If a skill saves your agent tokens, use it. If something breaks or you have an idea, reach me through the <a href="/#contact" data-open-contact class="text-accent underline">contact us</a> button — I read every message.</p>
 <p class="m-0">The code lives on <a href="https://github.com/knivesthao/aimeanslove" target="_blank" rel="noopener" class="text-accent underline">GitHub</a>.</p>
@@ -577,43 +609,43 @@ async def rate_limit(request: Request, call_next):
 @app.get("/", response_class=HTMLResponse)
 def index() -> str:
     hit("/")
-    return page("The manifesto", "Machine builds for machines. Humans verify by tests and by looking.", "/", HOME_BODY)
+    return page("The manifesto", "Machine builds for machines. Humans verify by tests and by looking.", "/", HOME_BODY, hero=("hero-mark.jpg", "The ai (愛) means love mark", 'width="640" height="640"'))
 
 
 @app.get("/ui", response_class=HTMLResponse)
 def ui_guide() -> str:
     hit("/ui")
-    return page("UI guide", "Styling and behavior rules that keep agent-built UI cheap and human-verifiable.", "/ui", UI_BODY)
+    return page("UI guide", "Styling and behavior rules that keep agent-built UI cheap and human-verifiable.", "/ui", UI_BODY, hero=("banner-ui.jpg", "Layout frames for the UI guide", 'width="1024" height="256"'))
 
 
 @app.get("/code", response_class=HTMLResponse)
 def code_guide() -> str:
     hit("/code")
-    return page("Coding guide", "Write Python because agents generate it fastest; lean on FastAPI, SQLModel, and Typer as guardrails.", "/code", CODE_BODY)
+    return page("Coding guide", "Write Python because agents generate it fastest; lean on FastAPI, SQLModel, and Typer as guardrails.", "/code", CODE_BODY, hero=("banner-code.jpg", "Interlocking gears for the coding guide", 'width="1024" height="256"'))
 
 
 @app.get("/data", response_class=HTMLResponse)
 def data_guide() -> str:
     hit("/data")
-    return page("Data guide", "Land every event once, move in order, trust but verify.", "/data", DATA_BODY)
+    return page("Data guide", "Land every event once, move in order, trust but verify.", "/data", DATA_BODY, hero=("banner-data.jpg", "Flowing streams for the data guide", 'width="1024" height="256"'))
 
 
 @app.get("/ops", response_class=HTMLResponse)
 def ops_guide() -> str:
     hit("/ops")
-    return page("Ops guide", "Gated deploys, paging that matters, drilled restores.", "/ops", OPS_BODY)
+    return page("Ops guide", "Gated deploys, paging that matters, drilled restores.", "/ops", OPS_BODY, hero=("banner-ops.jpg", "A steady flame for the ops guide", 'width="1024" height="256"'))
 
 
 @app.get("/about", response_class=HTMLResponse)
 def about() -> str:
     hit("/about")
-    return page("About me", "Who runs ai (愛) means love and why it exists.", "/about", ABOUT_BODY)
+    return page("About me", "Who runs ai (愛) means love and why it exists.", "/about", ABOUT_BODY, hero=("banner-about.jpg", "A lighthouse for the about page", 'width="1024" height="256"'))
 
 
 @app.get("/skills", response_class=HTMLResponse)
 def skills_page() -> str:
     hit("/skills")
-    return page("Skills", "Read the index, install only the matched skills, skip the rest.", "/skills", BOARD_BODY)
+    return page("Skills", "Read the index, install only the matched skills, skip the rest.", "/skills", BOARD_BODY, hero=("banner-skills.jpg", "A compass rose for the skills bank", 'width="1024" height="256"'))
 
 
 @app.get("/board", response_class=HTMLResponse)
@@ -624,21 +656,45 @@ def board() -> Response:
 CONTACT_TO = os.environ.get("CONTACT_TO", "knives.thao@gmail.com")
 
 
-CONTACT_DIALOG = """<dialog id="contact-dialog" class="rounded-[10px] border border-solid border-line bg-white p-[18px] text-left text-ink max-w-[420px] backdrop:bg-ink/60">
-<p class="font-display text-[22px] mb-3">Contact us</p>
-<p class="m-0 text-sm">Ask a question, report a bug, or just say hi. A human reads every message.</p>
-<form method="post" action="/contact" class="space-y-3 text-left mt-3">
-<p class="m-0"><label class="block text-sm mb-1" for="cf-name">Your name</label>
-<input id="cf-name" name="name" required maxlength="100" autocomplete="name" class="w-full border border-solid border-line rounded-lg px-3 py-2 bg-white"></p>
-<p class="m-0"><label class="block text-sm mb-1" for="cf-email">Your email</label>
-<input id="cf-email" name="email" type="email" required maxlength="200" autocomplete="email" class="w-full border border-solid border-line rounded-lg px-3 py-2 bg-white"></p>
-<p class="m-0" hidden aria-hidden="true"><label>Company<input name="company" tabindex="-1" autocomplete="off"></label></p>
-<p class="m-0"><label class="block text-sm mb-1" for="cf-message">Message</label>
-<textarea id="cf-message" name="message" required maxlength="5000" rows="5" class="w-full border border-solid border-line rounded-lg px-3 py-2 bg-white"></textarea></p>
-<p class="m-0"><button type="submit" class="cursor-pointer bg-accent text-white rounded-full px-4 py-2">Send message</button></p>
-</form>
-<div class="mt-3 text-right"><button type="button" data-close-contact class="cursor-pointer border border-solid border-line bg-white rounded-md px-3 py-1.5">Close</button></div>
-</dialog>"""
+def contact_dialog(errors=(), values=None, force_open=False) -> str:
+    """Contact dialog. Errors render inline (summary + per-field), values preserved."""
+    values = values or {}
+    bad = {f for f, _ in errors}
+    first_bad = next((f for f, _ in errors), "")
+    err_list = "".join(f"<li>{html.escape(m)}</li>" for _, m in errors)
+    err_block = (
+        '<div role="alert" class="bg-wash border border-solid border-line rounded-lg p-2.5 text-sm text-left">'
+        "<p class='m-0'><strong>Please fix:</strong></p>"
+        f"<ul class='text-left space-y-1 pl-5 list-disc'>{err_list}</ul></div>"
+        if errors else ""
+    )
+    def field(kind, fid, name, label, extra=""):
+        v = html.escape(values.get(name, ""), quote=True)
+        inv = ' aria-invalid="true"' if name in bad else ""
+        foc = " autofocus" if name == first_bad else ""
+        if kind == "area":
+            control = f'<textarea id="{fid}" name="{name}" required maxlength="5000" rows="5"{inv}{foc} class="w-full border border-solid border-line rounded-lg px-3 py-2 bg-white">{v}</textarea>'
+        else:
+            control = f'<input id="{fid}" name="{name}" type="{kind}" required maxlength="200" autocomplete="{extra}" value="{v}"{inv}{foc} class="w-full border border-solid border-line rounded-lg px-3 py-2 bg-white">'
+        return (f'<p class="m-0"><label class="block text-sm mb-1" for="{fid}">{label}</label>'
+                f"{control}</p>")
+    open_attr = " open" if force_open else ""
+    opener = "<script>document.getElementById('contact-dialog')?.showModal()</script>" if force_open else ""
+    return (
+        f'<dialog id="contact-dialog"{open_attr} class="rounded-xl border border-solid border-line bg-white p-5 text-left text-ink max-w-[420px] backdrop:bg-ink/60">'
+        '<p class="font-display text-[22px] mb-3">Contact us</p>'
+        "<p class='m-0 text-sm'>Ask a question, report a bug, or just say hi. A human reads every message.</p>"
+        + err_block +
+        '<form method="post" action="/contact" class="space-y-3 text-left mt-3">'
+        + field("text", "cf-name", "name", "Your name", "name")
+        + field("email", "cf-email", "email", "Your email", "email")
+        + '<p class="m-0" hidden aria-hidden="true"><label>Company<input name="company" tabindex="-1" autocomplete="off"></label></p>'
+        + field("area", "cf-message", "message", "Message")
+        + '<p class="m-0"><button type="submit" class="cursor-pointer bg-accent text-white rounded-full px-4 py-2 min-h-[44px]">Send message</button></p>'
+        "</form>"
+        '<div class="mt-3 text-right"><button type="button" data-close-contact class="cursor-pointer border border-solid border-line bg-white rounded-lg px-3 py-1.5 min-h-[44px]">Close</button></div>'
+        "</dialog>" + opener
+    )
 
 
 def send_contact_email(name: str, email: str, message: str) -> tuple[bool, str]:
@@ -689,9 +745,20 @@ async def contact_post(request: Request):
     if str(form.get("company", "")).strip():
         return thanks_page()
     domain = email.split("@")[-1] if "@" in email else ""
-    if not name or len(name) > 100 or "." not in domain or not message or len(message) > 5000:
+    errors = []
+    if not name or len(name) > 100:
+        errors.append(("name", "Your name is needed (100 characters or fewer)."))
+    if "." not in domain:
+        errors.append(("email", "That email address doesn't look right — a valid email address is needed."))
+    if not message or len(message) > 5000:
+        errors.append(("message", "Your message is needed (5000 characters or fewer)."))
+    if errors:
+        values = {"name": name, "email": email, "message": message}
         return HTMLResponse(
-            sorry_page("Please check: your name, a valid email address, and a message are all needed."),
+            page("Contact", "Fix the highlighted fields and resend.", "/contact",
+                 '<header class="space-y-2"><h1 class="font-display text-[38px]">Message not sent</h1>'
+                 "<p>Fix the highlighted fields below and send again.</p></header>"
+                 + contact_dialog(errors, values, force_open=True)),
             status_code=400,
         )
     sent, _reason = send_contact_email(name, email, message)
@@ -739,7 +806,7 @@ def releases_page(request: Request) -> str:
         f"<li><strong>{v} — {d} — {title}.</strong> {notes}</li>" for v, d, title, notes in RELEASES
     )
     return page("Releases", "What changed in the bank, dated.",
-                "/releases", f"""<header class="space-y-2"><h1 class="font-display text-[38px]">Releases</h1><p class="text-[17px]">The bank grows in public. Every change ships with notes and a feed — subscribe once, read the diff, update on your schedule. Nothing here changes silently under a pinned install.</p></header><ul class="text-left space-y-2 list-disc pl-5 mt-4">{items}</ul>""")
+                "/releases", f"""<header class="space-y-2"><h1 class="font-display text-[38px]">Releases</h1><p class="text-[17px]">The bank grows in public. Every change ships with notes and a feed — subscribe once, read the diff, update on your schedule. Nothing here changes silently under a pinned install.</p></header><ul class="text-left space-y-2 list-disc pl-5 mt-4">{items}</ul>""", hero=("banner-releases.jpg", "A seal of approval for the releases page", 'width="1024" height="256"'))
 
 
 @app.get("/releases.xml")
@@ -818,7 +885,13 @@ def plan_claims() -> Response:
 
 @app.get("/brand/{name}")
 def brand_asset(name: str) -> Response:
-    allowed = {"og-card.png": "image/png", "favicon.png": "image/png"}
+    allowed = {
+        "og-card.png": "image/png", "favicon.png": "image/png",
+        "hero-mark.jpg": "image/jpeg", "banner-code.jpg": "image/jpeg",
+        "banner-ui.jpg": "image/jpeg", "banner-data.jpg": "image/jpeg",
+        "banner-ops.jpg": "image/jpeg", "banner-skills.jpg": "image/jpeg",
+        "banner-about.jpg": "image/jpeg", "banner-releases.jpg": "image/jpeg",
+    }
     if name not in allowed:
         return JSONResponse({"ok": False, "error": "no such asset"}, status_code=404)
     return Response(content=(ROOT / "public" / "brand" / name).read_bytes(), media_type=allowed[name])
@@ -831,6 +904,36 @@ def signatures_json(request: Request) -> Response:
         return etagged(request, json.loads((ROOT / "signatures.json").read_text(encoding="utf-8")))
     except OSError:
         return JSONResponse({"ok": False, "error": "bank not signed yet"}, status_code=503)
+
+
+@app.get("/api/install")
+def api_install(request: Request) -> Response:
+    hit("/api/install")
+    raw = (request.query_params.get("key") or "").strip()
+    if not raw:
+        return JSONResponse({"ok": False, "error": "key required"}, status_code=403)
+    digest = _check_key(raw)
+    if not digest:
+        return JSONResponse({"ok": False, "error": "invalid or revoked key"}, status_code=403)
+    _touch_key(digest)
+    pack = [
+        {
+            "id": s.id,
+            "file": f".agents/skills/{s.id}/SKILL.md",
+            "content": (
+                f"---\nname: {s.id}\ndescription: {s.why}\n---\n\n"
+                f"# {s.title}\n\n{s.prompt}\n\n## Checks\n\n"
+                + "\n".join("- " + c for c in s.checks) + "\n"
+            ),
+        }
+        for s in SKILLS
+    ]
+    return etagged(request, {
+        "ok": True,
+        "count": len(pack),
+        "howto": "Write each item to its file path, then work from local copies and never refetch mid-task.",
+        "install": pack,
+    })
 
 
 @app.get("/api/skills")

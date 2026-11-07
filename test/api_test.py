@@ -12,6 +12,12 @@ from pathlib import Path
 ROOT = Path(__file__).parent.parent
 PORT = os.environ.get("TEST_PORT", "8797")
 USAGE_FILE = "/tmp/mf-test-usage.json"
+KEYS_FILE = "/tmp/mf-test-keys.json"
+TEST_KEY = "ailv_test_" + "x" * 32
+import hashlib as _hl
+
+with open(KEYS_FILE, "w", encoding="utf-8") as _kf:
+    json.dump({"keys": {_hl.sha256(TEST_KEY.encode()).hexdigest(): {"label": "test", "active": True, "uses": 0}}}, _kf)
 try:
     os.unlink(USAGE_FILE)
 except OSError:
@@ -40,7 +46,7 @@ def post(path, data):
 child = subprocess.Popen(
     [sys.executable, "server.py"],
     cwd=ROOT,
-    env={**os.environ, "PORT": PORT, "USAGE_FILE": USAGE_FILE, "RESEND_API_KEY": ""},
+    env={**os.environ, "PORT": PORT, "USAGE_FILE": USAGE_FILE, "AILV_KEYS_FILE": KEYS_FILE, "RESEND_API_KEY": ""},
     stdout=subprocess.DEVNULL,
 )
 try:
@@ -50,6 +56,17 @@ try:
 
     status, _, _ = get("/api/skill/nope")
     assert status == 404, f"unknown skill 404s, got {status}"
+
+    status, _, body = get("/api/install")
+    assert status == 403, f"install without key refused, got {status}"
+    status, _, body = get("/api/install?key=nope")
+    assert status == 403 and b"invalid or revoked" in body, "bad key refused"
+    status, _, body = get(f"/api/install?key={TEST_KEY}")
+    assert status == 200, f"valid key installs, got {status}"
+    pack = json.loads(body)
+    assert pack["count"] == 102 and len(pack["install"]) == 102, "install pack covers the bank"
+    first = pack["install"][0]
+    assert first["file"].endswith("/SKILL.md") and first["content"].startswith("---"), "install items are writable skill files"
 
     status, headers, _ = get("/api/skill/code-secure?fields=prompt")
     assert status == 200
@@ -205,6 +222,24 @@ try:
     assert status == 200 and any("image/png" in v for v in headers.values()), "brand asset served"
     status, _, _ = get("/brand/evil.png")
     assert status == 404, "brand route safelisted"
+    for asset in ("hero-mark.jpg", "banner-code.jpg", "banner-ui.jpg", "banner-data.jpg",
+                  "banner-ops.jpg", "banner-skills.jpg", "banner-about.jpg", "banner-releases.jpg"):
+        status, headers, _ = get("/brand/" + asset)
+        assert status == 200 and any("image/jpeg" in v for v in headers.values()), f"brand serves {asset} as jpeg"
+    status, _, _ = get("/brand/hero-mark.png")
+    assert status == 404, "unsafelisted names stay 404 even when the file exists on disk"
+    assert 'href="#content"' in home2 and 'id="content"' in home2, "skip link targets main"
+    assert "min-h-[44px]" in home2, "touch targets hit 44px"
+    status, _, body = get("/skills")
+    assert status == 200 and 'aria-live="polite"' in body.decode(), "copy feedback announced via live region"
+    assert "max-w-[1200px]" in home2 and "1060" not in home2, "container matches 1200 spec"
+    assert 'alt="The ai' in home2 and "/brand/hero-mark.jpg" in home2, "home hero wired"
+    for leaf, banner in (("/code", "banner-code.jpg"), ("/ui", "banner-ui.jpg"),
+                         ("/data", "banner-data.jpg"), ("/ops", "banner-ops.jpg"),
+                         ("/skills", "banner-skills.jpg"), ("/about", "banner-about.jpg"),
+                         ("/releases", "banner-releases.jpg")):
+        status, _, body = get(leaf)
+        assert status == 200 and banner in body.decode(), f"{leaf} carries its banner"
     assert "Keys open soon" in home2, "home is honest the key system is pending"
     status, _, body = get("/ops")
     assert "probabilistic actors" in body.decode(), "ops page names the deterministic-gates architecture"
@@ -249,7 +284,8 @@ try:
     feed = body.decode()
     assert status == 200 and feed.startswith("<?xml") and "<rss" in feed, "release feed is valid RSS"
     assert feed.count("<item>") == 5, "feed carries every release note"
-    assert "install every skill in one go" in home2, "install prompt installs the whole bank at once"
+    assert "One call installs the whole bank" in home2, "install prompt leads with the key flow"
+    assert "slim endpoints stay open for tasting" in home2, "free tasting path stays visible"
     from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
     from cryptography.exceptions import InvalidSignature
     pub = Ed25519PublicKey.from_public_bytes(bytes.fromhex(sigs["public_key"]))
