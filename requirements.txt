@@ -3,3 +3,5 @@ uvicorn>=0.30
 watchfiles>=0.21
 python-multipart>=0.0.18
 cryptography>=44
+certifi>=2024
+pillow>=11
