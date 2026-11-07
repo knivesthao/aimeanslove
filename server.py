@@ -245,10 +245,10 @@ def nav(active: str) -> str:
         for href, label in NAV_LINKS
     )
     return (
-        '<nav class="topnav sticky top-0 z-10 bg-paper border-b border-solid border-line">'
+        '<nav class="topnav sticky top-0 z-10 border-b border-solid border-line" style="background-image:url(\'/brand/hero-mark.jpg\');background-size:cover;background-position:center;">'
         '<div class="max-w-[1200px] mx-auto px-4 py-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-2.5 md:gap-x-7 text-center">'
         '<a href="/" class="font-mono font-bold text-lg md:text-xl flex flex-1 items-center justify-center gap-2 text-ink no-underline">'
-        '<span class="inline-block w-2.5 h-2.5 bg-accent rounded-full"></span>ai (愛) means love</a>'
+        '<span>ai (<span class="text-accent" style="font-family:\'Klee One\',\'Hannotate SC\',\'Kaiti SC\',\'STKaiti\',\'KaiTi\',cursive;font-size:1.35em;line-height:1;">愛</span>) means love</span></a>'
         '<button id="menubtn" type="button" data-dropdown-toggle="mobile-menu" data-dropdown-placement="bottom-end" aria-label="Menu" aria-expanded="false" aria-controls="mobile-menu" class="md:hidden cursor-pointer border border-solid border-line bg-white rounded-lg min-h-[44px] min-w-[44px] px-3 py-1.5 text-xl leading-none text-ink">☰</button>'
         '<span class="hidden md:flex md:w-auto md:flex-row md:gap-5">' + links + "</span>"
         '<div id="mobile-menu" class="z-10 hidden bg-white divide-y divide-line rounded-lg border border-solid border-line"><ul class="py-2 text-center" aria-label="Menu">' + items + "</ul></div>"
@@ -319,16 +319,8 @@ FOOTER = (
 )
 
 
-def page(title: str, desc: str, active: str, body: str, machine: str | None = None, hero: tuple[str, str, str] | None = None) -> str:
+def page(title: str, desc: str, active: str, body: str, machine: str | None = None) -> str:
     tag = '<script type="application/json" id="machine">' + machine + "</script>" if machine else ""
-    banner = ""
-    if hero is not None:
-        src, alt, dims = hero
-        if active == "/":
-            banner = '<figure class="m-0 mb-6 max-w-[200px]"><img src="/brand/' + src + '" alt="' + alt + '" ' + dims + ' class="w-full h-auto rounded-xl" loading="eager" fetchpriority="high"></figure>'
-        else:
-            banner = '<figure class="m-0 mb-6"><img src="/brand/' + src + '" alt="' + alt + '" ' + dims + ' class="w-full h-auto rounded-xl" loading="lazy"></figure>'
-    body = banner + body
     return (
         '<!doctype html><html lang="en"><head><meta charset="utf-8">\n'
         '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
@@ -346,9 +338,9 @@ def page(title: str, desc: str, active: str, body: str, machine: str | None = No
     )
 
 
-HOME_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">ai (愛) means love</h1><p class="text-[17px]">New here? <a href="#manifesto" class="text-accent underline">Read the manifesto</a> first — four short points that explain the whole idea. Then pick a guide: the <a href="/code" class="text-accent underline">coding guide</a>, the <a href="/ui" class="text-accent underline">UI guide</a>, the <a href="/data" class="text-accent underline">data guide</a>, the <a href="/ops" class="text-accent underline">ops guide</a>, or <a href="/skills" class="text-accent underline">skills</a> for your agent.</p></header>
+HOME_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">ai (<span class="text-accent" style="font-family:'Klee One','Hannotate SC','Kaiti SC','STKaiti','KaiTi',cursive;font-size:1.2em;line-height:1;">愛</span>) means love</h1><p class="text-[17px]">New here? <a href="#manifesto" class="text-accent underline">Read the manifesto</a> first — four short points that explain the whole idea. Then pick a guide: the <a href="/code" class="text-accent underline">coding guide</a>, the <a href="/ui" class="text-accent underline">UI guide</a>, the <a href="/data" class="text-accent underline">data guide</a>, the <a href="/ops" class="text-accent underline">ops guide</a>, or <a href="/skills" class="text-accent underline">skills</a> for your agent.</p></header>
 <section id="manifesto" class="mt-10 border-t-0 pt-0 space-y-3">
-<h2 class="font-display text-[22px] mb-3">Manifesto, in your words</h2>
+<h2 class="font-display text-[22px] mb-3">Manifesto</h2>
 <ol class="text-left space-y-3.5 list-decimal pl-6">
 <li><strong>Build for the reader that matters.</strong> The reader is an agent, not a person. Short modules, explicit I/O, JSON-first data, tables over prose.</li>
 <li><strong>Tokens are the budget.</strong> Every abstraction, adjective, and clever trick is a token tax on every future read. Plain beats clever.</li>
@@ -674,43 +666,43 @@ async def rate_limit(request: Request, call_next):
 @app.get("/", response_class=HTMLResponse)
 def index() -> str:
     hit("/")
-    return page("The manifesto", "Machine builds for machines. Humans verify by tests and by looking.", "/", HOME_BODY, hero=("hero-mark.jpg", "The ai (愛) means love mark", 'width="640" height="640"'))
+    return page("The manifesto", "Machine builds for machines. Humans verify by tests and by looking.", "/", HOME_BODY)
 
 
 @app.get("/ui", response_class=HTMLResponse)
 def ui_guide() -> str:
     hit("/ui")
-    return page("UI guide", "Styling and behavior rules that keep agent-built UI cheap and human-verifiable.", "/ui", UI_BODY, hero=("banner-ui.jpg", "Layout frames for the UI guide", 'width="1024" height="256"'))
+    return page("UI guide", "Styling and behavior rules that keep agent-built UI cheap and human-verifiable.", "/ui", UI_BODY)
 
 
 @app.get("/code", response_class=HTMLResponse)
 def code_guide() -> str:
     hit("/code")
-    return page("Coding guide", "Write Python because agents generate it fastest; lean on FastAPI, SQLModel, and Typer as guardrails.", "/code", CODE_BODY, hero=("banner-code.jpg", "Interlocking gears for the coding guide", 'width="1024" height="256"'))
+    return page("Coding guide", "Write Python because agents generate it fastest; lean on FastAPI, SQLModel, and Typer as guardrails.", "/code", CODE_BODY)
 
 
 @app.get("/data", response_class=HTMLResponse)
 def data_guide() -> str:
     hit("/data")
-    return page("Data guide", "Land every event once, move in order, trust but verify.", "/data", DATA_BODY, hero=("banner-data.jpg", "Flowing streams for the data guide", 'width="1024" height="256"'))
+    return page("Data guide", "Land every event once, move in order, trust but verify.", "/data", DATA_BODY)
 
 
 @app.get("/ops", response_class=HTMLResponse)
 def ops_guide() -> str:
     hit("/ops")
-    return page("Ops guide", "Gated deploys, paging that matters, drilled restores.", "/ops", OPS_BODY, hero=("banner-ops.jpg", "A steady flame for the ops guide", 'width="1024" height="256"'))
+    return page("Ops guide", "Gated deploys, paging that matters, drilled restores.", "/ops", OPS_BODY)
 
 
 @app.get("/about", response_class=HTMLResponse)
 def about() -> str:
     hit("/about")
-    return page("About me", "Who runs ai (愛) means love and why it exists.", "/about", ABOUT_BODY, hero=("banner-about.jpg", "A lighthouse for the about page", 'width="1024" height="256"'))
+    return page("About me", "Who runs ai (愛) means love and why it exists.", "/about", ABOUT_BODY)
 
 
 @app.get("/skills", response_class=HTMLResponse)
 def skills_page() -> str:
     hit("/skills")
-    return page("Skills", "Read the index, install only the matched skills, skip the rest.", "/skills", BOARD_BODY, hero=("banner-skills.jpg", "A compass rose for the skills bank", 'width="1024" height="256"'))
+    return page("Skills", "Read the index, install only the matched skills, skip the rest.", "/skills", BOARD_BODY)
 
 
 @app.get("/board", response_class=HTMLResponse)
@@ -871,7 +863,7 @@ def releases_page(request: Request) -> str:
         f"<li><strong>{v} — {d} — {title}.</strong> {notes}</li>" for v, d, title, notes in RELEASES
     )
     return page("Releases", "What changed in the bank, dated.",
-                "/releases", f"""<header class="space-y-2"><h1 class="font-display text-[38px]">Releases</h1><p class="text-[17px]">The bank grows in public. Every change ships with notes and a feed — subscribe once, read the diff, update on your schedule. Nothing here changes silently under a pinned install.</p></header><ul class="text-left space-y-2 list-disc pl-5 mt-4">{items}</ul>""", hero=("banner-releases.jpg", "A seal of approval for the releases page", 'width="1024" height="256"'))
+                "/releases", f"""<header class="space-y-2"><h1 class="font-display text-[38px]">Releases</h1><p class="text-[17px]">The bank grows in public. Every change ships with notes and a feed — subscribe once, read the diff, update on your schedule. Nothing here changes silently under a pinned install.</p></header><ul class="text-left space-y-2 list-disc pl-5 mt-4">{items}</ul>""")
 
 
 @app.get("/releases.xml")
@@ -955,10 +947,7 @@ def plan_claims() -> Response:
 def brand_asset(name: str) -> Response:
     allowed = {
         "og-card.png": "image/png", "favicon.png": "image/png",
-        "hero-mark.jpg": "image/jpeg", "banner-code.jpg": "image/jpeg",
-        "banner-ui.jpg": "image/jpeg", "banner-data.jpg": "image/jpeg",
-        "banner-ops.jpg": "image/jpeg", "banner-skills.jpg": "image/jpeg",
-        "banner-about.jpg": "image/jpeg", "banner-releases.jpg": "image/jpeg",
+        "hero-mark.jpg": "image/jpeg",
     }
     if name not in allowed:
         return JSONResponse({"ok": False, "error": "no such asset"}, status_code=404)

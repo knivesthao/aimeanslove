@@ -275,10 +275,10 @@ try:
     assert status == 200 and any("image/png" in v for v in headers.values()), "brand asset served"
     status, _, _ = get("/brand/evil.png")
     assert status == 404, "brand route safelisted"
-    for asset in ("hero-mark.jpg", "banner-code.jpg", "banner-ui.jpg", "banner-data.jpg",
-                  "banner-ops.jpg", "banner-skills.jpg", "banner-about.jpg", "banner-releases.jpg"):
-        status, headers, _ = get("/brand/" + asset)
-        assert status == 200 and any("image/jpeg" in v for v in headers.values()), f"brand serves {asset} as jpeg"
+    status, headers, _ = get("/brand/hero-mark.jpg")
+    assert status == 200 and any("image/jpeg" in v for v in headers.values()), "header mark served"
+    status, _, _ = get("/brand/banner-code.jpg")
+    assert status == 404, "retired banners stay 404"
     status, _, _ = get("/brand/hero-mark.png")
     assert status == 404, "unsafelisted names stay 404 even when the file exists on disk"
     assert 'href="#content"' in home2 and 'id="content"' in home2, "skip link targets main"
@@ -286,13 +286,11 @@ try:
     status, _, body = get("/skills")
     assert status == 200 and 'aria-live="polite"' in body.decode(), "copy feedback announced via live region"
     assert "max-w-[1200px]" in home2 and "1060" not in home2, "container matches 1200 spec"
-    assert 'alt="The ai' in home2 and "/brand/hero-mark.jpg" in home2, "home hero wired"
-    for leaf, banner in (("/code", "banner-code.jpg"), ("/ui", "banner-ui.jpg"),
-                         ("/data", "banner-data.jpg"), ("/ops", "banner-ops.jpg"),
-                         ("/skills", "banner-skills.jpg"), ("/about", "banner-about.jpg"),
-                         ("/releases", "banner-releases.jpg")):
+    assert "/brand/hero-mark.jpg" in home2, "header carries the brand mark"
+    assert "Kaiti" in home2 and "text-accent" in home2, "Love set big in brush script"
+    for leaf in ("/", "/code", "/ui", "/data", "/ops", "/skills", "/about", "/releases"):
         status, _, body = get(leaf)
-        assert status == 200 and banner in body.decode(), f"{leaf} carries its banner"
+        assert status == 200 and "banner-" not in body.decode(), f"{leaf} ships no decorative banner"
     assert "Keys open soon" in home2, "home is honest the key system is pending"
     status, _, body = get("/ops")
     assert "probabilistic actors" in body.decode(), "ops page names the deterministic-gates architecture"
