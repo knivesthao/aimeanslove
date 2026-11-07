@@ -74,6 +74,8 @@ STATS: dict = {
     "skills": {},
     "copies_applied": 0,
     "pending_copies": 0,
+    "install_receipts": 0,
+    "install_versions": {},
     "last_rollup": datetime.now(timezone.utc).isoformat(),
 }
 try:
@@ -84,6 +86,8 @@ try:
         STATS["skills"] = prev.get("skills", {})
         STATS["copies_applied"] = prev.get("copies_applied", 0)
         STATS["pending_copies"] = prev.get("pending_copies", 0)
+        STATS["install_receipts"] = prev.get("install_receipts", 0)
+        STATS["install_versions"] = prev.get("install_versions", {})
         STATS["last_rollup"] = prev.get("last_rollup", STATS["last_rollup"])
 except (OSError, ValueError):
     pass
@@ -144,13 +148,41 @@ def _require_key(request: Request) -> str | JSONResponse:
 
 BANK_VERSION = "1.0.0"
 
+# Abuse guard: one key is one seat — a few machines and projects, not the
+# internet. Distinct install_ids per key cap here. Updates reuse a known id and
+# are never blocked; only brand-new installs over the cap are refused.
+INSTALL_ID_CAP = 5
+
+
+def _record_install(digest: str, iid: str, version: str) -> bool:
+    """Track one install_id under its key. True when recorded, False when the key is over its cap."""
+    try:
+        db = json.loads(KEYS_FILE.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return True
+    entry = db.get("keys", {}).get(digest)
+    if entry is None:
+        return True
+    installs = entry.setdefault("installs", {})
+    if iid not in installs and len(installs) >= INSTALL_ID_CAP:
+        return False
+    installs[iid] = {"version": version, "at": datetime.now(timezone.utc).isoformat()}
+    try:
+        KEYS_FILE.write_text(json.dumps(db, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    except OSError:
+        pass
+    return True
+
 INSTALL_PROMPT = (
     "Install the ai (愛) means love skill bank ({count} skills, bank {version}). Fetch {pack}. Then: "
     '1. Read .agents/ailv.json if it exists. If its bank equals "{version}", stop — already installed. '
     "2. List skill names already under .agents/skills/*/SKILL.md that the pack also contains. Keep those files; skip those ids — unification, never duplication. "
     "3. Write every other pack item to its file path. "
-    "4. Write .agents/ailv.json with the bank version, the ids written, and the ids skipped. "
-    "5. Work from local copies and never refetch mid-task."
+    "4. Generate one random install_id (a uuid), save it in .agents/ailv.json with the bank version, the ids written, and the ids skipped. Reuse the saved install_id on every update — one id per project, never per run. "
+    "5. Work from local copies and never refetch mid-task. "
+    "6. Report success: POST this JSON to https://aimeanslove.fyi/api/install/receipt?key=YOUR_KEY with the same key: "
+    "{{\"version\": \"{version}\", \"install_id\": <your install_id>, \"installed\": <ids written>, \"kept\": <ids skipped>}}. "
+    "If interrupted, re-run from the top — written files are skipped, nothing is lost."
 )
 
 
@@ -340,7 +372,7 @@ HOME_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">ai
 <p>Have a key? One call installs the whole bank — the agent fetches, writes one file per skill, and works from local copies:</p>
 <pre class="bg-ink text-white rounded-lg p-3.5 text-sm overflow-auto text-left">curl "https://aimeanslove.fyi/api/install?key=YOUR_KEY"</pre>
 <p class="bg-wash rounded-lg p-2.5 text-sm text-left">Copy-paste install prompt — swap in the key, hand the whole block to the agent:</p>
-<pre class="bg-ink text-white rounded-lg p-3.5 text-sm overflow-auto text-left">Install the ai (愛) means love skill bank (102 skills, bank 1.0.0). Fetch https://aimeanslove.fyi/api/install?key=YOUR_KEY. Then: 1. Read .agents/ailv.json if it exists. If its bank equals "1.0.0", stop — already installed. 2. List skill names already under .agents/skills/*/SKILL.md that the pack also contains. Keep those files; skip those ids — unification, never duplication. 3. Write every other pack item to its file path. 4. Write .agents/ailv.json with the bank version, the ids written, and the ids skipped. 5. Work from local copies and never refetch mid-task.</pre>
+<pre class="bg-ink text-white rounded-lg p-3.5 text-sm overflow-auto text-left">Install the ai (愛) means love skill bank (102 skills, bank 1.0.0). Fetch https://aimeanslove.fyi/api/install?key=YOUR_KEY. Then: 1. Read .agents/ailv.json if it exists. If its bank equals "1.0.0", stop — already installed. 2. List skill names already under .agents/skills/*/SKILL.md that the pack also contains. Keep those files; skip those ids — unification, never duplication. 3. Write every other pack item to its file path. 4. Write .agents/ailv.json with the bank version, the ids written, and the ids skipped. 5. Work from local copies and never refetch mid-task. 6. Report success: POST {"version": "1.0.0", "installed": [...], "kept": [...]} to https://aimeanslove.fyi/api/install/receipt?key=YOUR_KEY with the same key. If interrupted, re-run from the top — written files are skipped, nothing is lost.</pre>
 <p>No key yet? Taste free — every prompt is readable on the <a href="/skills" class="text-accent underline">skills page</a>, and the field list plus usage stats stay open:</p>
 <pre class="bg-ink text-white rounded-lg p-3.5 text-sm overflow-auto text-left">curl https://aimeanslove.fyi/api/fields</pre>
 </section>"""
@@ -962,6 +994,33 @@ def api_install(request: Request) -> Response:
         "prompt": INSTALL_PROMPT.format(count=len(pack), version=BANK_VERSION, pack="the install array in this response"),
         "install": pack,
     })
+
+
+@app.post("/api/install/receipt")
+async def install_receipt(request: Request) -> Response:
+    hit("/api/install/receipt")
+    digest = _require_key(request)
+    if isinstance(digest, Response):
+        return digest
+    try:
+        body = await request.json()
+    except ValueError:
+        return JSONResponse({"ok": False, "error": "send JSON: {version, install_id, installed[], kept[]}"}, status_code=400)
+    if not isinstance(body, dict) or not isinstance(body.get("installed"), list) or not isinstance(body.get("kept"), list):
+        return JSONResponse({"ok": False, "error": "send JSON: {version, install_id, installed[], kept[]}"}, status_code=400)
+    iid = str(body.get("install_id") or "").strip()
+    if not iid or len(iid) > 128:
+        return JSONResponse({"ok": False, "error": "install_id required (uuid per project, reused on updates)"}, status_code=400)
+    version = str(body.get("version") or "unknown")
+    if not _record_install(digest, iid, version):
+        return JSONResponse({"ok": False, "error": "install limit reached for this key — updates on existing installs still work; contact us for a team key"}, status_code=429)
+    STATS["install_receipts"] += 1
+    STATS["install_versions"][version] = STATS["install_versions"].get(version, 0) + 1
+    try:
+        STATS_FILE.write_text(json.dumps(STATS), encoding="utf-8")
+    except OSError:
+        pass
+    return JSONResponse({"ok": True, "receipts": STATS["install_receipts"]})
 
 
 @app.get("/api/skills")

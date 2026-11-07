@@ -38,6 +38,16 @@ def kget(path, headers=None):
     return get(f"{path}{sep}key={TEST_KEY}", headers)
 
 
+def jpost(path, obj, headers=None):
+    raw = json.dumps(obj).encode()
+    req = urllib.request.Request(f"http://localhost:{PORT}{path}", data=raw, headers={"Content-Type": "application/json", **(headers or {})})
+    try:
+        with urllib.request.urlopen(req) as r:
+            return r.status, dict(r.headers), r.read()
+    except urllib.error.HTTPError as e:
+        return e.code, dict(e.headers), e.read()
+
+
 def post(path, data):
     body = urllib.parse.urlencode(data).encode()
     req = urllib.request.Request(f"http://localhost:{PORT}{path}", data=body)
@@ -83,6 +93,24 @@ try:
     assert pack["version"] == "1.0.0" and pack["marker"] == ".agents/ailv.json", "install pins version + marker"
     assert ".agents/ailv.json" in pack["prompt"] and "unification, never duplication" in pack["prompt"], "install prompt reviews existing skills first"
     assert "never refetch mid-task" in pack["prompt"], "install prompt works from local copies"
+    assert "install/receipt" in pack["prompt"], "install prompt reports success back"
+    status, _, _ = jpost("/api/install/receipt", {"version": "1.0.0", "installed": ["code-index"], "kept": []})
+    assert status == 403, f"receipt locked without key, got {status}"
+    status, _, _ = jpost(f"/api/install/receipt?key={TEST_KEY}", {"nope": True})
+    assert status == 400, f"receipt rejects bad body, got {status}"
+    status, _, body = jpost(f"/api/install/receipt?key={TEST_KEY}", {"version": "1.0.0", "install_id": "t1", "installed": ["code-index"], "kept": []})
+    receipt = json.loads(body)
+    assert status == 200 and receipt["ok"] and receipt["receipts"] == 1, "valid receipt tracked"
+    status, _, body = kget("/api/stats")
+    stats = json.loads(body)["stats"]
+    assert stats["install_receipts"] == 1 and stats["install_versions"].get("1.0.0") == 1, "receipts visible in stats"
+    for i in range(4):
+        status, _, _ = jpost(f"/api/install/receipt?key={TEST_KEY}", {"version": "1.0.0", "install_id": f"cap{i}", "installed": [], "kept": []})
+        assert status == 200, f"seat {i} installs, got {status}"
+    status, _, body = jpost(f"/api/install/receipt?key={TEST_KEY}", {"version": "1.0.0", "install_id": "capX", "installed": [], "kept": []})
+    assert status == 429 and b"install limit" in body, "sixth seat refused, updates untouched"
+    status, _, body = jpost(f"/api/install/receipt?key={TEST_KEY}", {"version": "2.0.0", "install_id": "t1", "installed": [], "kept": []})
+    assert status == 200, "updates on known installs never blocked"
 
     status, headers, _ = kget("/api/skill/code-secure?fields=prompt")
     assert status == 200
