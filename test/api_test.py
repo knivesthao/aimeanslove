@@ -147,6 +147,26 @@ try:
     coord = json.loads(body)["skill"]["prompt"]
     assert "claim a task" in coord, "coordination runs on a shared plan ledger"
     assert "ops-coordinate" in area_maps["ops-index"], "ops-index routes multi-agent work"
+    all_ids = [s["id"] for s in bank]
+    assert len(all_ids) == len(set(all_ids)), "bank ids unique, no duplicate skills"
+    routers = {"bank": index_map, "ui": ui_map, "widgets": widgets_map, **area_maps}
+    for name, text in routers.items():
+        assert "Skip everything else" in text, f"{name} router selects matched skills only"
+    assert "always read these: code-secure, code-reuse, code-token" in index_map, "always-on set is exactly three skills"
+    assert "install it, then use it locally" in index_map, "missing skills installed once, then reused"
+    assert "file if longer or interruptible" in plan, "long plans persist to a file"
+    lifecycle = {
+        "start": ["code-index", "ui-index", "code-plan"],
+        "always": ["code-secure", "code-reuse", "code-token"],
+        "build": ["code-language", "code-shape", "code-group", "code-polyglot", "code-boundaries"],
+        "interface": ["ui-shell", "ui-framework", "ui-widgets", "ui-forms", "ui-nav"],
+        "product": ["app-index", "code-billing", "code-auth", "code-auditlog"],
+        "data": ["data-index", "data-collect", "data-ingest", "data-model", "data-orchestrate"],
+        "ship": ["ops-index", "ops-pipeline", "ops-observe", "ops-rollout", "ops-backup", "ops-coordinate"],
+        "verify": ["verify-tests", "verify-visual", "verify-layout"],
+    }
+    missing = [s for stage in lifecycle.values() for s in stage if s not in all_ids]
+    assert not missing, f"lifecycle stages uncovered: {missing}"
     status, _, body = get("/ops")
     ops = body.decode()
     assert "modelcontextprotocol.io" in ops, "ops page backlinks the MCP source"
