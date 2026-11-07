@@ -337,10 +337,10 @@ def page(title: str, desc: str, active: str, body: str, machine: str | None = No
     )
 
 
-HOME_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">ai (<span class="text-accent" style="font-family:'Klee One','Hannotate SC','Kaiti SC','STKaiti','KaiTi',cursive;font-size:1.2em;line-height:1;">愛</span>) means love</h1><p class="text-[17px]">New here? <a href="#manifesto" class="text-accent underline">Read the manifesto</a> first — four short points that explain the whole idea. Then pick a guide: the <a href="/code" class="text-accent underline">coding guide</a>, the <a href="/ui" class="text-accent underline">UI guide</a>, the <a href="/data" class="text-accent underline">data guide</a>, the <a href="/ops" class="text-accent underline">ops guide</a>, or <a href="/skills" class="text-accent underline">skills</a> for your agent.</p></header>
+HOME_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">ai (<span class="text-accent" style="font-family:'Klee One','Hannotate SC','Kaiti SC','STKaiti','KaiTi',cursive;font-size:1.2em;line-height:1;">愛</span>) means love</h1><p class="text-[17px] max-w-[72ch]">New here? <a href="#manifesto" class="text-accent underline">Read the manifesto</a> first — four short points that explain the whole idea. Then pick a guide: the <a href="/code" class="text-accent underline">coding guide</a>, the <a href="/ui" class="text-accent underline">UI guide</a>, the <a href="/data" class="text-accent underline">data guide</a>, the <a href="/ops" class="text-accent underline">ops guide</a>, or <a href="/skills" class="text-accent underline">skills</a> for your agent.</p></header>
 <section id="manifesto" class="mt-10 border-t-0 pt-0 space-y-3">
 <h2 class="font-display text-[22px] mb-3">Manifesto</h2>
-<ol class="text-left space-y-3.5 list-decimal pl-6">
+<ol class="text-left space-y-3.5 list-decimal pl-6 max-w-[72ch]">
 <li><strong>Build for the reader that matters.</strong> The reader is an agent, not a person. Short modules, explicit I/O, JSON-first data, tables over prose.</li>
 <li><strong>Tokens are the budget.</strong> Every abstraction, adjective, and clever trick is a token tax on every future read. Plain beats clever.</li>
 <li><strong>Humans give verdicts, not line reviews.</strong> Working = tests pass. Desirable = screenshot looks right. Nobody needs to admire the source.</li>
@@ -375,7 +375,7 @@ HOME_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">ai
 <pre class="bg-ink text-white rounded-lg p-3.5 text-sm overflow-auto text-left">curl https://aimeanslove.fyi/api/fields</pre>
 </section>"""
 
-UI_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">UI guide</h1><p class="text-[17px]">Goal: an agent builds the drafts fast; a human shapes feel in the middle and confirms at the end. Mobile-first always — 360px first, scale up — unless the task genuinely needs a full monitor. Semantic HTML, tokens not prose, every state visible as text.</p></header>
+UI_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">UI guide</h1><p class="text-[17px] max-w-[72ch]">Goal: an agent builds the drafts fast; a human shapes feel in the middle and confirms at the end. Mobile-first always — 360px first, scale up — unless the task genuinely needs a full monitor. Semantic HTML, tokens not prose, every state visible as text.</p></header>
 <section class="grid gap-4 my-6 md:grid-cols-3">
 <div class="border border-solid border-line rounded-xl p-5 bg-white"><h2 class="font-display text-[22px] mb-3">1 · Structure</h2><ul class="text-left space-y-2 list-disc pl-5">
 <li>Semantic landmarks: <code class="font-mono text-[13px]">&lt;header&gt; &lt;main&gt; &lt;footer&gt;</code>, real <code class="font-mono text-[13px]">&lt;button&gt;</code>/<code class="font-mono text-[13px]">&lt;a&gt;</code>/<code class="font-mono text-[13px]">&lt;input&gt;</code> with visible labels. No div-buttons.</li>
@@ -384,7 +384,8 @@ UI_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">UI g
 <li>Icons come from Lucide (<a href="https://lucide.dev/" target="_blank" rel="noopener" class="text-accent underline">Lucide</a>) — the best set for agents — never hand-written. Write <code class="font-mono text-[13px]">&lt;i data-lucide="name"&gt;</code> plus one <code class="font-mono text-[13px]">lucide.createIcons()</code> call — the agent picks names from the set, nobody draws pixels or pastes SVG paths by hand. Drawing icons burns tokens and time for a worse result: Lucide is already trained into the model, so the agent knows every name, and already familiar to users, so people recognize each icon on sight.</li>
 <li>Tailwind utilities for layout. System font stack.</li>
 <li>Flexbox for page and component layout — one direction at a time, same pattern on every page, so agents learn it once. The shell is a flex column: <code class="font-mono text-[13px]">body.flex.flex-col.min-h-screen</code>, content <code class="font-mono text-[13px]">main.flex-1</code> grows, footer sits last. Short pages get whitespace in the content area, never a floating footer — the footer is always stuck to the bottom.</li>
-<li>One content width per page. Every block — intro, cards, sections — spans the same width, so nothing looks narrower than its neighbor. Only break this when the engineer decides it on purpose, for example a form that should stay small on desktop.</li>
+<li>One content width per page for components. Every block — cards, sections, banners — spans the same width, so nothing looks narrower than its neighbor. Only break this when the engineer decides it on purpose, for example a form that should stay small on desktop.</li>
+<li>Running prose is the exception: cap it at 45–75 characters per line, about 66 ideal — longer lines get skipped, not read (<a href="https://www.baymard.com/blog/line-length-readability" target="_blank" rel="noopener" class="text-accent underline">Baymard</a>, <a href="https://practicaltypography.com/line-length.html" target="_blank" rel="noopener" class="text-accent underline">Butterick</a>, WCAG caps blocks at 80).</li>
 <li>Be findable. One H1, a plain-words title and description, real links, a sitemap that lists every page, and topics checked on Google Trends before they are built — humans arrive through search, agents through the map. See the <code class="font-mono text-[13px]">ui-seo</code> skill.</li>
 <li>Fast by budget. Set a budget (page weight, endpoint milliseconds, query count), measure first, cache the repeats, shrink the payload, and re-measure after every change. See the <code class="font-mono text-[13px]">code-perf</code> skill.</li>
 <li>Shed load, keep serving. Rank features by criticality, shed the nice-to-haves behind flags, and prove the degraded mode with a stress test — feature grouping means a future service split follows existing seams. See the <code class="font-mono text-[13px]">code-fallback</code> skill.</li>
@@ -499,7 +500,7 @@ CODE_BODY = ("""<header class="space-y-2"><h1 class="font-display text-[38px]">C
 """
 )
 
-DATA_BODY = ("""<header class="space-y-2"><h1 class="font-display text-[38px]">Data guide</h1><p class="text-[17px]">Data an agent can trust. Every dataset reproducible from its inputs; every event counted exactly once. Humans judge the dashboard numbers, never the pipeline code.</p></header>
+DATA_BODY = ("""<header class="space-y-2"><h1 class="font-display text-[38px]">Data guide</h1><p class="text-[17px] max-w-[72ch]">Data an agent can trust. Every dataset reproducible from its inputs; every event counted exactly once. Humans judge the dashboard numbers, never the pipeline code.</p></header>
 <p class="text-left mt-4"><strong>The old way</strong> designed data for human eyes: charts to understand it, CSVs to inspect it, humans reading graphs to decide. <strong>The new way</strong> feeds raw events and tables to agents that never need a picture — collection is at-least-once plus dedup everywhere, storage is queried rather than browsed, manipulation is tested transforms over partitions. Visualization stays, but its job changed: charts are the human verdict layer, not the analysis. Chart choice follows a measured ranking, not taste — position beats length beats angle beats area beats color (<a href="https://www.textbookofusability.com/people/william-cleveland.html" target="_blank" rel="noopener" class="text-accent underline">Cleveland &amp; McGill, 1984</a>), which is why bars beat pies. And every chart ships a machine twin: the data table the <a href="https://www.w3.org/WAI/WCAG22/Techniques/general/G92.html" target="_blank" rel="noopener" class="text-accent underline">W3C prescribes</a> plus, when interactive, a declarative <a href="https://vega.github.io/vega-lite/" target="_blank" rel="noopener" class="text-accent underline">Vega-Lite-style spec</a> — so agents judge and rebuild from data, never pixels. Movement is agent work; meaning stays human — what counts as active or revenue is decided by people, then defined once for every dashboard to share. See the <code class="font-mono text-[13px]">ui-charts</code> and <code class="font-mono text-[13px]">ui-chart-twin</code> and <code class="font-mono text-[13px]">data-metrics</code> skills.</p>
 <section class="grid gap-2 my-4">
 """
@@ -527,7 +528,7 @@ DATA_BODY = ("""<header class="space-y-2"><h1 class="font-display text-[38px]">D
 """
 )
 
-OPS_BODY = ("""<header class="space-y-2"><h1 class="font-display text-[38px]">Ops guide</h1><p class="text-[17px]">Ship safely, page rarely. Agents operate the system through gated pipelines and measured restores; humans verify the dashboard, the drill record, and the finding counts — never the procedure text.</p></header>
+OPS_BODY = ("""<header class="space-y-2"><h1 class="font-display text-[38px]">Ops guide</h1><p class="text-[17px] max-w-[72ch]">Ship safely, page rarely. Agents operate the system through gated pipelines and measured restores; humans verify the dashboard, the drill record, and the finding counts — never the procedure text.</p></header>
 <section class="grid gap-2 my-4">
 """
     + details_card("1 · Gates before prod", """<ul class="text-left space-y-2 list-disc pl-5">
@@ -870,7 +871,7 @@ def releases_page(request: Request) -> str:
         f"<li><strong>{v} — {d} — {title}.</strong> {notes}</li>" for v, d, title, notes in RELEASES
     )
     return page("Releases", "What changed in the bank, dated.",
-                "/releases", f"""<header class="space-y-2"><h1 class="font-display text-[38px]">Releases</h1><p class="text-[17px]">The bank grows in public. Every change ships with notes and a feed — subscribe once, read the diff, update on your schedule. Nothing here changes silently under a pinned install.</p></header><ul class="text-left space-y-2 list-disc pl-5 mt-4">{items}</ul>""")
+                "/releases", f"""<header class="space-y-2"><h1 class="font-display text-[38px]">Releases</h1><p class="text-[17px] max-w-[72ch]">The bank grows in public. Every change ships with notes and a feed — subscribe once, read the diff, update on your schedule. Nothing here changes silently under a pinned install.</p></header><ul class="text-left space-y-2 list-disc pl-5 mt-4">{items}</ul>""")
 
 
 @app.get("/releases.xml")
