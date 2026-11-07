@@ -262,6 +262,10 @@ HOME_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">ai
 <p>A typical task pack reads about 2.2 to 2.8 thousand tokens — 13 to 17 percent of the 23.0k-token bank — because the agent fetches matched skills only, never the whole bank. Counted by our own self-test (<code class="font-mono text-[13px]">script/bench.py</code>), same method as the card badges. The full with/without trial — matched pack versus whole bank versus no skills, scored on tokens, wall time, and defects — is the <code class="font-mono text-[13px]">verify-benchmark</code> protocol: run it, publish method plus raw numbers, or the claim is marketing.</p>
 <p>First trial, run November 2026: three design tasks (webhook receiver, evolution-proof validation, stateful rollout) × bare versus skill-fed agents. Defects: 0 and 0 on all three — the model already knows industry doctrine, so skills didn't change correctness here. Outputs ran 136–289 tokens in both arms. What the pack arms added was completeness: freshness SLAs, external probes, deploy receipts — house specifics, not textbook recall. The trial that should discriminate is a coordination-heavy build, not doctrine recall; that run is open. Whole-bank arm not run: feeding all 102 skills to test recall nobody disputes would be cost without a question.</p>
 </section>
+<section class="mt-10 border-t-2 border-solid border-ink pt-5 space-y-3">
+<h2 class="font-display text-[22px] mb-3">Pay once, use forever</h2>
+<p>One $9.99 payment gets you a key to the whole bank — all 102 skills, every future update, no subscription, no meter. A typical task reads about 2.4k tokens instead of the 23.0k bank: pennies per task at current API rates, against a single payment that never renews. Keys open soon; until then the endpoints stay open.</p>
+</section>
 <section id="agent" class="mt-10 border-t-2 border-solid border-ink pt-5 space-y-3">
 <h2 class="font-display text-[22px] mb-3">Give this to your agent</h2>
 <p>Paste the lines below into any agent session (Muse, Claude, or any coding agent). They fetch the skills straight into the agent — no key, no signup, the endpoints are open:</p>

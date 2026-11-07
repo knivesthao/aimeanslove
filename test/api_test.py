@@ -195,6 +195,8 @@ try:
     assert "verify-benchmark" in home2, "home proof names the trial protocol"
     assert "What the pack arms added was completeness" in home2, "home proof reports the trial honestly"
     assert "coordination-heavy build" in home2, "home proof names the discriminating follow-up"
+    assert "Pay once, use forever" in home2, "home states the one-time price"
+    assert "Keys open soon" in home2, "home is honest the key system is pending"
     status, _, body = get("/ops")
     assert "probabilistic actors" in body.decode(), "ops page names the deterministic-gates architecture"
     status, _, body = get("/data")
