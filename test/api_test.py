@@ -33,6 +33,11 @@ def get(path, headers=None):
         return e.code, dict(e.headers), e.read()
 
 
+def kget(path, headers=None):
+    sep = "&" if "?" in path else "?"
+    return get(f"{path}{sep}key={TEST_KEY}", headers)
+
+
 def post(path, data):
     body = urllib.parse.urlencode(data).encode()
     req = urllib.request.Request(f"http://localhost:{PORT}{path}", data=body)
@@ -51,11 +56,19 @@ child = subprocess.Popen(
 )
 try:
     time.sleep(2.5)
-    status, _, _ = get("/api/skills")
-    assert status == 200, f"skills open without key, got {status}"
+    status, _, body = get("/api/skills")
+    assert status == 403, f"skills locked without key, got {status}"
+    status, _, _ = get("/api/skills?key=nope")
+    assert status == 403, f"skills locked with bad key, got {status}"
+    status, _, body = kget("/api/skills?fields=id")
+    assert status == 200 and len(json.loads(body)["skills"]) == 102, "valid key reads the bank"
+    status, _, _ = get("/board.json")
+    assert status == 403, f"board locked without key, got {status}"
 
     status, _, _ = get("/api/skill/nope")
-    assert status == 404, f"unknown skill 404s, got {status}"
+    assert status == 403, f"skill locked without key, got {status}"
+    status, _, _ = kget("/api/skill/nope")
+    assert status == 404, f"unknown skill 404s with key, got {status}"
 
     status, _, body = get("/api/install")
     assert status == 403, f"install without key refused, got {status}"
@@ -67,12 +80,15 @@ try:
     assert pack["count"] == 102 and len(pack["install"]) == 102, "install pack covers the bank"
     first = pack["install"][0]
     assert first["file"].endswith("/SKILL.md") and first["content"].startswith("---"), "install items are writable skill files"
+    assert pack["version"] == "1.0.0" and pack["marker"] == ".agents/ailv.json", "install pins version + marker"
+    assert ".agents/ailv.json" in pack["prompt"] and "unification, never duplication" in pack["prompt"], "install prompt reviews existing skills first"
+    assert "never refetch mid-task" in pack["prompt"], "install prompt works from local copies"
 
-    status, headers, _ = get("/api/skill/code-secure?fields=prompt")
+    status, headers, _ = kget("/api/skill/code-secure?fields=prompt")
     assert status == 200
     tag = next((v for k, v in headers.items() if k.lower() == "etag"), None)
     assert tag, "etag present"
-    status, _, body = get("/api/skill/code-secure?fields=prompt", {"If-None-Match": tag})
+    status, _, body = kget("/api/skill/code-secure?fields=prompt", {"If-None-Match": tag})
     assert status == 304, f"repeat returns 304, got {status}"
     assert body == b"", "304 has empty body"
 
@@ -93,23 +109,23 @@ try:
     assert stats["skills"].get("nope", 0) >= 1, "unknown skill counted"
     assert stats["routes"]["/api/skill/:id"] == stats["skills"].get("code-secure", 0) + stats["skills"].get("nope", 0)
     assert os.path.exists(USAGE_FILE), "counts persisted"
-    status, _, body = get("/api/skills?fields=id,why")
+    status, _, body = kget("/api/skills?fields=id,why")
     bank = json.loads(body)["skills"]
     assert len(bank) == 102 and all(s.get("why") for s in bank), "every skill explains why"
-    status, _, body = get("/api/skills?fields=id,prompt")
+    status, _, body = kget("/api/skills?fields=id,prompt")
     for s in json.loads(body)["skills"]:
         local = ROOT / ".agents" / "skills" / s["id"] / "SKILL.md"
         assert local.exists(), f"bank skill {s['id']} installed locally"
         assert s["prompt"] in local.read_text(encoding="utf-8"), f"local {s['id']} matches bank"
-    status, _, body = get("/api/skill/code-index?fields=prompt")
+    status, _, body = kget("/api/skill/code-index?fields=prompt")
     index_map = json.loads(body)["skill"]["prompt"]
-    status, _, body = get("/api/skill/ui-index?fields=prompt")
+    status, _, body = kget("/api/skill/ui-index?fields=prompt")
     ui_map = json.loads(body)["skill"]["prompt"]
-    status, _, body = get("/api/skill/ui-widgets?fields=prompt")
+    status, _, body = kget("/api/skill/ui-widgets?fields=prompt")
     widgets_map = json.loads(body)["skill"]["prompt"]
     area_maps = {}
     for area in ("app-index", "data-index", "ops-index", "sec-index"):
-        status, _, body = get(f"/api/skill/{area}?fields=prompt")
+        status, _, body = kget(f"/api/skill/{area}?fields=prompt")
         area_maps[area] = json.loads(body)["skill"]["prompt"]
     assert "ui-index" in index_map, "bank index points at the area index"
     assert "ui-widgets" in ui_map and "ui-platform-picks" in ui_map, "area index points at widgets and picks"
@@ -120,16 +136,16 @@ try:
     ), "every skill reachable by walking the index tree"
     assert "house rule beats the skill" in index_map, "stack skills defer to existing codebases"
     assert "regulated data" in index_map, "bank index routes regulated data to sec-index"
-    status, _, body = get("/api/skill/sec-compliance?fields=prompt")
+    status, _, body = kget("/api/skill/sec-compliance?fields=prompt")
     compliance = json.loads(body)["skill"]["prompt"]
     assert "HIPAA" in compliance and "code-auditlog" in compliance, "compliance names HIPAA and routes to the audit trail"
-    status, _, body = get("/api/skill/code-auditlog?fields=prompt")
+    status, _, body = kget("/api/skill/code-auditlog?fields=prompt")
     assert "whether or not HIPAA applies" in json.loads(body)["skill"]["prompt"], "audit trail states its non-HIPAA trigger"
     assert "OWASP" in index_map, "bank index names the OWASP set"
     assert "OWASP" in area_maps["sec-index"], "sec index points at OWASP deep-dives"
-    status, _, body = get("/api/skill/sec-waf?fields=prompt")
+    status, _, body = kget("/api/skill/sec-waf?fields=prompt")
     assert "code-injection" in json.loads(body)["skill"]["prompt"], "WAF rules reference injection payloads"
-    status, _, body = get("/api/skill/code-plan?fields=prompt")
+    status, _, body = kget("/api/skill/code-plan?fields=prompt")
     plan = json.loads(body)["skill"]["prompt"]
     assert "inline if five steps or fewer" in plan, "short plans stay inline"
     assert "execute all unblocked steps together" in plan, "independents run in parallel"
@@ -141,7 +157,7 @@ try:
     assert "Three or more matched skills → code-plan first" in index_map, "bank index routes by skill count"
     assert "Work that outlives the request" in index_map, "bank index routes async handoff"
     assert "parallel fan-out" in index_map, "bank index matches literal parallel triggers"
-    status, _, body = get("/api/skill/code-perf?fields=prompt")
+    status, _, body = kget("/api/skill/code-perf?fields=prompt")
     assert "code-async" in json.loads(body)["skill"]["prompt"], "perf hands off to async by name"
     assert "in one batched request" in index_map and "never fetch the same skill twice" in index_map, "bank index states fetch-once protocol"
     assert "mixed tasks match more than one line" in index_map, "bank index splits mixed UI-plus-API tasks"
@@ -151,16 +167,16 @@ try:
     assert "per-track" in plan, "plan splits mixed jobs by track"
     assert "never the procedure text" in area_maps["ops-index"], "ops keeps humans on dashboards"
     assert "never the runbook text" in area_maps["sec-index"], "sec keeps humans on finding counts"
-    status, _, body = get("/api/skill/verify-layout?fields=prompt")
+    status, _, body = kget("/api/skill/verify-layout?fields=prompt")
     layout = json.loads(body)["skill"]["prompt"]
     assert "1.4.10" in layout, "layout proof cites the WCAG Reflow rulebook"
     assert "bounding box" in layout, "layout proof measures, never eyeballs alone"
     assert "overrules the skill" in layout, "user taste overrules the skill"
-    status, _, body = get("/api/skill/ops-observe?fields=prompt")
+    status, _, body = kget("/api/skill/ops-observe?fields=prompt")
     assert "trigger event" in json.loads(body)["skill"]["prompt"], "alerts double as machine triggers"
     assert "MCP" in json.loads(body)["skill"]["prompt"], "observe prefers queryable signals over dashboards"
     assert "only witness to its own health" in json.loads(body)["skill"]["prompt"], "observe keeps an independent check"
-    status, _, body = get("/api/skill/ops-coordinate?fields=prompt")
+    status, _, body = kget("/api/skill/ops-coordinate?fields=prompt")
     coord = json.loads(body)["skill"]["prompt"]
     assert "claim a task" in coord, "coordination runs on a shared plan ledger"
     assert "ops-coordinate" in area_maps["ops-index"], "ops-index routes multi-agent work"
@@ -197,7 +213,7 @@ try:
                         ("verify-tests", "Quarantine flakes"), ("ui-forms", "at the field"),
                         ("ui-behavior", "offline"), ("ui-tokens", "prefers-color-scheme"),
                         ("data-cdc", "watches the tap"), ("ops-rollout", "roll forward stateful")]:
-        status, _, rb = get(f"/api/skill/{sid}?fields=prompt")
+        status, _, rb = kget(f"/api/skill/{sid}?fields=prompt")
         assert needle in json.loads(rb)["skill"]["prompt"], f"{sid} carries: {needle}"
     import sys as _sys
     _sys.path.insert(0, str(ROOT / "script"))
@@ -256,9 +272,9 @@ try:
     assert "Don&#x27;t trust the system" in ops or "Don't trust the system" in ops, "ops page states the verify principle"
     assert "ops-coordinate" in ops, "ops page names the coordination skill"
     assert "lease endpoint" in ops, "ops page states claims are leases"
-    status, _, rb = get("/api/skill/ops-coordinate?fields=prompt")
+    status, _, rb = kget("/api/skill/ops-coordinate?fields=prompt")
     assert "409" in json.loads(rb)["skill"]["prompt"], "coordination honors the lease rejection"
-    status, _, rb = get("/api/skill/ops-rollout?fields=prompt")
+    status, _, rb = kget("/api/skill/ops-rollout?fields=prompt")
     assert "halt if errors exceed baseline" in json.loads(rb)["skill"]["prompt"], "rollout comparator halts on regression"
     status, _, body = post("/api/plan/claim", {"task": "t1", "agent": "a1", "ttl": "60"})
     assert status == 200, f"first claim wins, got {status}"
@@ -285,11 +301,11 @@ try:
     assert status == 200 and feed.startswith("<?xml") and "<rss" in feed, "release feed is valid RSS"
     assert feed.count("<item>") == 5, "feed carries every release note"
     assert "One call installs the whole bank" in home2, "install prompt leads with the key flow"
-    assert "slim endpoints stay open for tasting" in home2, "free tasting path stays visible"
+    assert "Taste free" in home2, "free tasting path stays visible"
     from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
     from cryptography.exceptions import InvalidSignature
     pub = Ed25519PublicKey.from_public_bytes(bytes.fromhex(sigs["public_key"]))
-    status, _, body = get("/api/skills?fields=id,prompt,why,checks,tokens")
+    status, _, body = kget("/api/skills?fields=id,prompt,why,checks,tokens")
     for s in json.loads(body)["skills"]:
         payload = json.dumps({k: s[k] for k in ("id", "prompt", "why", "checks", "tokens")}, sort_keys=True, separators=(",", ":")).encode()
         try:
@@ -305,12 +321,12 @@ try:
         raise SystemExit("tampered skill verified — fail closed broken")
     except InvalidSignature:
         pass
-    assert "signature" in json.loads(rb := get("/api/skill/code-lifecycle?fields=prompt")[2])["skill"]["prompt"], "lifecycle skill verifies signatures"
-    status, _, body = get("/api/skill/ops-pipeline?fields=prompt")
+    assert "signature" in json.loads(rb := kget("/api/skill/code-lifecycle?fields=prompt")[2])["skill"]["prompt"], "lifecycle skill verifies signatures"
+    status, _, body = kget("/api/skill/ops-pipeline?fields=prompt")
     assert "trigger events" in json.loads(body)["skill"]["prompt"], "deploys broadcast machine triggers"
-    status, _, body = get("/api/skill/ui-seo?fields=prompt")
+    status, _, body = kget("/api/skill/ui-seo?fields=prompt")
     assert "noindex" in json.loads(body)["skill"]["prompt"], "paid pages stay out of crawlers"
-    status, _, body = get("/api/skills?fields=id,prompt")
+    status, _, body = kget("/api/skills?fields=id,prompt")
     bank_ids = [s["id"] for s in json.loads(body)["skills"]]
     prompts = {s["id"]: s["prompt"] for s in json.loads(body)["skills"]}
     index_ids = {"code-index", "ui-index", "app-index", "data-index", "ops-index", "sec-index"}
@@ -338,17 +354,17 @@ try:
     assert status == 200 and 'id="menubtn"' in body.decode(), "mobile hamburger present"
     status, _, _ = get("/skills.json")
     assert status == 404, "slim index endpoint is gone; board.json is the one JSON"
-    status, _, body = get("/api/skills?fields=id,prompt")
+    status, _, body = kget("/api/skills?fields=id,prompt")
     for s in json.loads(body)["skills"]:
         assert s["prompt"].startswith("Create and install a skill named"), s["id"]
-    status, _, body = get("/api/skill/ui-shell?fields=prompt,checks")
+    status, _, body = kget("/api/skill/ui-shell?fields=prompt,checks")
     shell = json.loads(body)["skill"]
     assert "aria-label" in shell["prompt"] and "icon-only" in shell["prompt"], "ui-shell allows human UI + metadata"
     assert "360px" in shell["prompt"] and "360px" in shell["checks"][0], "ui-shell is mobile-first"
     assert "Lucide" in shell["prompt"], "ui-shell names Lucide, no hand SVG"
     assert any("aria-label" in c for c in shell["checks"]), "metadata check present"
     assert any("data-action" in c for c in shell["checks"]), "data-action check present"
-    status, _, body = get("/api/skill/verify-visual?fields=prompt")
+    status, _, body = kget("/api/skill/verify-visual?fields=prompt")
     visual = json.loads(body)["skill"]
     assert "shots/" in visual["prompt"], "verify-visual saves screenshots to shots/"
     assert "headless" in visual["prompt"], "verify-visual never trusts headless shots alone"
@@ -404,9 +420,9 @@ try:
     fetched_before = sum(routes_before.get(k, 0) for k in ("/board.json", "/api/skills", "/api/skill/:id"))
     status, _, _ = get("/skills")
     assert status == 200, "page views still render"
-    status, _, _ = get("/board.json")
-    status, _, _ = get("/api/skills?track=code")
-    status, _, _ = get("/api/skill/code-language?fields=id")
+    status, _, _ = kget("/board.json")
+    status, _, _ = kget("/api/skills?track=code")
+    status, _, _ = kget("/api/skill/code-language?fields=id")
     status, _, body = get("/skills")
     html = body.decode()
     m = re.search(r'href="/#agent"[^>]*>\s*(\d+)', html)
@@ -464,11 +480,11 @@ try:
     assert "verdict layer" in body.decode(), "data guide frames old way versus new way"
     assert "vega.github.io/vega-lite" in body.decode(), "data guide backlinks the declarative spec source"
     assert "textbookofusability.com" in body.decode(), "data guide backlinks the perceptual ranking source"
-    status, _, cb = get("/api/skill/ui-charts?fields=prompt")
+    status, _, cb = kget("/api/skill/ui-charts?fields=prompt")
     charts = json.loads(cb)["skill"]["prompt"]
     assert "100% stacked" in charts, "charts skill names share-over-time explicitly"
     assert "ui-chart-twin" in charts, "picker chains the machine-twin leaf"
-    status, _, tb = get("/api/skill/ui-chart-twin?fields=prompt")
+    status, _, tb = kget("/api/skill/ui-chart-twin?fields=prompt")
     twin = json.loads(tb)["skill"]["prompt"]
     assert "data table" in twin and "spec" in twin, "twin ships table plus spec"
     assert "Cleveland" not in charts and "W3C" not in twin, "skills carry rules, pages carry sources"
@@ -476,7 +492,7 @@ try:
     assert "agent readers" in body.decode(), "data guide states shapes are built for agents"
     assert "ui-charts" in ui_map, "area index routes charts"
     assert "data-model" in area_maps["data-index"], "area index routes data representation"
-    status, _, body = get("/api/skill/data-model?fields=prompt")
+    status, _, body = kget("/api/skill/data-model?fields=prompt")
     assert "the change plus the id" in json.loads(body)["skill"]["prompt"], "data respects the systems it lands in"
     for m in re.finditer(r'<a href="(http[^"]*)"', body.decode()):
         assert 'target="_blank" rel="noopener"' in body.decode()[m.start():m.start()+400], f"data external link opens new tab: {m.group(1)}"
@@ -487,7 +503,7 @@ try:
         assert 'target="_blank" rel="noopener"' in body.decode()[m.start():m.start()+400], f"ops external link opens new tab: {m.group(1)}"
     status, _, body = get("/sitemap.xml")
     assert status == 200 and "/data" in body.decode() and "/ops" in body.decode(), "sitemap lists new guides"
-    status, _, body = get("/api/skill/ui-framework?fields=prompt")
+    status, _, body = kget("/api/skill/ui-framework?fields=prompt")
     lit = json.loads(body)["skill"]
     assert "Flowbite" in lit["prompt"] and "React" in lit["prompt"], "ui-framework keeps Flowbite pieces, rules out heavy frameworks"
     assert "WebAwesome" in lit["prompt"], "ui-framework names WebAwesome for island pieces"

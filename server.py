@@ -1,4 +1,4 @@
-"""ai (愛) means love — FastAPI port. Free forever, no keys.
+"""ai (愛) means love — FastAPI port. Skill JSON behind a $9.99 forever key; guides and stats stay open.
 
 One Pydantic model validates the whole skill bank at startup; every endpoint
 below is open, slim-capable (?fields=), and ETag-cached. Ported from the
@@ -130,6 +130,30 @@ def _touch_key(digest: str) -> None:
         pass
 
 
+def _require_key(request: Request) -> str | JSONResponse:
+    """Gate a skill-JSON endpoint on a valid forever key. Returns the key digest or a 403."""
+    raw = (request.query_params.get("key") or "").strip()
+    if not raw:
+        return JSONResponse({"ok": False, "error": "key required — one $9.99 key unlocks the bank forever"}, status_code=403)
+    digest = _check_key(raw)
+    if not digest:
+        return JSONResponse({"ok": False, "error": "invalid or revoked key"}, status_code=403)
+    _touch_key(digest)
+    return digest
+
+
+BANK_VERSION = "1.0.0"
+
+INSTALL_PROMPT = (
+    "Install the ai (愛) means love skill bank ({count} skills, bank {version}). Fetch {pack}. Then: "
+    '1. Read .agents/ailv.json if it exists. If its bank equals "{version}", stop — already installed. '
+    "2. List skill names already under .agents/skills/*/SKILL.md that the pack also contains. Keep those files; skip those ids — unification, never duplication. "
+    "3. Write every other pack item to its file path. "
+    "4. Write .agents/ailv.json with the bank version, the ids written, and the ids skipped. "
+    "5. Work from local copies and never refetch mid-task."
+)
+
+
 def hit(route: str, skill: str | None = None) -> None:
     rollup_copies()
     STATS["requests"] += 1
@@ -245,7 +269,7 @@ def float_pills() -> str:
 
 SUPPORT_DIALOG = """<dialog id="support-dialog" class="rounded-xl border border-solid border-line bg-white p-5 text-left text-ink max-w-[420px] backdrop:bg-ink/60">
 <p class="font-display text-[22px] mb-3">Support the library</p>
-<p class="m-0">Free forever: no keys, no paywall on the endpoints. If these skills saved you tokens, chip in when donations open — every bit keeps the bank free for the next agent. Donations are not open yet — check back soon.</p>
+<p class="m-0">Pay once, read forever: one $9.99 key unlocks the bank for your agents — no subscription, no meter. If these skills saved you tokens, chip in when donations open too — every bit keeps the lights on for the next agent. Donations are not open yet — check back soon.</p>
 <div class="mt-3 text-right"><button type="button" data-close-support class="cursor-pointer border border-solid border-line bg-white rounded-lg px-3 py-1.5">Close</button></div>
 </dialog>"""
 
@@ -309,15 +333,16 @@ HOME_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">ai
 </section>
 <section class="mt-10 border-t-2 border-solid border-ink pt-5 space-y-3">
 <h2 class="font-display text-[22px] mb-3">Pay once, use forever</h2>
-<p>One $9.99 payment gets you a key to the whole bank — all 102 skills, every future update, no subscription, no meter. A typical task reads about 2.4k tokens instead of the 23.0k bank: pennies per task at current API rates, against a single payment that never renews. Keys open soon; until then the endpoints stay open.</p>
+<p>One $9.99 payment gets you a key to the whole bank — all 102 skills, every future update, no subscription, no meter. A typical task reads about 2.4k tokens instead of the 23.0k bank: pennies per task at current API rates, against a single payment that never renews. Keys open soon — the skill endpoints already check for one, and until checkout opens everything stays readable on the <a href="/skills" class="text-accent underline">skills page</a>.</p>
 </section>
 <section id="agent" class="mt-10 border-t-2 border-solid border-ink pt-5 space-y-3">
 <h2 class="font-display text-[22px] mb-3">Give this to your agent</h2>
 <p>Have a key? One call installs the whole bank — the agent fetches, writes one file per skill, and works from local copies:</p>
 <pre class="bg-ink text-white rounded-lg p-3.5 text-sm overflow-auto text-left">curl "https://aimeanslove.fyi/api/install?key=YOUR_KEY"</pre>
-<p class="bg-wash rounded-lg p-2.5 text-sm text-left">Say it in plain words: fetch https://aimeanslove.fyi/api/install?key=YOUR_KEY, write each returned skill to its file path, then work from your local copies and never refetch mid-task.</p>
-<p>No key yet? The slim endpoints stay open for tasting — fetch one map and the skills it names:</p>
-<pre class="bg-ink text-white rounded-lg p-3.5 text-sm overflow-auto text-left">curl https://aimeanslove.fyi/api/skill/code-index?fields=prompt</pre>
+<p class="bg-wash rounded-lg p-2.5 text-sm text-left">Copy-paste install prompt — swap in the key, hand the whole block to the agent:</p>
+<pre class="bg-ink text-white rounded-lg p-3.5 text-sm overflow-auto text-left">Install the ai (愛) means love skill bank (102 skills, bank 1.0.0). Fetch https://aimeanslove.fyi/api/install?key=YOUR_KEY. Then: 1. Read .agents/ailv.json if it exists. If its bank equals "1.0.0", stop — already installed. 2. List skill names already under .agents/skills/*/SKILL.md that the pack also contains. Keep those files; skip those ids — unification, never duplication. 3. Write every other pack item to its file path. 4. Write .agents/ailv.json with the bank version, the ids written, and the ids skipped. 5. Work from local copies and never refetch mid-task.</pre>
+<p>No key yet? Taste free — every prompt is readable on the <a href="/skills" class="text-accent underline">skills page</a>, and the field list plus usage stats stay open:</p>
+<pre class="bg-ink text-white rounded-lg p-3.5 text-sm overflow-auto text-left">curl https://aimeanslove.fyi/api/fields</pre>
 </section>"""
 
 UI_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">UI guide</h1><p class="text-[17px]">Goal: an agent builds the drafts fast; a human shapes feel in the middle and confirms at the end. Mobile-first always — 360px first, scale up — unless the task genuinely needs a full monitor. Semantic HTML, tokens not prose, every state visible as text.</p></header>
@@ -533,7 +558,7 @@ BOARD_SECTIONS = "".join(
 )
 
 BOARD_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">Skills</h1><p>One hundred two skills is far more than any one task needs — and that's the point. Nobody reads them all. Read the <a href="/api/skill/code-index" class="text-accent underline">index skill</a> first, install only the matched skills, and skip the rest: a typical task runs on a handful of matched skills, about a seventh of the bank, instead of the whole bank. Every skill is reachable from the maps and does exactly one job — nothing orphaned, nothing twice, one fetch per session.</p>
-<p>How it works: <strong>1.</strong> the index maps your task to skills; <strong>2.</strong> copy those prompts below, or fetch them slim; <strong>3.</strong> install only what matches and let your agent work. Small skills plus one map keep every session's context small by design. Humans judge two things: tests pass, and it looks right.</p>
+<p>How it works: <strong>1.</strong> the index maps your task to skills; <strong>2.</strong> copy those prompts below, or fetch the pack with your key; <strong>3.</strong> install only what matches and let your agent work. Small skills plus one map keep every session's context small by design. Humans judge two things: tests pass, and it looks right.</p>
 <div class="bg-wash border border-solid border-line rounded-xl p-5 flex flex-wrap items-center gap-3"><p class="m-0 text-sm"><strong>Trim an install pack:</strong> tick only the skills this task needs, then copy them as one pack.</p><div class="flex gap-2"><button type="button" data-pack aria-live="polite" class="cursor-pointer bg-accent text-white rounded-full min-h-[44px] px-4 py-2">copy install pack (<span data-pack-count>102</span>)</button><button type="button" data-pack-all class="cursor-pointer border border-solid border-line bg-white rounded-full min-h-[44px] px-3 py-2">all</button><button type="button" data-pack-none class="cursor-pointer border border-solid border-line bg-white rounded-full min-h-[44px] px-3 py-2">none</button></div></div>
 <p>The token badge on each card is from a test we ran on ourselves — our own payloads, counted — and the whole bank is about 23.0k tokens.</p></header>
 """ + BOARD_SECTIONS
@@ -563,11 +588,12 @@ def llms() -> str:
         "- /skills ... skill library (all skills, copyable, trimmable install packs)",
         "- /about .... who runs this and why",
         "",
-        "## Machine endpoints (open, no key — free forever)",
-        "- GET /api/skills[?track=ui|code|verify&fields=id,prompt,checks]",
-        "- GET /api/skill/:id[?fields=prompt,checks] (ETag: send If-None-Match → 304)",
-        "- GET /api/stats (usage counts: requests, per-route, per-skill)",
-        "- GET /board.json (full bank, no key)",
+        "## Machine endpoints (skill JSON needs ?key= — one $9.99 key, forever; fields + stats stay open)",
+        "- GET /api/skills?key=YOUR_KEY[&track=ui|code|verify&fields=id,prompt,checks]",
+        "- GET /api/skill/:id?key=YOUR_KEY[&fields=prompt,checks] (ETag: send If-None-Match → 304)",
+        "- GET /api/install?key=YOUR_KEY (full pack + copy-paste install prompt, idempotent via .agents/ailv.json)",
+        "- GET /api/fields + /api/stats (open: field names, usage counts)",
+        "- GET /board.json?key=YOUR_KEY (full bank, keyed)",
     ]
     lines += [f"- skill {s.id} [{s.track}] {s.tokens}: {s.title}" for s in SKILLS]
     return "\n".join(lines)
@@ -835,6 +861,9 @@ def sitemap() -> Response:
 @app.get("/board.json")
 def board_json(request: Request) -> Response:
     hit("/board.json")
+    digest = _require_key(request)
+    if isinstance(digest, Response):
+        return digest
     return etagged(request, {"ok": True, "count": len(SKILLS), "skills": [s.model_dump() for s in SKILLS]})
 
 
@@ -909,13 +938,9 @@ def signatures_json(request: Request) -> Response:
 @app.get("/api/install")
 def api_install(request: Request) -> Response:
     hit("/api/install")
-    raw = (request.query_params.get("key") or "").strip()
-    if not raw:
-        return JSONResponse({"ok": False, "error": "key required"}, status_code=403)
-    digest = _check_key(raw)
-    if not digest:
-        return JSONResponse({"ok": False, "error": "invalid or revoked key"}, status_code=403)
-    _touch_key(digest)
+    digest = _require_key(request)
+    if isinstance(digest, Response):
+        return digest
     pack = [
         {
             "id": s.id,
@@ -931,7 +956,10 @@ def api_install(request: Request) -> Response:
     return etagged(request, {
         "ok": True,
         "count": len(pack),
+        "version": BANK_VERSION,
+        "marker": ".agents/ailv.json",
         "howto": "Write each item to its file path, then work from local copies and never refetch mid-task.",
+        "prompt": INSTALL_PROMPT.format(count=len(pack), version=BANK_VERSION, pack="the install array in this response"),
         "install": pack,
     })
 
@@ -939,6 +967,9 @@ def api_install(request: Request) -> Response:
 @app.get("/api/skills")
 def api_skills(request: Request, track: str | None = Query(default=None), fields: str | None = None) -> Response:
     hit("/api/skills")
+    digest = _require_key(request)
+    if isinstance(digest, Response):
+        return digest
     bank = [s for s in SKILLS if s.track == track] if track else list(SKILLS)
     return etagged(request, {"ok": True, "count": len(bank), "skills": [pick_fields(s, fields) for s in bank]})
 
@@ -946,6 +977,9 @@ def api_skills(request: Request, track: str | None = Query(default=None), fields
 @app.get("/api/skill/{sid}")
 def api_skill(request: Request, sid: str) -> Response:
     hit("/api/skill/:id", sid)
+    digest = _require_key(request)
+    if isinstance(digest, Response):
+        return digest
     skill = next((s for s in SKILLS if s.id == sid), None)
     if skill is None:
         return JSONResponse({"ok": False, "error": "unknown skill"}, status_code=404)
