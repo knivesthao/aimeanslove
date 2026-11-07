@@ -97,6 +97,7 @@ try:
     assert pack["version"] == "1.0.0" and pack["marker"] == ".agents/ailv.json", "install pins version + marker"
     assert ".agents/ailv.json" in pack["prompt"] and "unification, never duplication" in pack["prompt"], "install prompt reviews existing skills first"
     assert "never refetch mid-task" in pack["prompt"], "install prompt works from local copies"
+    assert "/api/stats" in pack["prompt"], "install prompt checks version before fetching"
     assert "install/receipt" in pack["prompt"], "install prompt reports success back"
     status, _, _ = jpost("/api/install/receipt", {"version": "1.0.0", "installed": ["code-index"], "kept": []})
     assert status == 403, f"receipt locked without key, got {status}"

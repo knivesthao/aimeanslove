@@ -179,6 +179,7 @@ def _record_install(digest: str, iid: str, version: str) -> bool:
 
 INSTALL_PROMPT = (
     "Install the ai (愛) means love skill bank ({count} skills, bank {version}). Fetch {pack}. Then: "
+    '0. Before fetching, GET https://aimeanslove.fyi/api/stats (open, no key) and compare its version to .agents/ailv.json. If equal, stop — you are current, nothing to download. '
     '1. Read .agents/ailv.json if it exists. If its bank equals "{version}", stop — already installed. '
     "2. List skill names already under .agents/skills/*/SKILL.md that the pack also contains. Keep those files; skip those ids — unification, never duplication. "
     "3. Write every other pack item to its file path. "
@@ -305,7 +306,7 @@ def float_pills() -> str:
 
 SUPPORT_DIALOG = """<dialog id="support-dialog" class="rounded-xl border border-solid border-line bg-white p-5 text-left text-ink max-w-[420px] backdrop:bg-ink/60">
 <p class="font-display text-[22px] mb-3">Support the library</p>
-<p class="m-0">Pay once, read forever: one $9.99 key unlocks the bank for your agents — no subscription, no meter. If these skills saved you tokens, chip in when donations open too — every bit keeps the lights on for the next agent. Donations are not open yet — check back soon.</p>
+<p class="m-0">Pay once, read forever: one $9.99 key unlocks the bank for your agents — up to 10 projects, free updates forever, no subscription. If these skills saved you tokens, chip in when donations open too — every bit keeps the lights on for the next agent. Donations are not open yet — check back soon.</p>
 <div class="mt-3 text-right"><button type="button" data-close-support class="cursor-pointer border border-solid border-line bg-white rounded-lg px-3 py-1.5">Close</button></div>
 </dialog>"""
 
@@ -376,7 +377,7 @@ HOME_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">ai
 <p>Have a key? One call installs the whole bank — the agent fetches, writes one file per skill, and works from local copies:</p>
 <pre class="bg-ink text-white rounded-lg p-3.5 text-sm overflow-auto text-left">curl "https://aimeanslove.fyi/api/install?key=YOUR_KEY"</pre>
 <p class="bg-wash rounded-lg p-2.5 text-sm text-left">Copy-paste install prompt — swap in the key, hand the whole block to the agent:</p>
-<pre class="bg-ink text-white rounded-lg p-3.5 text-sm overflow-auto text-left">Install the ai (愛) means love skill bank (102 skills, bank 1.0.0). Fetch https://aimeanslove.fyi/api/install?key=YOUR_KEY. Then: 1. Read .agents/ailv.json if it exists. If its bank equals "1.0.0", stop — already installed. 2. List skill names already under .agents/skills/*/SKILL.md that the pack also contains. Keep those files; skip those ids — unification, never duplication. 3. Write every other pack item to its file path. 4. Write .agents/ailv.json with the bank version, the ids written, and the ids skipped. 5. Work from local copies and never refetch mid-task. 6. Report success: POST {"version": "1.0.0", "installed": [...], "kept": [...]} to https://aimeanslove.fyi/api/install/receipt?key=YOUR_KEY with the same key. If interrupted, re-run from the top — written files are skipped, nothing is lost.</pre>
+<pre class="bg-ink text-white rounded-lg p-3.5 text-sm overflow-auto text-left">Install the ai (愛) means love skill bank (102 skills, bank 1.0.0). Fetch https://aimeanslove.fyi/api/install?key=YOUR_KEY. Then: 0. Before fetching, GET https://aimeanslove.fyi/api/stats (open, no key) and compare its version to .agents/ailv.json. If equal, stop — you are current, nothing to download. 1. Read .agents/ailv.json if it exists. If its bank equals "1.0.0", stop — already installed. 2. List skill names already under .agents/skills/*/SKILL.md that the pack also contains. Keep those files; skip those ids — unification, never duplication. 3. Write every other pack item to its file path. 4. Write .agents/ailv.json with the bank version, the ids written, and the ids skipped. 5. Work from local copies and never refetch mid-task. 6. Report success: POST {"version": "1.0.0", "installed": [...], "kept": [...]} to https://aimeanslove.fyi/api/install/receipt?key=YOUR_KEY with the same key. If interrupted, re-run from the top — written files are skipped, nothing is lost.</pre>
 <p>No key yet? Taste free — every prompt is readable on the <a href="/skills" class="text-accent underline">skills page</a>, and the field list plus usage stats stay open:</p>
 <pre class="bg-ink text-white rounded-lg p-3.5 text-sm overflow-auto text-left">curl https://aimeanslove.fyi/api/fields</pre>
 </section>"""
@@ -1058,7 +1059,7 @@ def api_fields(request: Request) -> Response:
 @app.get("/api/stats")
 def api_stats(request: Request) -> Response:
     hit("/api/stats")
-    return etagged(request, {"ok": True, "stats": STATS})
+    return etagged(request, {"ok": True, "version": BANK_VERSION, "stats": STATS})
 
 
 @app.post("/api/copy")
