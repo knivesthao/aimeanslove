@@ -47,8 +47,12 @@ def main():
     key = load_key()
     pub = key.public_key().public_bytes_raw().hex()
     sigs = {s["id"]: key.sign(canonical(s)).hex() for s in BANK}
+    version = next(
+        (l.split("=", 1)[1].strip().strip("\"'") for l in (ROOT / "server.py").read_text(encoding="utf-8").splitlines() if l.startswith("BANK_VERSION = ")),
+        "1.0.0",
+    )
     OUT.write_text(json.dumps(
-        {"bank_version": "1", "algorithm": "Ed25519", "public_key": pub, "skills": sigs},
+        {"bank_version": version, "algorithm": "Ed25519", "public_key": pub, "skills": sigs},
         indent=2, sort_keys=True,
     ) + "\n")
     print("signed", len(sigs), "skills ->", OUT.name)

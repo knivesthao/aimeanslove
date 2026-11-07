@@ -75,7 +75,7 @@ try:
     status, _, _ = get("/api/skills?key=nope")
     assert status == 403, f"skills locked with bad key, got {status}"
     status, _, body = kget("/api/skills?fields=id")
-    assert status == 200 and len(json.loads(body)["skills"]) == 102, "valid key reads the bank"
+    assert status == 200 and len(json.loads(body)["skills"]) == 103, "valid key reads the bank"
     status, _, _ = get("/board.json")
     assert status == 403, f"board locked without key, got {status}"
 
@@ -91,10 +91,10 @@ try:
     status, _, body = get(f"/api/install?key={TEST_KEY}")
     assert status == 200, f"valid key installs, got {status}"
     pack = json.loads(body)
-    assert pack["count"] == 102 and len(pack["install"]) == 102, "install pack covers the bank"
+    assert pack["count"] == 103 and len(pack["install"]) == 103, "install pack covers the bank"
     first = pack["install"][0]
     assert first["file"].endswith("/SKILL.md") and first["content"].startswith("---"), "install items are writable skill files"
-    assert pack["version"] == "1.0.0" and pack["marker"] == ".agents/ailv.json", "install pins version + marker"
+    assert pack["version"] == "1.0.1" and pack["marker"] == ".agents/ailv.json", "install pins version + marker"
     assert ".agents/ailv.json" in pack["prompt"] and "unification, never duplication" in pack["prompt"], "install prompt reviews existing skills first"
     assert "never refetch mid-task" in pack["prompt"], "install prompt works from local copies"
     assert "/api/stats" in pack["prompt"], "install prompt checks version before fetching"
@@ -148,7 +148,7 @@ try:
     assert os.path.exists(USAGE_FILE), "counts persisted"
     status, _, body = kget("/api/skills?fields=id,why")
     bank = json.loads(body)["skills"]
-    assert len(bank) == 102 and all(s.get("why") for s in bank), "every skill explains why"
+    assert len(bank) == 103 and all(s.get("why") for s in bank), "every skill explains why"
     status, _, body = kget("/api/skills?fields=id,prompt")
     for s in json.loads(body)["skills"]:
         local = ROOT / ".agents" / "skills" / s["id"] / "SKILL.md"
@@ -256,7 +256,7 @@ try:
     _sys.path.insert(0, str(ROOT / "script"))
     import bench
     m = bench.measure()
-    assert m["bank_skills"] == 102, "bench sees the whole bank"
+    assert m["bank_skills"] == 103, "bench sees the whole bank"
     assert all(v["share"] <= 0.20 for v in m["packs"].values()), "typical task packs stay under a fifth of the bank"
     status, _, body = get("/")
     home2 = body.decode()
@@ -328,13 +328,13 @@ try:
     status, _, body = get("/signatures.json")
     assert status == 200, f"signatures served, got {status}"
     sigs = json.loads(body)
-    assert sigs["bank_version"] == "1.0.0" and sigs["algorithm"] == "Ed25519", "signature set versioned and named"
+    assert sigs["bank_version"] == "1.0.1" and sigs["algorithm"] == "Ed25519", "signature set versioned and named"
     status, _, body = get("/releases")
     assert status == 200 and "v1.0.0" in body.decode(), "releases page lists the pinned bank version"
     status, _, body = get("/releases.xml")
     feed = body.decode()
     assert status == 200 and feed.startswith("<?xml") and "<rss" in feed, "release feed is valid RSS"
-    assert feed.count("<item>") == 5, "feed carries every release note"
+    assert feed.count("<item>") == 6, "feed carries every release note"
     assert "One call installs the whole bank" in home2, "install prompt leads with the key flow"
     assert "Taste free" in home2, "free tasting path stays visible"
     from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
@@ -347,7 +347,7 @@ try:
             pub.verify(bytes.fromhex(sigs["skills"][s["id"]]), payload)
         except InvalidSignature:
             raise AssertionError(f"signature mismatch (re-sign the bank): {s['id']}")
-    assert len(sigs["skills"]) == 102, "every skill signed"
+    assert len(sigs["skills"]) == 103, "every skill signed"
     bad = dict(json.loads(body)["skills"][0])
     bad["prompt"] += "tampered"
     payload = json.dumps({k: bad[k] for k in ("id", "prompt", "why", "checks", "tokens")}, sort_keys=True, separators=(",", ":")).encode()
@@ -418,12 +418,12 @@ try:
     assert "code-index" in html and "progressive disclosure" in html, "index skill maps tasks to skills"
     assert "code-ssrf" in html and "code-crypto" in html, "OWASP set renders on page"
     assert all(g in html for g in ("Start here", "Always on", "Security deep-dives", "Verify", "Run well")), "skills page groups skills"
-    assert html.count("data-copy-skill=") == 102, "every skill renders exactly once"
+    assert html.count("data-copy-skill=") == 103, "every skill renders exactly once"
     assert "data-copy-skill" in html, "page has copy buttons"
-    assert html.count("data-trim=") == 102, "every card trimmable"
+    assert html.count("data-trim=") == 103, "every card trimmable"
     assert "data-pack" in html and "copy install pack" in html, "trim pack builder present"
     assert "install only what matches" in html, "page pitches install-matched, not the playbook"
-    assert "One hundred two skills" in html, "skills page states the live count"
+    assert "One hundred three skills" in html, "skills page states the live count"
     assert "nothing orphaned, nothing twice" in html, "skills page states reachability without details"
     assert 'id="q"' not in html and "data-track" not in html, "no filter machinery"
     assert 'href="/about"' in html, "about linked from header and footer"
