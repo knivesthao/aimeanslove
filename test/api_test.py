@@ -75,7 +75,7 @@ try:
     status, _, _ = get("/api/skills?key=nope")
     assert status == 403, f"skills locked with bad key, got {status}"
     status, _, body = kget("/api/skills?fields=id")
-    assert status == 200 and len(json.loads(body)["skills"]) == 103, "valid key reads the bank"
+    assert status == 200 and len(json.loads(body)["skills"]) == 104, "valid key reads the bank"
     status, _, _ = get("/board.json")
     assert status == 403, f"board locked without key, got {status}"
 
@@ -91,10 +91,10 @@ try:
     status, _, body = get(f"/api/install?key={TEST_KEY}")
     assert status == 200, f"valid key installs, got {status}"
     pack = json.loads(body)
-    assert pack["count"] == 103 and len(pack["install"]) == 103, "install pack covers the bank"
+    assert pack["count"] == 104 and len(pack["install"]) == 104, "install pack covers the bank"
     first = pack["install"][0]
     assert first["file"].endswith("/SKILL.md") and first["content"].startswith("---"), "install items are writable skill files"
-    assert pack["version"] == "1.0.1" and pack["marker"] == ".agents/ailv.json", "install pins version + marker"
+    assert pack["version"] == "1.0.0" and pack["marker"] == ".agents/ailv.json", "install pins version + marker"
     assert ".agents/ailv.json" in pack["prompt"] and "unification, never duplication" in pack["prompt"], "install prompt reviews existing skills first"
     assert "never refetch mid-task" in pack["prompt"], "install prompt works from local copies"
     assert "/api/stats" in pack["prompt"], "install prompt checks version before fetching"
@@ -148,7 +148,7 @@ try:
     assert os.path.exists(USAGE_FILE), "counts persisted"
     status, _, body = kget("/api/skills?fields=id,why")
     bank = json.loads(body)["skills"]
-    assert len(bank) == 103 and all(s.get("why") for s in bank), "every skill explains why"
+    assert len(bank) == 104 and all(s.get("why") for s in bank), "every skill explains why"
     status, _, body = kget("/api/skills?fields=id,prompt")
     for s in json.loads(body)["skills"]:
         local = ROOT / ".agents" / "skills" / s["id"] / "SKILL.md"
@@ -256,7 +256,7 @@ try:
     _sys.path.insert(0, str(ROOT / "script"))
     import bench
     m = bench.measure()
-    assert m["bank_skills"] == 103, "bench sees the whole bank"
+    assert m["bank_skills"] == 104, "bench sees the whole bank"
     assert all(v["share"] <= 0.20 for v in m["packs"].values()), "typical task packs stay under a fifth of the bank"
     status, _, body = get("/")
     home2 = body.decode()
@@ -284,13 +284,16 @@ try:
     assert 'href="#content"' in home2 and 'id="content"' in home2, "skip link targets main"
     assert "min-h-[44px]" in home2, "touch targets hit 44px"
     status, _, body = get("/skills")
-    assert status == 200 and 'aria-live="polite"' in body.decode(), "copy feedback announced via live region"
-    assert "max-w-[1200px]" in home2 and "1060" not in home2, "container matches 1200 spec"
+    assert status == 200 and "Get the bank" in body.decode(), "skills page leads with the purchase CTA"
+    assert "max-w-[72ch]" in home2, "one measure column shell site-wide"
     assert "/brand/hero-mark.jpg" in home2, "header carries the brand mark"
     assert "Kaiti" in home2 and "text-accent" in home2, "Love set big in brush script"
-    for leaf in ("/", "/code", "/ui", "/data", "/ops", "/skills", "/about", "/releases"):
+    for leaf in ("/", "/code", "/ui", "/data", "/ops", "/skills", "/about"):
         status, _, body = get(leaf)
         assert status == 200 and "banner-" not in body.decode(), f"{leaf} ships no decorative banner"
+    for leaf in ("/", "/code", "/ui", "/data", "/ops", "/skills", "/about"):
+        status, headers, _ = get(leaf)
+        assert status == 200 and any("text/html" in v for v in headers.values()), f"{leaf} serves HTML, not JSON"
     assert "Keys open soon" in home2, "home is honest the key system is pending"
     status, _, body = get("/ops")
     assert "probabilistic actors" in body.decode(), "ops page names the deterministic-gates architecture"
@@ -328,13 +331,13 @@ try:
     status, _, body = get("/signatures.json")
     assert status == 200, f"signatures served, got {status}"
     sigs = json.loads(body)
-    assert sigs["bank_version"] == "1.0.1" and sigs["algorithm"] == "Ed25519", "signature set versioned and named"
-    status, _, body = get("/releases")
-    assert status == 200 and "v1.0.0" in body.decode(), "releases page lists the pinned bank version"
+    assert sigs["bank_version"] == "1.0.0" and sigs["algorithm"] == "Ed25519", "signature set versioned and named"
+    status, _, body = get("/skills")
+    assert status == 200 and "v1.0.0" in body.decode(), "skills page carries the release notes"
     status, _, body = get("/releases.xml")
     feed = body.decode()
     assert status == 200 and feed.startswith("<?xml") and "<rss" in feed, "release feed is valid RSS"
-    assert feed.count("<item>") == 6, "feed carries every release note"
+    assert feed.count("<item>") == 5, "feed carries every release note"
     assert "One call installs the whole bank" in home2, "install prompt leads with the key flow"
     assert "Taste free" in home2, "free tasting path stays visible"
     from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
@@ -347,7 +350,7 @@ try:
             pub.verify(bytes.fromhex(sigs["skills"][s["id"]]), payload)
         except InvalidSignature:
             raise AssertionError(f"signature mismatch (re-sign the bank): {s['id']}")
-    assert len(sigs["skills"]) == 103, "every skill signed"
+    assert len(sigs["skills"]) == 104, "every skill signed"
     bad = dict(json.loads(body)["skills"][0])
     bad["prompt"] += "tampered"
     payload = json.dumps({k: bad[k] for k in ("id", "prompt", "why", "checks", "tokens")}, sort_keys=True, separators=(",", ":")).encode()
@@ -386,7 +389,7 @@ try:
         if i not in color and i not in index_ids:
             visit(i, [])
     status, _, body = get("/")
-    assert status == 200 and 'id="menubtn"' in body.decode(), "mobile hamburger present"
+    assert status == 200 and 'href="/skills"' in body.decode() and 'href="/about"' in body.decode(), "nav links visible on every breakpoint"
     status, _, _ = get("/skills.json")
     assert status == 404, "slim index endpoint is gone; board.json is the one JSON"
     status, _, body = kget("/api/skills?fields=id,prompt")
@@ -414,17 +417,16 @@ try:
     assert _r.status == 302 and _r.getheader("Location") == "/skills", "/board redirects to /skills"
     _conn.close()
     html = body.decode()
-    assert "code-reuse" in html and "Reuse before you build" in html, "skills page lists skills"
-    assert "code-index" in html and "progressive disclosure" in html, "index skill maps tasks to skills"
-    assert "code-ssrf" in html and "code-crypto" in html, "OWASP set renders on page"
+    assert "progressive disclosure" in html, "skills page explains the fetching model"
+    assert "code for agents to read" in html, "skills page states the philosophy"
     assert all(g in html for g in ("Start here", "Always on", "Security deep-dives", "Verify", "Run well")), "skills page groups skills"
-    assert html.count("data-copy-skill=") == 103, "every skill renders exactly once"
-    assert "data-copy-skill" in html, "page has copy buttons"
-    assert html.count("data-trim=") == 103, "every card trimmable"
-    assert "data-pack" in html and "copy install pack" in html, "trim pack builder present"
+    assert ">3 skills</span>" in html, "skills page states per-section counts"
+    markup = html.split("<script>")[0]
+    assert "data-copy-skill" not in markup and "data-trim=" not in markup, "no per-skill installs leak past the key gate"
+    assert "Create and install a skill named" not in markup, "no skill prompts leak past the key gate"
+    assert "Get the skills" in html and "$9.99" in html, "purchase CTA present"
     assert "install only what matches" in html, "page pitches install-matched, not the playbook"
-    assert "One hundred three skills" in html, "skills page states the live count"
-    assert "nothing orphaned, nothing twice" in html, "skills page states reachability without details"
+    assert "One hundred four skills" in html, "skills page states the live count in words"
     assert 'id="q"' not in html and "data-track" not in html, "no filter machinery"
     assert 'href="/about"' in html, "about linked from header and footer"
     assert "min-h-screen" in html and "flex-1" in html, "flex shell pins footer to the bottom"
@@ -488,7 +490,7 @@ try:
     assert ">Manifesto</a>" not in html, "manifesto link removed from nav"
     assert 'href="/"' in html, "brand links home"
     assert "data-open-support" in html and "support us" in html, "support button opens dialog"
-    assert 'data-dropdown-toggle="mobile-menu"' in html, "menu opens via Flowbite dropdown"
+    assert 'aria-current="page"' in html, "current page marked in visible nav"
     assert "flowbite@2.5.2" in html, "Flowbite pinned"
     status, _, body = get("/")
     home = body.decode()

@@ -230,7 +230,8 @@
     "checks": [
       "palette is 3 colors max",
       "no per-element color decisions",
-      "contrast >= 4.5:1"
+      "contrast >= 4.5:1",
+      "prose lines stay within 45–75 characters"
     ]
   },
   {
@@ -353,14 +354,14 @@
   {
     "id": "ui-nav",
     "track": "ui",
-    "title": "Responsive headers",
+    "title": "Visible headers",
     "tokens": "~210",
-    "why": "Navigation is the first thing a visitor meets; if it overflows on a phone the whole site looks broken.",
-    "prompt": "Create and install a skill named `ui-nav` (Responsive headers). It instructs the agent as follows: Show inline links on wide screens; below about 640px collapse them behind a hamburger button that opens a Flowbite dropdown (data-dropdown-toggle) — the library positions it as an overlay, so the open menu never pushes content down. Use a real nav landmark and a real button with an aria-label; Flowbite flips aria-expanded itself. Put the brand on its own centered row; stack the opened links vertically. No hand-written menu code, keyboard reachable.",
+    "why": "Navigation is the first thing a visitor meets; hidden menus get used about half as often, so links stay visible.",
+    "prompt": "Create and install a skill named `ui-nav` (Visible headers). It instructs the agent as follows: Put the brand on its own centered row with the links in a centered row beneath — always visible, never behind a hamburger; hidden navigation roughly halves discoverability. Use a real nav landmark and mark the current page with aria-current. Links wrap centered on small phones instead of collapsing. No hand-written menu code, keyboard reachable.",
     "checks": [
-      "links fit without wrapping at 360px",
-      "button flips aria-expanded",
-      "keyboard can open and walk the menu"
+      "links visible on every breakpoint",
+      "aria-current marks the page",
+      "rows centered, links wrap at 360px"
     ]
   },
   {
@@ -591,7 +592,7 @@
     "title": "Ops work: pick ops skills",
     "tokens": "~220",
     "why": "Deploys and pages follow the same gates everywhere — map first, improvise never.",
-    "prompt": "Create and install a skill named `ops-index` (Ops work: pick ops skills). It instructs the agent as follows: Your ops skills each do one job — never read them all. Build-test-deploy gates → ops-pipeline. Logs, metrics, traces, paging → ops-observe. Preview envs → ops-preview. Migrations → ops-migrate. Rollouts → ops-rollout. Secrets at runtime → ops-secrets. Backups and restore drills → ops-backup. Infra as code → ops-iac. Autoscaling → ops-scale. Health probes → ops-probes. Rotations and postmortems → ops-oncall. Destructive ops and failing actors → ops-safety. Two or more agents on one deploy or codebase → ops-coordinate. Humans verify the rollout dashboard and the drill record — never the procedure text; agents read the plan ledger and the deploy receipt instead. Skip everything else.",
+    "prompt": "Create and install a skill named `ops-index` (Ops work: pick ops skills). It instructs the agent as follows: Your ops skills each do one job — never read them all. Build-test-deploy gates → ops-pipeline. Logs, metrics, traces, paging → ops-observe. Preview envs → ops-preview. Migrations → ops-migrate. Rollouts → ops-rollout. Secrets at runtime → ops-secrets. Backups and restore drills → ops-backup. Infra as code → ops-iac. Autoscaling → ops-scale. Health probes → ops-probes. Rotations and postmortems → ops-oncall. Destructive ops and failing actors → ops-safety. Cutting a release → ops-release. Two or more agents on one deploy or codebase → ops-coordinate. Humans verify the rollout dashboard and the drill record — never the procedure text; agents read the plan ledger and the deploy receipt instead. Skip everything else.",
     "checks": [
       "only matched ops skills are read",
       "unproven ops work never ships"
@@ -608,6 +609,19 @@
       "one shared template, no hand-rolled pipes",
       "preview envs auto-stop",
       "rollback is one action on an old artifact"
+    ]
+  },
+  {
+    "id": "ops-release",
+    "track": "ops",
+    "title": "Release discipline",
+    "tokens": "~190",
+    "why": "Cutting a release every day trains everyone to ignore releases; batch changes, version once, ship once.",
+    "prompt": "Create and install a skill named `ops-release` (Release discipline). It instructs the agent as follows: Never cut a release per change — batch finished work until there is something worth announcing, then cut exactly one version. Version with major.minor.patch: patch for fixes, minor for new skills or behavior, major for breaking changes to endpoints, prompts, or install flow. Changelog, signatures, feed, and bank version update in the same release, never separately. A second release the same day means the first one was wrong — the only exception is a hotfix for something broken in production. Skip everything else.",
+    "checks": [
+      "one version per release",
+      "changelog, signatures, feed, version move together",
+      "no second release in a day except hotfixes"
     ]
   },
   {

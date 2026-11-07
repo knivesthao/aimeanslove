@@ -55,6 +55,7 @@ tailwind.config = {
 <style type="text/tailwindcss">
 @layer base {
   :focus-visible { @apply outline-2 outline-accent outline-offset-2; }
+  main p, main li { max-width: 72ch; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
@@ -146,7 +147,7 @@ def _require_key(request: Request) -> str | JSONResponse:
     return digest
 
 
-BANK_VERSION = "1.0.1"
+BANK_VERSION = "1.0.0"
 
 # Abuse guard: one key is one seat — a few machines and projects, not the
 # internet. Distinct install_ids per key cap here. Updates reuse a known id and
@@ -223,7 +224,7 @@ def etagged(request: Request, obj: dict) -> Response:
     return JSONResponse(content=obj, headers={"etag": tag, "cache-control": "public, max-age=60"})
 
 
-NAV_LINKS = [("/code", "Coding guide"), ("/ui", "UI guide"), ("/data", "Data guide"), ("/ops", "Ops guide"), ("/skills", "Skills"), ("/releases", "Releases"), ("/about", "About")]
+NAV_LINKS = [("/code", "Coding guide"), ("/ui", "UI guide"), ("/data", "Data guide"), ("/ops", "Ops guide"), ("/skills", "Skills"), ("/about", "About")]
 
 
 def nav_link(href: str, label: str, active: str) -> str:
@@ -240,17 +241,12 @@ def library_uses() -> int:
 
 def nav(active: str) -> str:
     links = "".join(nav_link(href, label, active) for href, label in NAV_LINKS)
-    items = "".join(
-        '<li><a href="' + href + '" class="block px-5 py-2 text-ink no-underline">' + label + "</a></li>"
-        for href, label in NAV_LINKS
-    )
     return (
         '<nav class="topnav sticky top-0 z-10 border-b border-solid border-line" style="background:linear-gradient(rgba(255,255,255,0.92),rgba(255,255,255,0.86)),url(\'/brand/hero-mark.jpg\');background-size:cover;background-position:center;">'
-        '<div class="max-w-[1200px] mx-auto px-4 py-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-2.5 md:gap-x-7 text-center">'
-        '<a href="/" class="font-mono font-bold text-lg md:text-xl flex flex-1 items-center justify-center gap-2 text-ink no-underline">'
+        '<div class="max-w-[72ch] mx-auto px-4 py-3 text-center">'
+        '<a href="/" class="font-mono font-bold text-lg md:text-xl inline-flex items-center justify-center gap-2 text-ink no-underline">'
         '<span>ai (<span class="text-accent" style="font-family:\'Klee One\',\'Hannotate SC\',\'Kaiti SC\',\'STKaiti\',\'KaiTi\',cursive;font-size:1.35em;line-height:1;">愛</span>) means love</span></a>'
-        '<button id="menubtn" type="button" data-dropdown-toggle="mobile-menu" data-dropdown-placement="bottom-end" aria-label="Menu" aria-expanded="false" aria-controls="mobile-menu" class="cursor-pointer border border-solid border-line bg-white rounded-lg min-h-[44px] min-w-[44px] px-3 py-1.5 text-xl leading-none text-ink">☰</button>'
-        '<div id="mobile-menu" class="z-10 hidden bg-white divide-y divide-line rounded-lg border border-solid border-line"><ul class="py-2 text-center" aria-label="Menu">' + items + "</ul></div>"
+        '<div class="mt-1.5 flex flex-wrap items-center justify-center gap-x-5 gap-y-1">' + links + "</div>"
         "</div></nav>"
     )
 
@@ -295,7 +291,7 @@ customElements.define('uses-badge', UsesBadge);"""
 def float_pills() -> str:
     uses = library_uses()
     return (
-        '<div class="mx-auto w-full max-w-[1200px] px-4 pt-3 flex items-center">'
+        '<div class="mx-auto w-full max-w-[72ch] px-4 pt-3 flex items-center">'
         f'<uses-badge start="{uses}"><span data-fallback><a href="/#agent" class="font-mono text-xs bg-accent text-white rounded-full px-2.5 py-0.5 no-underline whitespace-nowrap">{uses} {DOWNLOAD_ICON}</a></span></uses-badge>'
         '<a href="/#support" data-open-support class="font-mono text-xs border border-solid border-accent text-accent rounded-full px-2.5 py-0.5 no-underline ml-auto">support us</a>'
         '<button type="button" data-open-contact class="font-mono text-xs border border-solid border-accent text-accent rounded-full px-2.5 py-0.5 ml-2 bg-transparent cursor-pointer">contact us</button>'
@@ -332,7 +328,7 @@ def page(title: str, desc: str, active: str, body: str, machine: str | None = No
         '<meta name="twitter:card" content="summary_large_image">\n'
         + TAILWIND_HEAD
         + "</head>\n"
-        '<body class="m-0 text-ink bg-paper font-sans flex flex-col min-h-screen">' + '<a href="#content" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:bg-white focus:px-3 focus:py-2 focus:border focus:border-solid focus:border-line">Skip to content</a>' + nav(active) + float_pills() + '\n<main id="content" class="max-w-[1200px] w-full flex-1 mx-auto px-8 pt-8 pb-16 text-left">' + body + "</main>\n"
+        '<body class="m-0 text-ink bg-paper font-sans flex flex-col min-h-screen">' + '<a href="#content" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:bg-white focus:px-3 focus:py-2 focus:border focus:border-solid focus:border-line">Skip to content</a>' + nav(active) + float_pills() + '\n<main id="content" class="max-w-[72ch] w-full flex-1 mx-auto px-8 pt-8 pb-16 text-left">' + body + "</main>\n"
         + FOOTER + SUPPORT_DIALOG + contact_dialog() + "\n<script>" + CLIENT + "</script>\n" + '<script type="module">' + ISLAND_JS + "</script>\n" + tag + "</body></html>"
     )
 
@@ -350,7 +346,7 @@ HOME_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">ai
 <section class="mt-10 border-t-2 border-solid border-ink pt-5 space-y-3">
 <h2 class="font-display text-[22px] mb-3">The old way and the new way</h2>
 <p>Every page on this site makes one argument. The old way optimized for human readers and human operators. The new way — agentic ops — optimizes for agent builders and agent operators, with humans judging only outcomes.</p>
-<div class="grid gap-4 my-6 md:grid-cols-2">
+<div class="grid gap-4 my-6">
 <div class="space-y-2"><h3 class="text-[19px] font-bold">The old way — built for humans</h3><p>Code was written so humans could read and manage it. One big framework did everything: Django, Rails, Laravel — one way of doing things, one manual to read. Interfaces were hand-built, pixel by pixel. Systems shipped by hand: SSH, console clicks, deploys on Fridays nobody fully understood. When things broke, a hero got paged with no notes. Audits were screenshots taken the week before.</p></div>
 <div class="space-y-2"><h3 class="text-[19px] font-bold">The new way — agentic ops</h3><p>AI writes most of the code now, so code is written for agents to read: explicit, grouped by feature, managed through skills and context. The engineer is the driver — they point, the AI builds. Interfaces assemble from stocked pieces, and humans judge the screenshot. Systems ship through gated pipelines the agent runs: previewed, health-checked, reversible with one action. Pages carry runbooks and trigger events, so agents acknowledge and roll back without parsing human text. Evidence collects itself continuously. Humans verify five things: tests pass, the screen looks right, the dashboard is green, the drill record exists, and a named human owns the blast radius — and nothing else.</p></div>
 </div>
@@ -363,20 +359,20 @@ HOME_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">ai
 </section>
 <section class="mt-10 border-t-2 border-solid border-ink pt-5 space-y-3">
 <h2 class="font-display text-[22px] mb-3">Pay once, use forever</h2>
-<p>One $9.99 payment gets you a key to the whole bank — all 103 skills, every future update, no subscription, no meter. One seat covers up to 10 projects with free updates forever — teams buy a key per engineer.</p> A typical task reads about 2.4k tokens instead of the 23.0k bank: pennies per task at current API rates, against a single payment that never renews. Keys open soon — the skill endpoints already check for one, and until checkout opens everything stays readable on the <a href="/skills" class="text-accent underline">skills page</a>.</p>
+<p>One $9.99 payment gets you a key to the whole bank — all 104 skills, every future update, no subscription, no meter. One seat covers up to 10 projects with free updates forever — teams buy a key per engineer.</p> A typical task reads about 2.4k tokens instead of the 23.0k bank: pennies per task at current API rates, against a single payment that never renews. Keys open soon — the skill endpoints already check for one, and until checkout opens everything stays readable on the <a href="/skills" class="text-accent underline">skills page</a>.</p>
 </section>
 <section id="agent" class="mt-10 border-t-2 border-solid border-ink pt-5 space-y-3">
 <h2 class="font-display text-[22px] mb-3">Give this to your agent</h2>
 <p>Have a key? One call installs the whole bank — the agent fetches, writes one file per skill, and works from local copies:</p>
 <pre class="bg-ink text-white rounded-lg p-3.5 text-sm overflow-auto text-left">curl "https://aimeanslove.fyi/api/install?key=YOUR_KEY"</pre>
 <p class="bg-wash rounded-lg p-2.5 text-sm text-left">Copy-paste install prompt — swap in the key, hand the whole block to the agent:</p>
-<pre class="bg-ink text-white rounded-lg p-3.5 text-sm overflow-auto text-left">Install the ai (愛) means love skill bank (103 skills, bank 1.0.1). Fetch https://aimeanslove.fyi/api/install?key=YOUR_KEY. Then: 0. Before fetching, GET https://aimeanslove.fyi/api/stats (open, no key) and compare its version to .agents/ailv.json. If equal, stop — you are current, nothing to download. 1. Read .agents/ailv.json if it exists. If its bank equals "1.0.1", stop — already installed. 2. List skill names already under .agents/skills/*/SKILL.md that the pack also contains. Keep those files; skip those ids — unification, never duplication. 3. Write every other pack item to its file path. 4. Write .agents/ailv.json with the bank version, the ids written, and the ids skipped. 5. Work from local copies and never refetch mid-task. 6. Report success: POST {"version": "1.0.1", "installed": [...], "kept": [...]} to https://aimeanslove.fyi/api/install/receipt?key=YOUR_KEY with the same key. If interrupted, re-run from the top — written files are skipped, nothing is lost.</pre>
+<pre class="bg-ink text-white rounded-lg p-3.5 text-sm overflow-auto text-left">Install the ai (愛) means love skill bank (104 skills, bank 1.0.0). Fetch https://aimeanslove.fyi/api/install?key=YOUR_KEY. Then: 0. Before fetching, GET https://aimeanslove.fyi/api/stats (open, no key) and compare its version to .agents/ailv.json. If equal, stop — you are current, nothing to download. 1. Read .agents/ailv.json if it exists. If its bank equals "1.0.0", stop — already installed. 2. List skill names already under .agents/skills/*/SKILL.md that the pack also contains. Keep those files; skip those ids — unification, never duplication. 3. Write every other pack item to its file path. 4. Write .agents/ailv.json with the bank version, the ids written, and the ids skipped. 5. Work from local copies and never refetch mid-task. 6. Report success: POST {"version": "1.0.0", "installed": [...], "kept": [...]} to https://aimeanslove.fyi/api/install/receipt?key=YOUR_KEY with the same key. If interrupted, re-run from the top — written files are skipped, nothing is lost.</pre>
 <p>No key yet? Taste free — every prompt is readable on the <a href="/skills" class="text-accent underline">skills page</a>, and the field list plus usage stats stay open:</p>
 <pre class="bg-ink text-white rounded-lg p-3.5 text-sm overflow-auto text-left">curl https://aimeanslove.fyi/api/fields</pre>
 </section>"""
 
 UI_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">UI guide</h1><p class="text-[17px] max-w-[72ch]">Goal: an agent builds the drafts fast; a human shapes feel in the middle and confirms at the end. Mobile-first always — 360px first, scale up — unless the task genuinely needs a full monitor. Semantic HTML, tokens not prose, every state visible as text.</p></header>
-<section class="grid gap-4 my-6 md:grid-cols-3">
+<section class="grid gap-4 my-6">
 <div class="border border-solid border-line rounded-xl p-5 bg-white"><h2 class="font-display text-[22px] mb-3">1 · Structure</h2><ul class="text-left space-y-2 list-disc pl-5">
 <li>Semantic landmarks: <code class="font-mono text-[13px]">&lt;header&gt; &lt;main&gt; &lt;footer&gt;</code>, real <code class="font-mono text-[13px]">&lt;button&gt;</code>/<code class="font-mono text-[13px]">&lt;a&gt;</code>/<code class="font-mono text-[13px]">&lt;input&gt;</code> with visible labels. No div-buttons.</li>
 <li>Icon-only controls welcome — but every control exposes metadata: a real element, a label or <code class="font-mono text-[13px]">aria-label</code>, and a <code class="font-mono text-[13px]">data-action</code>. Humans get the pixels; agents read the metadata.</li>
@@ -397,7 +393,7 @@ UI_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">UI g
 <li>Colors must mean what people expect. Green confirms, red destroys or errors, blue informs — matched expectations beat clever recoloring, and even plain grayscale beats illogical color (<a href="https://academicjournals.org/journal/JECI/article-full-text/61BAE8470266" target="_blank" rel="noopener" class="text-accent underline">JECI study</a>). Never subvert these; reserve the accent for brand and calls to action.</li>
 <li>Contrast by ratio: 60-30-10. Roughly 60% neutral background, 30% secondary structure and text, 10% high-contrast accent on interactive elements only — and body text holds 4.5:1 contrast or better. Balanced warm-cool pairings build trust; the ratio is what makes key elements instant to find (<a href="https://journal.pandawan.id/b-front/article/download/1057/775/6397" target="_blank" rel="noopener" class="text-accent underline">B-Front study</a>).</li>
 <li>Color moves money across cultures. About 44% of consumers say the palette influenced a purchase, and blue tests well in every region studied — so the accent earns its keep twice: brand and conversion (<a href="https://doi.org/10.47909/awari.744" target="_blank" rel="noopener" class="text-accent underline">Alotaibi 2025</a>).</li>
-<li>Interactive components come from Flowbite (<a href="https://flowbite.com/" target="_blank" rel="noopener" class="text-accent underline">Flowbite</a>), never hand-built. Flowbite is made for Tailwind and mobile-first, and loads from one CDN script with no build step. Use its data attributes (for example <code class="font-mono text-[13px]">data-dropdown-toggle</code> for the mobile menu) — we lost real time rebuilding a menu by hand and the library version worked the first time.</li>
+<li>Interactive components come from Flowbite (<a href="https://flowbite.com/" target="_blank" rel="noopener" class="text-accent underline">Flowbite</a>), never hand-built. Flowbite is made for Tailwind and mobile-first, and loads from one CDN script with no build step. Nav links stay visible on every breakpoint — hidden menus roughly halve discoverability, so the hamburger stays off. Reach for the library when you need a dropdown, modal, or drawer instead of hand-building one.</li>
 <li>No gradients, no glass blur, no gray-on-gray body text. Contrast ≥ 4.5:1.</li></ul></div>
 <div class="border border-solid border-line rounded-xl p-5 bg-white"><h2 class="font-display text-[22px] mb-3">3 · Behavior</h2><ul class="text-left space-y-2 list-disc pl-5">
 <li>Every mutation exposes <code class="font-mono text-[13px]">idle → working → done | error</code> as text, never color alone.</li>
@@ -428,7 +424,7 @@ UI_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">UI g
 <li><strong>Light DOM, always.</strong> Our islands render into the light DOM (never shadow), so Tailwind utilities and Lucide icons keep working inside them with no shadow styling to fight. HTMX never targets an island or anything inside one — Lit owns its element's children.</li></ul></section>
 <section class="mt-4 bg-wash border border-solid border-line rounded-xl p-5 space-y-3"><h2 class="font-display text-[22px] mb-3">Mobile track — one language to both app stores</h2>
 <p>For app-like mobile builds, the token-densest path is <strong>FastAPI + <a href="https://htmx.org/" target="_blank" rel="noopener" class="text-accent underline">HTMX</a> + Tailwind, wrapped with <a href="https://capacitorjs.com/" target="_blank" rel="noopener" class="text-accent underline">Capacitor</a></strong>. One language (Python) serves logic and layout; almost no JavaScript is written; no Swift, Kotlin, or Dart is touched. Honest version of the pitch: HTMX doesn't delete data-fetching tokens, it moves them — fragments over JSON means no client state to synchronize, and that's where the savings actually come from. Tailwind's edge is correctness speed (models know it cold), not byte count — long class strings cost tokens per element, so keep components small.</p>
-<div class="grid gap-4 my-6 md:grid-cols-3 text-left">
+<div class="grid gap-4 my-6 text-left">
 <div class="space-y-2"><h3 class="text-[19px] font-bold">FastAPI serves HTML</h3><p>Routes return fragments, not JSON. No fetch calls, no serializers, no client router drifting out of sync.</p></div>
 <div class="space-y-2"><h3 class="text-[19px] font-bold">HTMX for interactivity</h3><p><code class="font-mono text-[13px]">hx-get="/profile" hx-target="#content"</code> gives SPA behavior in one attribute. No React, no Vue, no state store. Boundary rule: HTMX swaps page-level regions; Lit owns its element's children — never aim <code class="font-mono text-[13px]">hx-target</code> at or into an island.</p></div>
 <div class="space-y-2"><h3 class="text-[19px] font-bold">Tailwind + Capacitor</h3><p>Responsive layout inline (<code class="font-mono text-[13px]">flex md:flex-row flex-col</code>), no stylesheet context-switching. Capacitor wraps the finished mobile viewport into iOS/Android shells; native features via plugins.</p></div>
@@ -562,17 +558,6 @@ OPS_BODY = ("""<header class="space-y-2"><h1 class="font-display text-[38px]">Op
 )
 
 
-def skill_card(s: Skill) -> str:
-    return (
-        '<article class="skill border border-solid border-line rounded-xl p-4 grid gap-2 text-left"><header class="flex gap-3 items-baseline justify-center flex-wrap min-h-[44px]"><input type="checkbox" data-trim="' + html.escape(s.id) + '" checked class="cursor-pointer w-4 h-4"><span class="font-mono text-xs bg-ink text-white px-2 py-0.5 rounded-full">' + html.escape(s.id) + "</span><strong>"
-        + html.escape(s.title) + '</strong><span class="font-mono text-xs text-accent ml-auto" title="Estimated tokens for an agent to read this skill">' + html.escape(s.tokens) + " tokens</span></header>"
-        + '<p class="m-0 text-sm"><strong>Why:</strong> ' + html.escape(s.why) + "</p>"
-        + '<p class="prompt m-0 bg-wash rounded-lg p-2.5 text-sm text-left">' + html.escape(s.prompt) + "</p>"
-        + '<p class="m-0 text-[13px] text-muted">verify → ' + html.escape(" · ".join(s.checks)) + "</p>"
-        + '<div><button type="button" data-copy-skill="' + html.escape(s.id) + '" aria-live="polite" class="cursor-pointer border border-solid border-line bg-white rounded-lg min-h-[44px] px-3 py-1.5">copy prompt</button></div></article>'
-    )
-
-
 BY_ID = {s.id: s for s in SKILLS}
 
 GROUPS = [
@@ -582,7 +567,7 @@ GROUPS = [
     ("Build interfaces", ["ui-shell", "ui-tokens", "ui-behavior", "ui-framework", "ui-widgets", "ui-platform-picks", "ui-charts", "ui-chart-twin", "ui-nav", "ui-images", "ui-forms", "ui-a11y"]),
     ("Product features", ["app-index", "code-billing", "code-rbac", "code-invites", "code-notify", "code-search", "code-uploads", "code-auditlog", "code-webhooks", "code-apikeys", "code-flags", "code-impexp"]),
     ("Move data", ["data-index", "data-collect", "data-ingest", "data-orchestrate", "data-etl", "data-contracts", "data-model", "data-backfill", "data-cdc", "data-quality", "data-partition", "data-retain", "data-streams", "data-lineage", "data-upserts", "data-concurrency", "data-metrics", "data-pii"]),
-    ("Ship safely", ["ops-index", "ops-pipeline", "ops-observe", "ops-preview", "ops-migrate", "ops-rollout", "ops-secrets", "ops-backup", "ops-iac", "ops-scale", "ops-probes", "ops-oncall", "ops-coordinate", "ops-safety", "sec-index", "sec-vuln", "sec-sso", "sec-scan", "sec-secretscan", "sec-session", "sec-siem", "sec-waf", "sec-anomaly", "sec-runbooks", "sec-patch", "sec-compliance"]),
+    ("Ship safely", ["ops-index", "ops-pipeline", "ops-release", "ops-observe", "ops-preview", "ops-migrate", "ops-rollout", "ops-secrets", "ops-backup", "ops-iac", "ops-scale", "ops-probes", "ops-oncall", "ops-coordinate", "ops-safety", "sec-index", "sec-vuln", "sec-sso", "sec-scan", "sec-secretscan", "sec-session", "sec-siem", "sec-waf", "sec-anomaly", "sec-runbooks", "sec-patch", "sec-compliance"]),
     ("Security deep-dives", ["code-auth", "code-crypto", "code-injection", "code-design", "code-misconfig", "code-deps", "code-integrity", "code-logging", "code-ssrf", "code-ratelimit"]),
     ("Verify", ["verify-tests", "verify-visual", "verify-layout", "verify-benchmark", "verify-debug"]),
     ("Run well", ["code-cache", "code-track", "code-perf", "code-async", "code-fallback"]),
@@ -590,15 +575,14 @@ GROUPS = [
 ]
 
 BOARD_SECTIONS = "".join(
-    '<section class="mt-6"><h2 class="font-display text-[22px] text-left mb-3">' + title + "</h2>"
-    + '<div class="grid gap-3">' + "".join(skill_card(BY_ID[sid]) for sid in ids) + "</div></section>"
+    '<section class="mt-6"><h2 class="font-display text-[22px] text-left mb-3">' + title
+    + f' <span class="font-mono text-xs text-muted">{len(ids)} skills</span></h2></section>'
     for title, ids in GROUPS
 )
 
-BOARD_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">Skills</h1><p>One hundred three skills is far more than any one task needs — and that's the point. Nobody reads them all. Read the <a href="/api/skill/code-index" class="text-accent underline">index skill</a> first, install only the matched skills, and skip the rest: a typical task runs on a handful of matched skills, about a seventh of the bank, instead of the whole bank. Every skill is reachable from the maps and does exactly one job — nothing orphaned, nothing twice, one fetch per session.</p>
-<p>How it works: <strong>1.</strong> the index maps your task to skills; <strong>2.</strong> copy those prompts below, or fetch the pack with your key; <strong>3.</strong> install only what matches and let your agent work. Small skills plus one map keep every session's context small by design. Humans judge two things: tests pass, and it looks right.</p>
-<div class="bg-wash border border-solid border-line rounded-xl p-5 flex flex-wrap items-center gap-3"><p class="m-0 text-sm"><strong>Trim an install pack:</strong> tick only the skills this task needs, then copy them as one pack.</p><div class="flex gap-2"><button type="button" data-pack aria-live="polite" class="cursor-pointer bg-accent text-white rounded-full min-h-[44px] px-4 py-2">copy install pack (<span data-pack-count>103</span>)</button><button type="button" data-pack-all class="cursor-pointer border border-solid border-line bg-white rounded-full min-h-[44px] px-3 py-2">all</button><button type="button" data-pack-none class="cursor-pointer border border-solid border-line bg-white rounded-full min-h-[44px] px-3 py-2">none</button></div></div>
-<p>The token badge on each card is from a test we ran on ourselves — our own payloads, counted — and the whole bank is about 23.0k tokens.</p></header>
+BOARD_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">Skills</h1><p>One hundred four skills is far more than any one task needs — and that's the point. Nobody reads them all. Each skill does exactly one job and carries a why, a measured token badge, and verify checks. They are written for our philosophy — code for agents to read, interfaces for humans to judge — not for human maintainers.</p>
+<p>How it works: <strong>1.</strong> the bank map routes your task to an area; <strong>2.</strong> your agent fetches only the matched skills with its key; <strong>3.</strong> install only what matches and work from local copies. Small skills plus one map keep every session's context small by design — this is progressive disclosure, and the whole bank is about 23.0k tokens against a typical task pack of 2.4k. Humans judge two things: tests pass, and it looks right.</p>
+<div class="bg-ink text-white rounded-xl p-5 text-left"><p class="m-0 font-display text-[22px] mb-3">Get the bank</p><p class="m-0 text-sm">One $9.99 payment, yours forever — up to 10 projects, free updates, no subscription. Your key unlocks the agentic install pack your agent fetches and installs itself.</p><p class="m-0 mt-3"><a href="/#agent" class="inline-block bg-accent text-white rounded-full min-h-[44px] px-5 py-2 no-underline">Get the skills — $9.99 once</a></p></div></header>
 """ + BOARD_SECTIONS
 
 MISSING_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">Nothing here.</h1><p><a href="/" class="text-accent underline">Back home</a> · <a href="/skills" class="text-accent underline">Skills</a></p></header>"""
@@ -706,10 +690,22 @@ def about() -> str:
     return page("About me", "Who runs ai (愛) means love and why it exists.", "/about", ABOUT_BODY)
 
 
+def releases_section() -> str:
+    items = "".join(
+        f"<li><strong>{v} — {d} — {title}.</strong> {notes}</li>" for v, d, title, notes in RELEASES
+    )
+    return (
+        '<section class="mt-10 border-t-2 border-solid border-ink pt-5 space-y-3">'
+        '<h2 class="font-display text-[22px] mb-3">Releases</h2>'
+        '<p class="text-sm max-w-[72ch]">The bank grows in public. Every change ships with notes and a feed — subscribe once, read the diff, update on your schedule. Nothing here changes silently under a pinned install.</p>'
+        f'<ul class="text-left space-y-2 list-disc pl-5">{items}</ul></section>'
+    )
+
+
 @app.get("/skills", response_class=HTMLResponse)
 def skills_page() -> str:
     hit("/skills")
-    return page("Skills", "Read the index, install only the matched skills, skip the rest.", "/skills", BOARD_BODY)
+    return page("Skills", "Read the index, install only the matched skills, skip the rest.", "/skills", BOARD_BODY + releases_section())
 
 
 @app.get("/board", response_class=HTMLResponse)
@@ -851,11 +847,10 @@ def robots() -> str:
 
 
 SITE_URL = "https://aimeanslove.fyi"
-SITEMAP_PAGES = ["/", "/code", "/ui", "/data", "/ops", "/skills", "/releases", "/about"]
+SITEMAP_PAGES = ["/", "/code", "/ui", "/data", "/ops", "/skills", "/about"]
 
 
 RELEASES = [
-    ("v1.0.1", "2026-11-07", "Images earn their place", "ui-images: strategy, placement, budgets. Bank at 103 skills."),
     ("v1.0.0", "2026-11-07", "Signed, leased, measured", "102 skills, every one signed. Lease claims, canary comparator, human-first safety, measured proof section."),
     ("2026-11-07", "2026-11-07", "Test hardening + sourced charts", "Lifecycle coverage tests. ui-chart-twin split. Cleveland-McGill, W3C tables, Vega-Lite twin, all backlinked."),
     ("2026-11-07", "2026-11-07", "Agentic ops", "Data + Ops philosophy guides. ops-coordinate, queryable observe, don't-trust-the-system."),
@@ -864,27 +859,23 @@ RELEASES = [
 ]
 
 
-@app.get("/releases")
-def releases_page(request: Request) -> str:
+@app.get("/releases", response_class=HTMLResponse)
+def releases_page(request: Request) -> Response:
     hit("/releases")
-    items = "".join(
-        f"<li><strong>{v} — {d} — {title}.</strong> {notes}</li>" for v, d, title, notes in RELEASES
-    )
-    return page("Releases", "What changed in the bank, dated.",
-                "/releases", f"""<header class="space-y-2"><h1 class="font-display text-[38px]">Releases</h1><p class="text-[17px] max-w-[72ch]">The bank grows in public. Every change ships with notes and a feed — subscribe once, read the diff, update on your schedule. Nothing here changes silently under a pinned install.</p></header><ul class="text-left space-y-2 list-disc pl-5 mt-4">{items}</ul>""")
+    return RedirectResponse("/skills", status_code=302)
 
 
 @app.get("/releases.xml")
 def releases_feed() -> Response:
     hit("/releases.xml")
     items = "".join(
-        f"<item><title>{v} — {title}</title><link>{SITE_URL}/releases</link>"
+        f"<item><title>{v} — {title}</title><link>{SITE_URL}/skills</link>"
         f"<pubDate>Sat, 07 Nov 2026 00:00:00 +0000</pubDate><description>{notes}</description></item>"
         for v, d, title, notes in RELEASES
     )
     body = ('<?xml version="1.0" encoding="UTF-8"?>'
             '<rss version="2.0"><channel><title>ai (&#24859;) means love — releases</title>'
-            f"<link>{SITE_URL}/releases</link><description>Skill bank release notes.</description>"
+            f"<link>{SITE_URL}/skills</link><description>Skill bank release notes.</description>"
             + items + "</channel></rss>")
     return Response(content=body, media_type="application/rss+xml")
 

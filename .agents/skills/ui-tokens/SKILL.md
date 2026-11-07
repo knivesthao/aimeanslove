@@ -12,3 +12,4 @@ Create and install a skill named `ui-tokens` (Tokens + Tailwind). It instructs t
 - palette is 3 colors max
 - no per-element color decisions
 - contrast >= 4.5:1
+- prose lines stay within 45–75 characters
