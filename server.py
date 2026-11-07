@@ -260,6 +260,7 @@ HOME_BODY = """<header class="space-y-2"><h1 class="font-display text-[38px]">ai
 <section class="mt-10 border-t-2 border-solid border-ink pt-5 space-y-3">
 <h2 class="font-display text-[22px] mb-3">Proof, measured</h2>
 <p>A typical task pack reads about 2.2 to 2.8 thousand tokens — 13 to 17 percent of the 23.0k-token bank — because the agent fetches matched skills only, never the whole bank. Counted by our own self-test (<code class="font-mono text-[13px]">script/bench.py</code>), same method as the card badges. The full with/without trial — matched pack versus whole bank versus no skills, scored on tokens, wall time, and defects — is the <code class="font-mono text-[13px]">verify-benchmark</code> protocol: run it, publish method plus raw numbers, or the claim is marketing.</p>
+<p>First trial, run November 2026: three design tasks (webhook receiver, evolution-proof validation, stateful rollout) × bare versus skill-fed agents. Defects: 0 and 0 on all three — the model already knows industry doctrine, so skills didn't change correctness here. Outputs ran 136–289 tokens in both arms. What the pack arms added was completeness: freshness SLAs, external probes, deploy receipts — house specifics, not textbook recall. The trial that should discriminate is a coordination-heavy build, not doctrine recall; that run is open. Whole-bank arm not run: feeding all 102 skills to test recall nobody disputes would be cost without a question.</p>
 </section>
 <section id="agent" class="mt-10 border-t-2 border-solid border-ink pt-5 space-y-3">
 <h2 class="font-display text-[22px] mb-3">Give this to your agent</h2>
@@ -442,7 +443,8 @@ OPS_BODY = ("""<header class="space-y-2"><h1 class="font-display text-[38px]">Op
 <li><strong>Detect, contain, prove.</strong> Tamper-evident logs with tested integrity, blocking WAF rules tuned to real traffic, retuned anomaly baselines, drilled containment runbooks, fleet-wide patching, and automated compliance evidence. Hardening the code itself follows the OWASP deep-dives; humans verify finding counts and drill logs. See the <code class="font-mono text-[13px]">sec-index</code> skill and the <a href="/skills" class="text-accent underline">Skills page</a>.</li></ul>""") + "\n"
     + details_card("6 · Agents operate together", """<ul class="text-left space-y-2 list-disc pl-5">
 <li><strong>DevOps broke the wall between developers and operators.</strong> One shared pipeline, shared ownership, blameless reviews — so human teams could ship together. It worked, and it has been measured ever since the <a href="https://dora.dev/" target="_blank" rel="noopener" class="text-accent underline">DORA</a> way: speed and stability together.</li>
-<li><strong>Agentic ops breaks the same wall between agents.</strong> One shared plan ledger instead of standups, one feature area per agent instead of merge conflicts, idempotent steps instead of careful handoffs, structured status instead of chat threads. When agents share a deploy, they coordinate through the <code class="font-mono text-[13px]">ops-coordinate</code> skill — humans verify the plan ledger and the deploy receipt, never the chat log.</li></ul>""") + "\n"
+<li><strong>Agentic ops breaks the same wall between agents.</strong> One shared plan ledger instead of standups, one feature area per agent instead of merge conflicts, idempotent steps instead of careful handoffs, structured status instead of chat threads. When agents share a deploy, they coordinate through the <code class="font-mono text-[13px]">ops-coordinate</code> skill — humans verify the plan ledger and the deploy receipt, never the chat log.</li>
+<li><strong>Claims are leases, not intentions.</strong> A task claim goes through the lease endpoint with an agent name and a TTL — a live lease rejects the second claimant, expired leases release on their own. Honor the 409; never work a held task. See the <code class="font-mono text-[13px]">ops-coordinate</code> skill.</li></ul>""") + "\n"
     + """</section>
 """
 )
@@ -716,6 +718,60 @@ def sitemap() -> Response:
 def board_json(request: Request) -> Response:
     hit("/board.json")
     return etagged(request, {"ok": True, "count": len(SKILLS), "skills": [s.model_dump() for s in SKILLS]})
+
+
+CLAIMS: dict[str, dict] = {}
+
+
+def prune_claims() -> None:
+    now = time.time()
+    for task in [t for t, c in CLAIMS.items() if c["expires"] <= now]:
+        del CLAIMS[task]
+
+
+@app.post("/api/plan/claim")
+async def plan_claim(request: Request) -> Response:
+    form = await request.form()
+    task, agent = (form.get("task") or "").strip(), (form.get("agent") or "").strip()
+    try:
+        ttl = min(max(int(form.get("ttl") or 600), 0), 86400)
+    except ValueError:
+        return JSONResponse({"ok": False, "error": "ttl must be seconds"}, status_code=400)
+    if not task or not agent:
+        return JSONResponse({"ok": False, "error": "task and agent required"}, status_code=400)
+    prune_claims()
+    if task in CLAIMS:
+        return JSONResponse({"ok": False, "error": f"held by {CLAIMS[task]['agent']}"}, status_code=409)
+    CLAIMS[task] = {"agent": agent, "expires": time.time() + ttl}
+    return JSONResponse({"ok": True, "task": task, "agent": agent, "ttl": ttl})
+
+
+@app.post("/api/plan/release")
+async def plan_release(request: Request) -> Response:
+    form = await request.form()
+    task, agent = (form.get("task") or "").strip(), (form.get("agent") or "").strip()
+    prune_claims()
+    if task not in CLAIMS:
+        return JSONResponse({"ok": False, "error": "no such claim"}, status_code=404)
+    if CLAIMS[task]["agent"] != agent:
+        return JSONResponse({"ok": False, "error": f"held by {CLAIMS[task]['agent']}"}, status_code=403)
+    del CLAIMS[task]
+    return JSONResponse({"ok": True, "task": task})
+
+
+@app.get("/api/plan/claims")
+def plan_claims() -> Response:
+    prune_claims()
+    return JSONResponse({"ok": True, "claims": [{"task": t, **c} for t, c in CLAIMS.items()]})
+
+
+@app.get("/signatures.json")
+def signatures_json(request: Request) -> Response:
+    hit("/signatures.json")
+    try:
+        return etagged(request, json.loads((ROOT / "signatures.json").read_text(encoding="utf-8")))
+    except OSError:
+        return JSONResponse({"ok": False, "error": "bank not signed yet"}, status_code=503)
 
 
 @app.get("/api/skills")

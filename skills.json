@@ -633,9 +633,9 @@
     "id": "ops-rollout",
     "track": "code",
     "title": "Progressive traffic, predefined rollback",
-    "tokens": "~160",
+    "tokens": "~230",
     "why": "Shipping 100% at once with no rollback trigger turns every bad deploy into a full outage.",
-    "prompt": "Create and install a skill named `ops-rollout` (Progressive traffic, predefined rollback). It instructs the agent as follows: Shift traffic progressively — canary then staged percentages — with health gates promoting each step. Define the rollback trigger before starting; rollback is one action that restores the last good version in minutes. Compare canary metrics against the baseline automatically before each promotion — progressive without comparison is just slow. Roll back stateless, roll forward stateful: data never goes back, only forward with a fix. Never 100% at once outside an emergency; emergencies are declared by a human, and every one gets a postmortem.",
+    "prompt": "Create and install a skill named `ops-rollout` (Progressive traffic, predefined rollback). It instructs the agent as follows: Shift traffic progressively — canary then staged percentages — with health gates promoting each step. Define the rollback trigger before starting; rollback is one action that restores the last good version in minutes. Compare canary metrics against the baseline automatically before each promotion — progressive without comparison is just slow. Roll back stateless, roll forward stateful: data never goes back, only forward with a fix. Never 100% at once outside an emergency; emergencies are declared by a human, and every one gets a postmortem. Compare canary against baseline automatically before each promotion: error rate, p95 latency, and saturation versus the pre-deploy window — halt if errors exceed baseline by more than a point, p95 climbs over twenty percent, or any SLO burns; a halt pages the alert owner with both windows attached, and promotion never resumes without a human.",
     "checks": ["health-gated progressive steps", "rollback trigger predefined", "rollback in minutes"]
   },
   {
@@ -687,9 +687,9 @@
     "id": "ops-coordinate",
     "track": "code",
     "title": "Agents share one plan, own one area",
-    "tokens": "~250",
+    "tokens": "~290",
     "why": "Two agents writing the same deploy step — or stomping each other's files — is the new merge conflict.",
-    "prompt": "Create and install a skill named `ops-coordinate` (Agents share one plan, own one area). It instructs the agent as follows: When two or more agents share one deploy or one codebase, coordinate through artifacts, not chat: one shared plan file is the ledger (see code-plan) — claim a task before starting it, check it off when done, never start an unclaimed task. Own one feature directory per agent so parallel edits never touch the same files; crossing into another agent's area needs a plan note first. Prefer idempotent operations so a retried or doubled step converges instead of corrupting. Report status as structured records (task, result, artifact link), never prose another agent must parse. Humans verify the plan ledger and the deploy receipt — never the chat log. Stay inside scoped credentials: touch only your area's deploy, data, and secrets — IAM, DNS, billing, prod data, and root credentials are never in reach (see ops-safety for the full blast-radius rules).",
+    "prompt": "Create and install a skill named `ops-coordinate` (Agents share one plan, own one area). It instructs the agent as follows: When two or more agents share one deploy or one codebase, coordinate through artifacts, not chat: one shared plan file is the ledger (see code-plan) — claim a task before starting it, check it off when done, never start an unclaimed task. Claim through the lease endpoint (POST /api/plan/claim with task, agent, ttl) — a live lease rejects second claims with 409, expired leases release automatically; honor the rejection, never work a held task. Own one feature directory per agent so parallel edits never touch the same files; crossing into another agent's area needs a plan note first. Prefer idempotent operations so a retried or doubled step converges instead of corrupting. Report status as structured records (task, result, artifact link), never prose another agent must parse. Humans verify the plan ledger and the deploy receipt — never the chat log. Stay inside scoped credentials: touch only your area's deploy, data, and secrets — IAM, DNS, billing, prod data, and root credentials are never in reach (see ops-safety for the full blast-radius rules).",
     "checks": ["one shared plan ledger, tasks claimed", "one feature dir per agent", "status as records, not prose"]
   },
   {

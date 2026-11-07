@@ -193,6 +193,8 @@ try:
     assert "owns the blast radius" in home2, "home names the fifth verdict"
     assert "13 to 17 percent" in home2, "home proof cites measured pack share"
     assert "verify-benchmark" in home2, "home proof names the trial protocol"
+    assert "What the pack arms added was completeness" in home2, "home proof reports the trial honestly"
+    assert "coordination-heavy build" in home2, "home proof names the discriminating follow-up"
     status, _, body = get("/ops")
     assert "probabilistic actors" in body.decode(), "ops page names the deterministic-gates architecture"
     status, _, body = get("/data")
@@ -207,6 +209,49 @@ try:
     assert "modelcontextprotocol.io" in ops, "ops page backlinks the MCP source"
     assert "Don&#x27;t trust the system" in ops or "Don't trust the system" in ops, "ops page states the verify principle"
     assert "ops-coordinate" in ops, "ops page names the coordination skill"
+    assert "lease endpoint" in ops, "ops page states claims are leases"
+    status, _, rb = get("/api/skill/ops-coordinate?fields=prompt")
+    assert "409" in json.loads(rb)["skill"]["prompt"], "coordination honors the lease rejection"
+    status, _, rb = get("/api/skill/ops-rollout?fields=prompt")
+    assert "halt if errors exceed baseline" in json.loads(rb)["skill"]["prompt"], "rollout comparator halts on regression"
+    status, _, body = post("/api/plan/claim", {"task": "t1", "agent": "a1", "ttl": "60"})
+    assert status == 200, f"first claim wins, got {status}"
+    status, _, body = post("/api/plan/claim", {"task": "t1", "agent": "a2"})
+    assert status == 409 and "a1" in body.decode(), "second claim rejected naming the holder"
+    status, _, body = post("/api/plan/release", {"task": "t1", "agent": "a2"})
+    assert status == 403, f"only the holder releases, got {status}"
+    status, _, body = post("/api/plan/release", {"task": "t1", "agent": "a1"})
+    assert status == 200, f"holder releases, got {status}"
+    status, _, body = post("/api/plan/claim", {"task": "t2", "agent": "a1", "ttl": "0"})
+    assert status == 200, f"zero-ttl claim lands, got {status}"
+    status, _, body = post("/api/plan/claim", {"task": "t2", "agent": "a2"})
+    assert status == 200, f"expired lease is reclaimable, got {status}"
+    status, _, body = get("/api/plan/claims")
+    assert "t2" in body.decode(), "claims list visible"
+    status, _, body = get("/signatures.json")
+    assert status == 200, f"signatures served, got {status}"
+    sigs = json.loads(body)
+    assert sigs["bank_version"] == "1" and sigs["algorithm"] == "Ed25519", "signature set versioned and named"
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+    from cryptography.exceptions import InvalidSignature
+    pub = Ed25519PublicKey.from_public_bytes(bytes.fromhex(sigs["public_key"]))
+    status, _, body = get("/api/skills?fields=id,prompt,why,checks,tokens")
+    for s in json.loads(body)["skills"]:
+        payload = json.dumps({k: s[k] for k in ("id", "prompt", "why", "checks", "tokens")}, sort_keys=True, separators=(",", ":")).encode()
+        try:
+            pub.verify(bytes.fromhex(sigs["skills"][s["id"]]), payload)
+        except InvalidSignature:
+            raise AssertionError(f"signature mismatch (re-sign the bank): {s['id']}")
+    assert len(sigs["skills"]) == 102, "every skill signed"
+    bad = dict(json.loads(body)["skills"][0])
+    bad["prompt"] += "tampered"
+    payload = json.dumps({k: bad[k] for k in ("id", "prompt", "why", "checks", "tokens")}, sort_keys=True, separators=(",", ":")).encode()
+    try:
+        pub.verify(bytes.fromhex(sigs["skills"][bad["id"]]), payload)
+        raise SystemExit("tampered skill verified — fail closed broken")
+    except InvalidSignature:
+        pass
+    assert "signature" in json.loads(rb := get("/api/skill/code-lifecycle?fields=prompt")[2])["skill"]["prompt"], "lifecycle skill verifies signatures"
     status, _, body = get("/api/skill/ops-pipeline?fields=prompt")
     assert "trigger events" in json.loads(body)["skill"]["prompt"], "deploys broadcast machine triggers"
     status, _, body = get("/api/skill/ui-seo?fields=prompt")
